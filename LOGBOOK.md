@@ -36,6 +36,11 @@ depthwise-separable 1D CNN, no tuning: **test accuracy 91.51%, macro-F1
 suggests the schedule (lr 3e-3, cosine) peaks too fast; not tuning further by
 hand — that is the NAS's job.
 
+**Regression baselines (same untuned DSCNN).** LCL: test RMSE 0.459 s / MAE
+0.333 s (SOTA 0.44). LCR: test RMSE 0.439 s / MAE 0.318 s (SOTA 0.42). Both
+within ~0.02 s of the published numbers with zero tuning — the search has a
+realistic shot at passing them while shrinking the model.
+
 **Next.** Digest research notes (SOTA paper details, µNAS method, STM32
 toolchain, venue choice) → design the constrained search space + evolution
 loop → regression baselines.
