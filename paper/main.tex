@@ -36,14 +36,17 @@ University of Genoa, Genoa, Italy.}%
 Predicting a driver's lane-change intention early enough to act on it is a
 time-series classification problem with hard deployment limits: the model has
 to run on automotive-grade microcontrollers within tight memory and latency
-budgets. We apply constrained neural architecture search to the DIMIR driving
-dataset (windows of 50 samples over 31 signals) and obtain compact one-dimen-
+budgets. We apply constrained neural architecture search to the Lane Change
+Intention Recognition driving dataset \cite{lcdataset} (windows of 50 samples
+over 31 signals) and obtain compact one-dimen-
 sional convolutional networks for three tasks: three-class intention
 classification and time-to-lane-change regression for left and right
 maneuvers. \todo{results: accuracy, RMSE, model size, latency on STM32}
-The searched models improve on the published baseline (92\% accuracy,
-0.42~s/0.44~s RMSE) while using \todo{X}$\times$ less memory, and we report
-measured, not estimated, footprint and latency on an STM32 target.
+The searched models improve on the published baseline (Transformer,
+0.51~s time-to-lane-change RMSE, deployed in FP32 \cite{lcintention2026})
+while using \todo{X}$\times$ less memory, and we report measured, not
+estimated, footprint and latency on the same STM32 targets after int8
+quantization.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -68,18 +71,21 @@ Contributions:
 
 \section{Related Work}
 \subsection{Lane-change intention prediction}
-\todo{DIMIR dataset and the LC-Intention framework baseline
-\cite{lcintention2025}; earlier intention-prediction work; what metrics they
-report.}
+\todo{The LC dataset and framework baseline \cite{lcintention2026} (TTLC
+regression, Transformer RMSE 0.51~s, FP32 deployment on STM32H7B3/F401);
+earlier HighD-based TTLC work (RMSE 0.63--0.7); MicroNAS for time series and
+TinyTNAS as closest NAS relatives.}
 
 \subsection{Constrained architecture search for microcontrollers}
 \todo{muNAS \cite{liberis2021munas}, MCUNet/TinyNAS, MicroNets; what transfers
 to 1D time series and what does not.}
 
 \section{Data}
-The prepared DIMIR release contains fixed windows of $T{=}50$ samples over
-$F{=}31$ channels \todo{channel semantics and sampling rate from the data
-provider}. Classification uses balanced splits of 94{,}620 / 16{,}332 /
+We use the Lane Change Intention Recognition dataset \cite{lcdataset}
+(50 human drivers in the CARLA simulator, 10~Hz, over 3{,}400 annotated lane
+changes; MIT license), prepared as fixed windows of $T{=}50$ samples
+(5~s) over $F{=}31$ channels \todo{confirm channel order and whether channel
+31 is fileTime — drop it if so; official feature count is 30}. Classification uses balanced splits of 94{,}620 / 16{,}332 /
 19{,}722 windows (train/val/test) over three classes: no intention, right
 lane change, left lane change. The regression tasks map a window to the time
 until the lane change, $t \in [0, 4]$~s discretized at $0.1$~s, with
@@ -109,15 +115,20 @@ logged to the released experiments.jsonl.}
 
 \subsection{Results}
 \begin{table}[t]
-\caption{Test-set comparison against the published baseline.
-\todo{fill from logs/experiments.jsonl; add model size and MACs columns.}}
+\caption{Test-set comparison. The published baseline \cite{lcintention2026}
+reports a single time-to-lane-change regression (RMSE 0.51~s, Transformer);
+the three-task formulation numbers are internal reference results on the same
+prepared data. \todo{fill our rows from logs/experiments.jsonl; add params,
+flash, RAM, MACs columns; confirm internal-baseline provenance with the
+team.}}
 \centering
 \begin{tabular}{lccc}
 \toprule
 Model & Acc.\ (\%) & RMSE LCR (s) & RMSE LCL (s) \\
 \midrule
-Baseline \cite{lcintention2025} & 92.0 & 0.42 & 0.44 \\
-Ours (searched)                 & \todo{} & \todo{} & \todo{} \\
+Internal reference (unpublished)      & 92.0 & 0.42 & 0.44 \\
+Published Transformer \cite{lcintention2026} & --- & \multicolumn{2}{c}{0.51 (single TTLC)} \\
+Ours (searched)                       & \todo{} & \todo{} & \todo{} \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -132,12 +143,15 @@ numbers if published.}
 
 \bibliographystyle{IEEEtran}
 \begin{thebibliography}{9}
-\bibitem{lcintention2025} \todo{full citation of
-ieeexplore.ieee.org/document/11271346}
+\bibitem{lcintention2026} L.~Forneris \emph{et al.}, ``A deployment-oriented
+simulation framework for deep learning-based lane change prediction,''
+\emph{IEEE Signal Process.\ Lett.}, vol.~33, pp.~136--140, 2026,
+doi: 10.1109/LSP.2025.3638676.
 \bibitem{liberis2021munas} E.~Liberis, {\L}.~Dudziak, and N.~D.~Lane,
 ``$\mu$NAS: Constrained neural architecture search for microcontrollers,'' in
 \emph{Proc.\ 1st Workshop Mach.\ Learn.\ Syst.\ (EuroMLSys)}, 2021, pp. 70--79.
-\bibitem{dimir} \todo{canonical DIMIR dataset citation}
+\bibitem{lcdataset} L.~Forneris \emph{et al.}, ``Lane change intention
+recognition dataset,'' Zenodo, 2025, doi: 10.5281/zenodo.16686054.
 \end{thebibliography}
 
 \end{document}

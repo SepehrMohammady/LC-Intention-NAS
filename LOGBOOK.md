@@ -41,6 +41,36 @@ hand — that is the NAS's job.
 within ~0.02 s of the published numbers with zero tuning — the search has a
 realistic shot at passing them while shrinking the model.
 
-**Next.** Digest research notes (SOTA paper details, µNAS method, STM32
-toolchain, venue choice) → design the constrained search space + evolution
-loop → regression baselines.
+**Research sweep (6 parallel agents; notes in docs/research/).** Key
+corrections and facts:
+
+1. *The published baseline is not what we assumed.* Forneris et al., IEEE SPL
+   vol. 33, 2026 (DOI 10.1109/LSP.2025.3638676) reports a single
+   time-to-lane-change regression — Transformer RMSE **0.5102 s** (~54k
+   params) — and FP32-only deployment on STM32H7B3/F401. It publishes no
+   3-class accuracy and no per-direction RMSE. The 92% / 0.42 / 0.44 numbers
+   from the team are internal, unpublished results on our prepared pickles.
+   Both now tracked separately in paper/NOTES.md.
+2. *"DIMIR" is an internal name.* The data is the "Lane Change Intention
+   Recognition Dataset" (Zenodo 10.5281/zenodo.16686054, MIT, CARLA, 50
+   drivers, 10 Hz; precursor acronym DMIR, ApplePies 2024). Official split is
+   driver-wise; whether our pickles follow it is an open (blocking) question.
+   The 31st channel is probably fileTime (official count: 30 features) —
+   must confirm and drop.
+3. *µNAS method mapped* (aging evolution, morphisms, 4-objective random
+   scalarisation over acc/RAM/flash/MACs; MACs↔latency R²=0.975 on STM32).
+   Official repo is TF2.3, 2D-only, unlicensed → we implement a 1D PyTorch
+   version. Closest related work to differentiate from: MicroNAS for time
+   series (Sci. Reports 2025) and TinyTNAS.
+4. *STM32 toolchain*: ST Edge AI Core 2.2 (`stedgeai`) accepts int8 QDQ ONNX
+   (quantize via onnxruntime `quantize_static`); `analyze` gives flash/RAM/
+   MACC offline → usable inside the NAS constraint evaluator; real latency
+   free via ST Edge AI Developer Cloud board farm. Plan: mirror the baseline
+   boards (H7B3 + F401).
+5. *Venue*: SPL is Q1 but caps at 4 pages + references; IEEE IoT Journal
+   (IF 8.7, 8 pages, ~7-week first decision) recommended as primary
+   alternative. Decision deferred to supervisor discussion.
+
+**Next.** Colleague answers on split/column order → drop fileTime if
+confirmed → design 1D search space + aging-evolution loop with stedgeai-based
+constraint evaluation → NAS smoke run.

@@ -1,23 +1,26 @@
 # Paper working notes
 
-Target: Q1 venue, first candidate IEEE Signal Processing Letters (final choice
-pending the venue research in `docs/research/`).
+Target: Q1 venue. SPL vs IEEE IoT Journal analysis in
+`docs/research/venue-choice.md` — decision pending with supervisor; drafting
+at SPL length discipline until then.
 
-## Baseline to beat (published SOTA)
+## Baselines to beat (corrected 2026-07-07 — see docs/research/sota-baseline.md)
 
-Source: ELIOS lab LC-Intention framework
-(https://elios-lab.github.io/LC-Intention-Framework/,
-https://ieeexplore.ieee.org/document/11271346).
+**Published** (Forneris et al., IEEE SPL vol. 33, pp. 136–140, 2026,
+DOI 10.1109/LSP.2025.3638676): single TTLC regression only —
+Transformer **RMSE 0.5102 s** (~54k params), 1DCNN 0.5746 (24.4k params);
+FP32 deployment on STM32H7B3 + F401, no quantization. The paper does NOT
+publish 3-class accuracy or per-direction RMSE.
 
-| Task | Metric | SOTA |
-|---|---|---|
-| 3-class intention (none / LCR / LCL) | accuracy | 92% |
-| Time-to-LC regression, LCR | RMSE | 0.42 s |
-| Time-to-LC regression, LCL | RMSE | 0.44 s |
+**Internal, unpublished** (colleague's results on our prepared pickles):
+92% accuracy (3-class), 0.42 s RMSE (LCR), 0.44 s RMSE (LCL). Cite as
+internal reference only after confirming provenance (model? split?).
 
-TO-DO: pull the full metric set (F1, per-class, model size, latency, MCU
-metrics if any) from the paper once the research notes land — every claim in
-our comparison table needs a checked source.
+Our first untuned DSCNN (logged 2026-07-07): 91.5% / 0.439 / 0.459.
+
+⛔ Comparability check pending: are the pickles split driver-wise like the
+published protocol (val users {5,8,10,12,16,19,27}, test {2,7,13,18,25,31,36})?
+If not, our numbers cannot be compared to the published 0.5102.
 
 ## Contribution sketch (draft, revise as results arrive)
 
@@ -35,9 +38,17 @@ articles the team shared). Run every draft section against it.
 
 ## Open TO-DOs (blocking items marked ⛔)
 
-- [ ] ⛔ Feature names/meaning for the 31 channels (needed for Section II).
-- [ ] ⛔ DIMIR canonical citation.
-- [ ] Baseline paper full details (architecture, params, deployment metrics).
-- [ ] SYNERGIES project acknowledgment text + grant number.
-- [ ] Target MCU part number and budget (flash/RAM) — affects NAS constraints.
-- [ ] Split protocol (driver-wise vs random) for the leakage discussion.
+- [x] Dataset citation: Zenodo DOI 10.5281/zenodo.16686054 (MIT). "DIMIR" is
+      an internal name; published acronym DMIR (ApplePies 2024 precursor).
+- [x] Baseline paper details: docs/research/sota-baseline.md.
+- [ ] ⛔ Confirm pickle column order; drop fileTime if it is channel 31.
+- [ ] ⛔ Confirm pickle split is driver-wise (comparability + leakage).
+- [ ] ⛔ Provenance of internal 92% / 0.42 / 0.44 results (model, protocol).
+- [ ] Baseline Table III exact H7B3 values (rasterized image — needs
+      institutional access to the PDF).
+- [ ] SYNERGIES project acknowledgment text + grant number (baseline paper
+      acknowledges Hi-Drive 101006664 — ours differs).
+- [ ] Target MCU confirmation: proposal = same boards as baseline
+      (STM32H7B3 high-end, STM32F401 low-end).
+- [ ] Venue decision: SPL (4 pages, head-to-head story) vs IoT-J (8 pages,
+      IF 8.7) — discuss with supervisor.
