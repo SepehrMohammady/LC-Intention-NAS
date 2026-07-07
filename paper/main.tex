@@ -1,0 +1,143 @@
+% DIMIR x microNAS — working draft
+% Target: IEEE Signal Processing Letters (IEEEtran journal mode).
+% Rules for this file:
+%   * every number must come from logs/experiments.jsonl or a cited source;
+%   * placeholders are \todo{...} — none may survive to submission;
+%   * check prose against paper/STYLE.md before committing.
+\documentclass[journal]{IEEEtran}
+
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{xcolor}
+
+\newcommand{\todo}[1]{\textcolor{red}{[TODO: #1]}}
+
+\begin{document}
+
+\title{Hardware-Constrained Architecture Search for Lane-Change Intention
+Prediction from Vehicle Time Series}
+% Alternative titles, pick later:
+% - Microcontroller-Ready Lane-Change Intention Prediction via Constrained NAS
+% - Searching Small: NAS under MCU Budgets for Driving Intention Time Series
+
+\author{Mojtaba~Alehoseini,
+        \todo{co-authors, order},
+        \todo{supervisor}%
+\thanks{The authors are with the ELIOS Lab, Department of Electrical,
+Electronic and Telecommunications Engineering and Naval Architecture (DITEN),
+University of Genoa, Genoa, Italy.}%
+\thanks{This work was supported by the SYNERGIES project
+\todo{grant number and official acknowledgment text}.}}
+
+\maketitle
+
+\begin{abstract}
+Predicting a driver's lane-change intention early enough to act on it is a
+time-series classification problem with hard deployment limits: the model has
+to run on automotive-grade microcontrollers within tight memory and latency
+budgets. We apply constrained neural architecture search to the DIMIR driving
+dataset (windows of 50 samples over 31 signals) and obtain compact one-dimen-
+sional convolutional networks for three tasks: three-class intention
+classification and time-to-lane-change regression for left and right
+maneuvers. \todo{results: accuracy, RMSE, model size, latency on STM32}
+The searched models improve on the published baseline (92\% accuracy,
+0.42~s/0.44~s RMSE) while using \todo{X}$\times$ less memory, and we report
+measured, not estimated, footprint and latency on an STM32 target.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Neural architecture search, lane-change intention, time-series classification,
+TinyML, embedded inference, STM32.
+\end{IEEEkeywords}
+
+\section{Introduction}
+\todo{Motivation: intention prediction as advance warning for ADAS; why
+on-device inference (latency, privacy, cost, no connectivity assumptions);
+the gap: published DIMIR models target accuracy, not deployment budgets.}
+
+Contributions:
+\begin{enumerate}
+  \item a constrained search space and objective tuned to one-dimensional
+        driving signals under microcontroller budgets;
+  \item models that beat the published DIMIR baseline on all three tasks at a
+        fraction of its footprint \todo{verify once results exist};
+  \item measured deployment numbers (flash, RAM, latency) on
+        \todo{STM32 part}, with the full pipeline released as open source.
+\end{enumerate}
+
+\section{Related Work}
+\subsection{Lane-change intention prediction}
+\todo{DIMIR dataset and the LC-Intention framework baseline
+\cite{lcintention2025}; earlier intention-prediction work; what metrics they
+report.}
+
+\subsection{Constrained architecture search for microcontrollers}
+\todo{muNAS \cite{liberis2021munas}, MCUNet/TinyNAS, MicroNets; what transfers
+to 1D time series and what does not.}
+
+\section{Data}
+The prepared DIMIR release contains fixed windows of $T{=}50$ samples over
+$F{=}31$ channels \todo{channel semantics and sampling rate from the data
+provider}. Classification uses balanced splits of 94{,}620 / 16{,}332 /
+19{,}722 windows (train/val/test) over three classes: no intention, right
+lane change, left lane change. The regression tasks map a window to the time
+until the lane change, $t \in [0, 4]$~s discretized at $0.1$~s, with
+39{,}313 / 7{,}742 / 8{,}097 (LCL) and 33{,}201 / 5{,}828 / 7{,}073 (LCR)
+windows.
+
+The test splits contain isolated spikes (up to $5\times10^{6}$) on two channel
+pairs that never appear in training; we clip validation and test features to
+the per-channel training range and leave training data untouched.
+\todo{confirm the spike origin with the data provider; state how the baseline
+handled them.}
+
+\section{Method}
+\subsection{Search space}
+\todo{1D cells: depthwise-separable and standard convolutions, kernel sizes,
+widths, depth, pooling; operator set restricted to what the ST Edge AI
+compiler maps efficiently.}
+
+\subsection{Constraints and search algorithm}
+\todo{peak RAM, flash after int8 quantization, MACs; aging evolution with
+constraint handling; search cost budget.}
+
+\section{Experiments}
+\subsection{Setup}
+\todo{training schedule, hardware, seeds/repeats, hyperparameters; all runs
+logged to the released experiments.jsonl.}
+
+\subsection{Results}
+\begin{table}[t]
+\caption{Test-set comparison against the published baseline.
+\todo{fill from logs/experiments.jsonl; add model size and MACs columns.}}
+\centering
+\begin{tabular}{lccc}
+\toprule
+Model & Acc.\ (\%) & RMSE LCR (s) & RMSE LCL (s) \\
+\midrule
+Baseline \cite{lcintention2025} & 92.0 & 0.42 & 0.44 \\
+Ours (searched)                 & \todo{} & \todo{} & \todo{} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Deployment on STM32}
+\todo{part number, toolchain version, int8 quantization accuracy drop, flash /
+RAM / latency measured on device, comparison with the baseline's deployment
+numbers if published.}
+
+\section{Conclusion}
+\todo{two or three sentences; no new claims.}
+
+\bibliographystyle{IEEEtran}
+\begin{thebibliography}{9}
+\bibitem{lcintention2025} \todo{full citation of
+ieeexplore.ieee.org/document/11271346}
+\bibitem{liberis2021munas} E.~Liberis, {\L}.~Dudziak, and N.~D.~Lane,
+``$\mu$NAS: Constrained neural architecture search for microcontrollers,'' in
+\emph{Proc.\ 1st Workshop Mach.\ Learn.\ Syst.\ (EuroMLSys)}, 2021, pp. 70--79.
+\bibitem{dimir} \todo{canonical DIMIR dataset citation}
+\end{thebibliography}
+
+\end{document}
