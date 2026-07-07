@@ -21,7 +21,7 @@ Prediction from Vehicle Time Series}
 % - Microcontroller-Ready Lane-Change Intention Prediction via Constrained NAS
 % - Searching Small: NAS under MCU Budgets for Driving Intention Time Series
 
-\author{Mojtaba~Alehoseini,
+\author{Sepehr~Mohammady,
         \todo{co-authors, order},
         \todo{supervisor}%
 \thanks{The authors are with the ELIOS Lab, Department of Electrical,
@@ -134,9 +134,11 @@ Ours (searched)                       & \todo{} & \todo{} & \todo{} \\
 \end{table}
 
 \subsection{Deployment on STM32}
-\todo{part number, toolchain version, int8 quantization accuracy drop, flash /
-RAM / latency measured on device, comparison with the baseline's deployment
-numbers if published.}
+Target platform: STM32H7B3I-DK discovery kit (Cortex-M7 at 280~MHz, 1.4~MB
+SRAM, 2~MB flash) — the same MCU family used by the baseline framework
+\cite{lcintention2026}, which deployed FP32 models only.
+\todo{toolchain version, int8 quantization accuracy drop, flash / RAM /
+latency measured on device, comparison with the baseline's Table III.}
 
 \section{Conclusion}
 \todo{two or three sentences; no new claims.}

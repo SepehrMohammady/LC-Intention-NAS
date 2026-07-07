@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>درس ۰۱ — مسئله | LC-Intention-NAS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/course.css">
+<script src="assets/course.js" defer></script>
+</head>
+<body>
+<div class="topbar">
+  <a class="home" href="index.html">↪ فهرست دوره</a>
+  <div class="spacer"></div>
+  <button class="theme-toggle" onclick="toggleTheme()">🌗 روشن/تاریک</button>
+</div>
+<main>
+  <p class="kicker">درس ۰۱</p>
+  <h1>مسئله: ماشین از کجا بفهمد راننده می‌خواهد خط عوض کند؟ 🚗</h1>
+  <p class="lede">راننده قبل از تغییر خط، ردپاهای کوچکی در سیگنال‌های ماشین به‌جا می‌گذارد — کار ما پیدا کردن همین ردپاهاست، چند ثانیه قبل از خودِ حرکت.</p>
+
+  <div class="card callout story">
+    <p class="card-title">قصه 📖</p>
+    <p>وقتی کسی می‌خواهد در خیابان خط عوض کند، قبل از حرکتِ اصلی کلی نشانهٔ کوچک از خودش
+    بروز می‌دهد: فرمان را ذره‌ذره می‌چرخاند، سرعتش را تنظیم می‌کند، به آینه نگاه می‌کند،
+    به ماشین جلویی نزدیک‌تر یا دورتر می‌شود. آدم‌ها این نشانه‌ها را ناخودآگاه می‌فهمند —
+    مثلاً وقتی موتورسواری کنارت ویراژ می‌دهد، «حس می‌کنی» الان می‌پیچد،
+    بدون اینکه بتوانی دقیق بگویی از کجا فهمیدی.</p>
+    <p>سؤال این پروژه: آیا یک برنامهٔ کامپیوتری هم می‌تواند با دیدن همین نشانه‌ها،
+    <b>چند ثانیه قبل</b> از تغییر خط، آن را پیش‌بینی کند؟ اگر بتواند، ماشین فرصت دارد
+    هشدار بدهد یا خودش را آماده کند — و همین چند ثانیه می‌تواند خیلی ارزشمند باشد.</p>
+  </div>
+
+  <h2>دقیق‌تر 🔬</h2>
+  <p>ماشین‌های امروزی پر از سنسور هستند؛ ده‌ها سیگنال در هر لحظه ثبت می‌شود:
+  سرعت، زاویهٔ فرمان، فاصله تا خطِ خط‌کشی، فاصله تا ماشین‌های اطراف و … .
+  این سیگنال‌ها روی هم یک <b><span class="en">multivariate time series</span></b> می‌سازند:
+  چند سیگنال موازی که همه با زمان تغییر می‌کنند — چیزی شبیه چند نوار قلب که کنار هم
+  و هم‌زمان ثبت می‌شوند و هر کدام قصهٔ خودشان را تعریف می‌کنند.</p>
+
+  <p>نکتهٔ جالب این است که نشانه‌های تغییر خط، همان «ردپاها»، از چند ثانیه قبل در همین
+  سیگنال‌ها ظاهر می‌شوند. شکل زیر یک طرح ساده از این ماجراست:</p>
+
+  <figure class="viz">
+    <div class="legend">
+      <span class="key"><span class="swatch" style="background:var(--series-1)"></span> زاویهٔ فرمان (<span class="en">steering angle</span>)</span>
+      <span class="key"><span class="swatch" style="background:var(--series-2)"></span> چراغ راهنما (<span class="en">indicator</span>)</span>
+      <span class="key"><span class="swatch" style="background:var(--muted)"></span> فاصله تا خط (<span class="en">lane distance</span>)</span>
+    </div>
+    <svg viewBox="0 0 720 335" role="img" aria-label="سه سیگنال خودرو در یک پنجرهٔ پنج‌ثانیه‌ای: زاویهٔ فرمان کمی قبل از تغییر خط بالا می‌رود، چراغ راهنما مثل یک پله روشن می‌شود و فاصله تا خط کم می‌شود؛ خط‌چین عمودی لحظهٔ تغییر خط را نشان می‌دهد و نشانه‌ها چند ثانیه قبل از آن شروع می‌شوند">
+      <defs>
+        <marker id="arrA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="var(--muted)"/>
+        </marker>
+      </defs>
+      <!-- grid: one vertical line per second -->
+      <line x1="60"  y1="26" x2="60"  y2="290" stroke="var(--grid)" stroke-width="1"/>
+      <line x1="180" y1="26" x2="180" y2="290" stroke="var(--grid)" stroke-width="1"/>
+      <line x1="300" y1="26" x2="300" y2="290" stroke="var(--grid)" stroke-width="1"/>
+      <line x1="420" y1="26" x2="420" y2="290" stroke="var(--grid)" stroke-width="1"/>
+      <line x1="540" y1="26" x2="540" y2="290" stroke="var(--grid)" stroke-width="1"/>
+      <line x1="660" y1="26" x2="660" y2="290" stroke="var(--grid)" stroke-width="1"/>
+      <!-- lane-change marker -->
+      <line x1="600" y1="26" x2="600" y2="290" stroke="var(--ink-2)" stroke-width="1.5" stroke-dasharray="5 5"/>
+      <text x="600" y="18" text-anchor="middle" fill="var(--ink)" font-size="13" font-weight="700">تغییر خط</text>
+      <!-- band 1: steering angle -->
+      <text x="125" y="58" text-anchor="middle" fill="var(--ink-2)" font-size="12.5" font-weight="700">زاویهٔ فرمان</text>
+      <path d="M60,88 C90,82 110,94 140,88 C170,83 190,93 220,88 C250,84 270,92 300,88 C330,84 350,91 380,87 C410,84 435,84 460,79 C495,72 550,60 600,50 C625,46 645,49 660,50"
+            fill="none" stroke="var(--series-1)" stroke-width="2" stroke-linecap="round"/>
+      <!-- band 2: indicator (step) -->
+      <text x="125" y="145" text-anchor="middle" fill="var(--ink-2)" font-size="12.5" font-weight="700">چراغ راهنما</text>
+      <path d="M60,172 L416,172 L420,132 L660,132"
+            fill="none" stroke="var(--series-2)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+      <text x="240" y="164" text-anchor="middle" fill="var(--ink-2)" font-size="11">خاموش</text>
+      <text x="520" y="124" text-anchor="middle" fill="var(--ink-2)" font-size="11">روشن</text>
+      <!-- band 3: distance to lane line -->
+      <text x="125" y="240" text-anchor="middle" fill="var(--ink-2)" font-size="12.5" font-weight="700">فاصله تا خط</text>
+      <path d="M60,212 C120,209 170,215 230,212 C280,210 330,214 380,218 C440,224 520,239 600,251 C625,254 645,255 660,255"
+            fill="none" stroke="var(--muted)" stroke-width="2" stroke-dasharray="7 5" stroke-linecap="round"/>
+      <!-- annotation: signals appear seconds before -->
+      <text x="507" y="268" text-anchor="middle" fill="var(--ink-2)" font-size="11.5">نشانه‌ها از چند ثانیه قبل شروع می‌شوند</text>
+      <line x1="422" y1="277" x2="594" y2="277" stroke="var(--muted)" stroke-width="1.5" marker-start="url(#arrA)" marker-end="url(#arrA)"/>
+      <!-- time axis -->
+      <line x1="60" y1="290" x2="660" y2="290" stroke="var(--baseline)" stroke-width="1"/>
+      <line x1="60"  y1="290" x2="60"  y2="296" stroke="var(--baseline)" stroke-width="1"/>
+      <line x1="180" y1="290" x2="180" y2="296" stroke="var(--baseline)" stroke-width="1"/>
+      <line x1="300" y1="290" x2="300" y2="296" stroke="var(--baseline)" stroke-width="1"/>
+      <line x1="420" y1="290" x2="420" y2="296" stroke="var(--baseline)" stroke-width="1"/>
+      <line x1="540" y1="290" x2="540" y2="296" stroke="var(--baseline)" stroke-width="1"/>
+      <line x1="660" y1="290" x2="660" y2="296" stroke="var(--baseline)" stroke-width="1"/>
+      <text x="60"  y="311" text-anchor="middle" fill="var(--muted)" font-size="11">0</text>
+      <text x="180" y="311" text-anchor="middle" fill="var(--muted)" font-size="11">1</text>
+      <text x="300" y="311" text-anchor="middle" fill="var(--muted)" font-size="11">2</text>
+      <text x="420" y="311" text-anchor="middle" fill="var(--muted)" font-size="11">3</text>
+      <text x="540" y="311" text-anchor="middle" fill="var(--muted)" font-size="11">4</text>
+      <text x="660" y="311" text-anchor="middle" fill="var(--muted)" font-size="11">5</text>
+      <text x="360" y="330" text-anchor="middle" fill="var(--muted)" font-size="11">زمان (ثانیه)</text>
+    </svg>
+    <figcaption>شکل ۱ — طرحِ شماتیک سه سیگنال در یک پنجرهٔ ۵ ثانیه‌ای: چرخش تدریجی فرمان، روشن شدن راهنما و کم شدن فاصله تا خط، همه <b>قبل</b> از لحظهٔ تغییر خط (خط‌چین عمودی) دیده می‌شوند. مقیاس‌ها نمادین‌اند، نه دادهٔ واقعی.</figcaption>
+  </figure>
+
+  <div class="tiles">
+    <div class="tile">
+      <div class="value">۳</div>
+      <div class="label">کلاس در <span class="en">classification</span>: هیچ، راست، چپ</div>
+    </div>
+    <div class="tile">
+      <div class="value">0–4 s</div>
+      <div class="label">بازهٔ خروجی <span class="en">regression</span> (گام <span class="en">0.1</span>)</div>
+    </div>
+    <div class="tile">
+      <div class="value">50×31</div>
+      <div class="label">اندازهٔ پنجرهٔ ورودی (<span class="en">window</span>): ۵۰ گام زمانی × ۳۱ سیگنال</div>
+    </div>
+  </div>
+
+  <p>ما با این سیگنال‌ها <b>سه مسئله</b> را حل می‌کنیم:</p>
+  <div class="card">
+    <p>۱. <b><span class="en">Classification</span></b> با سه کلاس — مدل باید بگوید راننده الان در کدام حالت است:</p>
+    <table>
+      <thead><tr><th>کد کلاس</th><th>معنا</th></tr></thead>
+      <tbody>
+        <tr><td class="num">0</td><td>قصدی برای تغییر خط نیست</td></tr>
+        <tr><td class="num">1</td><td>قصد تغییر خط به راست (<span class="en">LCR</span> = Lane Change Right)</td></tr>
+        <tr><td class="num">2</td><td>قصد تغییر خط به چپ (<span class="en">LCL</span> = Lane Change Left)</td></tr>
+      </tbody>
+    </table>
+    <p>۲. <b><span class="en">Regression</span> برای LCL</b>: چند ثانیه تا تغییر خطِ چپ مانده؟
+    جواب عددی است بین <span class="en">0</span> تا <span class="en">4</span> ثانیه با گام <span class="en">0.1</span>.<br>
+    ۳. <b><span class="en">Regression</span> برای LCR</b>: همان سؤال، این بار برای راست.</p>
+  </div>
+
+  <p>و یک قید مهم: چرا «فقط دقت» کافی نیست؟ چون جواب باید روی یک
+  <span class="en">microcontroller</span> داخل خودِ ماشین حساب شود — در چند میلی‌ثانیه و
+  با چند صد کیلوبایت حافظه. یک <span class="en">model</span> بزرگِ دقیق ولی کُند،
+  مثل یک دانشمند نابغه است که برای هر جواب یک هفته وقت می‌خواهد: اینجا به درد نمی‌خورد.
+  ما دقت <b>و</b> کوچکی و سرعت را با هم می‌خواهیم.</p>
+
+  <h2>در پروژهٔ ما 🧰</h2>
+  <p>بهترین نتیجهٔ منتشرشده روی همین داده (چارچوب
+  <a href="https://elios-lab.github.io/LC-Intention-Framework/"><span class="en">LC-Intention</span></a>)
+  این است: <span class="en">accuracy</span> برابر <span class="en">92%</span> برای
+  <span class="en">classification</span>، و <span class="en">RMSE</span> برابر
+  <span class="en">0.42 s</span> و <span class="en">0.44 s</span> برای دو مسئلهٔ
+  <span class="en">regression</span>. و همین امروز، اولین مدل سادهٔ ما — یک
+  <span class="en">CNN</span> کوچک، بدون هیچ تنظیم خاصی — به <span class="en">91.5%</span> رسید:</p>
+
+  <figure class="viz">
+    <div class="legend">
+      <span class="key"><span class="swatch" style="background:var(--series-1)"></span> مدل اول ما</span>
+      <span class="key"><span class="swatch" style="background:var(--series-2)"></span> هدف منتشرشده</span>
+    </div>
+    <div class="hbar">
+      <div class="name">مدل اول ما (<span class="en">CNN</span> کوچک، بدون تنظیم)</div>
+      <div class="track"><div class="fill" style="width:91.5%"></div></div>
+      <div class="val">91.5%</div>
+      <div class="name">هدف منتشرشده (<span class="en">LC-Intention</span>)</div>
+      <div class="track"><div class="fill alt" style="width:92%"></div></div>
+      <div class="val">92%</div>
+    </div>
+    <figcaption>شکل ۲ — <span class="en">accuracy</span> در مسئلهٔ <span class="en">classification</span> (مقیاس ۰ تا ۱۰۰٪): فاصلهٔ مدل اول ما تا رکورد فقط نیم واحد درصد است — یعنی رقابت کاملاً شدنی است و جا برای بهتر شدن هست.</figcaption>
+  </figure>
+
+  <div class="card">
+    <p>• نتیجهٔ هر آزمایش در <span class="en">logs/experiments.jsonl</span> ثبت می‌شود،
+    پس هر عددی که اینجا می‌بینی قابل بازتولید است.<br>
+    • در درس‌های بعدی همین مدل ساده را قدم‌به‌قدم بهتر می‌کنیم تا از هدف
+    <span class="en">92%</span> و <span class="en">RMSE</span> برابر
+    <span class="en">0.42/0.44 s</span> عبور کنیم.</p>
+  </div>
+
+  <div id="quiz" class="quiz"></div>
+  <script type="application/json" id="quiz-data">
+  [
+    {"stem": "در classification این پروژه، کلاس 1 یعنی چه؟",
+     "options": ["قصدی برای تغییر خط نیست", "قصد تغییر خط به راست (LCR)", "قصد تغییر خط به چپ (LCL)"],
+     "answer": 1,
+     "explain": "کدها این‌طور تعریف شده‌اند: 0 یعنی بدون قصد تغییر خط، 1 یعنی LCR (Lane Change Right = راست) و 2 یعنی LCL (Lane Change Left = چپ). حفظ کردن این قرارداد مهم است، چون همهٔ جدول‌ها و نتیجه‌های بعدی با همین کدها گزارش می‌شوند."},
+    {"stem": "به چند سیگنال موازی (سرعت، فرمان، فاصله‌ها و ...) که همه با زمان تغییر می‌کنند چه می‌گویند؟",
+     "options": ["classification", "multivariate time series", "microcontroller"],
+     "answer": 1,
+     "explain": "time series یعنی داده‌ای که در طول زمان ثبت می‌شود؛ multivariate یعنی چندمتغیره. پس multivariate time series یعنی چند سیگنال هم‌زمان و موازی — مثل چند نوار قلب که کنار هم ثبت می‌شوند. ورودی مدل ما دقیقاً همین است."},
+    {"stem": "در شکل ۱، چه چیزی به مدل اجازه می‌دهد تغییر خط را «قبل از وقوع» پیش‌بینی کند؟",
+     "options": ["هیچ‌چیز؛ تغییر خط کاملاً ناگهانی اتفاق می‌افتد", "نشانه‌های زودهنگام مثل چرخش تدریجی فرمان، روشن شدن راهنما و کم شدن فاصله تا خط", "فقط رنگ چراغ راهنما"],
+     "answer": 1,
+     "explain": "الگوهای آشکارکننده چند ثانیه قبل از خودِ حرکت در سیگنال‌ها ظاهر می‌شوند — همان چیزی که راننده‌های انسانی ناخودآگاه حس می‌کنند. مدل هم باید یاد بگیرد همین الگوها را در پنجرهٔ زمانی ورودی پیدا کند."},
+    {"stem": "چرا برای این مسئله «فقط دقت بالا» معیار خوبی برای انتخاب مدل نیست؟",
+     "options": ["چون دقت در رانندگی اهمیتی ندارد", "چون سنسورهای ماشین قابل اعتماد نیستند", "چون جواب باید روی microcontroller داخل ماشین، در چند میلی‌ثانیه و با چند صد کیلوبایت حافظه حساب شود"],
+     "answer": 2,
+     "explain": "دقت خیلی مهم است، اما کافی نیست: مدل بزرگِ دقیق ولی کُند در تراشهٔ کوچک ماشین جا نمی‌شود یا دیر جواب می‌دهد. برای همین دنبال مدلی هستیم که هم دقیق باشد، هم کوچک و سریع."}
+  ]
+  </script>
+
+  <div class="lesson-nav">
+    <a href="00-roadmap.html"><div class="dir">→ قبلی</div><div>درس ۰۰ — نقشهٔ راه</div></a>
+    <a href="02-the-data.html"><div class="dir">بعدی ←</div><div>درس ۰۲ — داده</div></a>
+  </div>
+  <footer class="site">LC-Intention-NAS · ELIOS Lab</footer>
+</main>
+</body>
+</html>

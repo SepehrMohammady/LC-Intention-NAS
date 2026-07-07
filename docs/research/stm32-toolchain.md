@@ -30,12 +30,22 @@ Researched 2026-07-07.
    API. Alternatively on-target `stedgeai validate --mode target -d serial:COMx`.
 6. Deploy: CubeMX + X-CUBE-AI or `stedgeai generate` + ai_runner.
 
-## Target boards (mirror the baseline paper)
+## Target boards
+
+**Confirmed primary target (user, 2026-07-07): STM32H7B3I-DK** — Discovery kit
+with STM32H7B3LIH6Q: Cortex-M7 @ 280 MHz, 1.4 MB SRAM, 2 MB internal flash
+(+ external OSPI flash, 4.3" LCD on board). Same MCU family as the baseline
+paper's high-end target → direct comparability of Table III numbers.
 
 | Board | Core | Clock | RAM | Flash | Note |
 |---|---|---|---|---|---|
-| STM32H7B3 | M7 | 280 MHz | 1.4 MB | 2 MB | baseline paper's high-end |
-| STM32F401 | M4 | 84 MHz | 96 KiB | 512 KiB | baseline paper's low-end (their Transformer didn't fit; their 1DCNN: 40.8 ms) |
+| **STM32H7B3I-DK** | M7 | 280 MHz | 1.4 MB | 2 MB | our target; matches baseline paper's high-end |
+| STM32F401 | M4 | 84 MHz | 96 KiB | 512 KiB | baseline paper's low-end (their Transformer didn't fit; their 1DCNN: 40.8 ms) — optional stretch target |
+
+NAS constraint budgets derive from the H7B3I-DK: flash ≤ 2 MB minus runtime
+(practically target ≤ a few hundred KB), RAM ≤ 1.4 MB minus buffers; a model
+that also fits the F401 (≤ 96 KiB RAM, ≤ 512 KiB flash) makes a stronger
+low-end story.
 
 ## Metrics to report (TinyML convention)
 

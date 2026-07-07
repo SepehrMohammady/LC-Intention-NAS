@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>درس ۰۴ — CNN یک‌بعدی | LC-Intention-NAS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/course.css">
+<script src="assets/course.js" defer></script>
+</head>
+<body>
+<div class="topbar">
+  <a class="home" href="index.html">↪ فهرست دوره</a>
+  <div class="spacer"></div>
+  <button class="theme-toggle" onclick="toggleTheme()">🌗 روشن/تاریک</button>
+</div>
+<main>
+  <p class="kicker">درس ۰۴</p>
+  <h1><span class="en">CNN</span> یک‌بعدی: شبکه‌ای که الگوهای زمانی را می‌بیند 👀</h1>
+  <p class="lede">به‌جای حفظ کردن کل سیگنال، چند شابلون کوچک یاد بگیر و آن‌ها را روی زمان سُر بده — و با همین ایده، اولین مدل واقعی پروژه را بساز.</p>
+
+  <div class="card callout story">
+    <p class="card-title">قصه 📖</p>
+    <p>فرض کن یک نوار موسیقی خیلی طولانی داری و دنبال یک تکه‌ملودی خاص می‌گردی —
+    مثلاً همان چهار نتِ معروف اول یک آهنگ. یک راه احمقانه این است که کل نوار را
+    یک‌جا حفظ کنی و هر بار همه‌اش را با حافظه‌ات مقایسه کنی. راه هوشمندانه‌تر:
+    یک «شابلون کوچک» از آن ملودی بسازی و آن را آرام‌آرام روی نوار سُر بدهی؛
+    هر جا شابلون با نوار جور درآمد، علامت بزنی.</p>
+    <p><b><span class="en">Convolution</span></b> دقیقاً همین سُر دادن شابلون است.
+    شبکهٔ <b><span class="en">CNN</span></b> (<span class="en">Convolutional Neural Network</span>)
+    به‌جای حفظ کردن کل سیگنال، تعداد زیادی شابلون کوچک یاد می‌گیرد — به هر کدام
+    <b><span class="en">kernel</span></b> یا <b><span class="en">filter</span></b> می‌گویند —
+    و با آن‌ها الگوهای مهم را در هر جای سیگنال پیدا می‌کند. مثلاً یک شابلون ممکن است
+    یاد بگیرد این الگو را بشناسد: «فرمان کمی چرخید و همزمان فاصله تا خط کم شد».
+    این همان امضای شروعِ یک تغییر خط است!</p>
+  </div>
+
+  <h2>دقیق‌تر 🔬</h2>
+  <p>در <span class="en">convolution</span>، شابلون (همان <span class="en">kernel</span>)
+  یک ردیف عددِ قابل‌یادگیری است. شابلون روی سیگنال سُر می‌خورد و در هر نقطه، اعدادش را
+  با تکهٔ زیرش ضرب و جمع می‌کند. هر جا شکلِ سیگنال شبیه شکلِ شابلون باشد، جواب بزرگ
+  می‌شود و در خروجی یک قله می‌سازد. به این خروجی، نقشهٔ ویژگی یا
+  <span class="en">feature map</span> می‌گویند:</p>
+
+  <figure class="viz">
+    <svg viewBox="0 0 720 340" role="img" aria-label="کانولوشن یک‌بعدی: پنجرهٔ kernel در طول زمان روی سیگنال ورودی سُر می‌خورد و هر جا الگویش جور دربیاید، در خروجی پایین یک قله می‌سازد">
+      <defs>
+        <marker id="arr-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="var(--muted)"/>
+        </marker>
+      </defs>
+      <!-- labels -->
+      <text x="685" y="22" text-anchor="end" fill="var(--ink)" font-size="13.5" font-weight="700">سیگنال ورودی (مثلاً زاویهٔ فرمان در زمان)</text>
+      <text x="145" y="28" text-anchor="middle" fill="var(--series-1)" font-size="12.5" font-weight="700" direction="ltr" font-family="ui-monospace, Consolas, monospace">kernel (filter)</text>
+      <!-- slide arrow -->
+      <line x1="200" y1="32" x2="285" y2="32" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="4 4" marker-end="url(#arr-a)"/>
+      <text x="242" y="24" text-anchor="middle" fill="var(--muted)" font-size="11.5">در طول زمان سُر می‌خورد</text>
+      <!-- input signal -->
+      <path d="M60,95 C80,92 95,98 110,95 C120,93 130,60 140,58 C150,60 160,93 175,97 C190,100 210,92 230,96 C250,100 265,95 280,97 C295,99 315,62 330,60 C345,62 360,95 380,98 C400,101 420,94 440,97 C460,100 475,96 490,98 C505,100 510,64 520,62 C530,64 545,96 560,99 C575,101 600,94 625,97 C645,99 665,95 680,96"
+            fill="none" stroke="var(--ink-2)" stroke-width="2"/>
+      <!-- kernel windows, decreasing opacity -->
+      <g opacity="1">
+        <rect x="105" y="40" width="80" height="78" rx="8" fill="var(--series-1)" fill-opacity="0.12" stroke="var(--series-1)" stroke-width="2"/>
+      </g>
+      <g opacity="0.55">
+        <rect x="295" y="40" width="80" height="78" rx="8" fill="var(--series-1)" fill-opacity="0.12" stroke="var(--series-1)" stroke-width="2"/>
+      </g>
+      <g opacity="0.28">
+        <rect x="485" y="40" width="80" height="78" rx="8" fill="var(--series-1)" fill-opacity="0.12" stroke="var(--series-1)" stroke-width="2"/>
+      </g>
+      <!-- dot-product connector -->
+      <line x1="145" y1="122" x2="145" y2="215" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="4 4" marker-end="url(#arr-a)"/>
+      <text x="158" y="172" text-anchor="start" fill="var(--ink-2)" font-size="12">ضرب و جمعِ نقطه‌به‌نقطه</text>
+      <!-- output labels -->
+      <text x="685" y="218" text-anchor="end" fill="var(--ink)" font-size="13.5" font-weight="700">خروجی: هر جا الگو جور شد، قله</text>
+      <text x="685" y="238" text-anchor="end" fill="var(--muted)" font-size="12" direction="ltr" font-family="ui-monospace, Consolas, monospace">feature map</text>
+      <!-- output baseline -->
+      <line x1="60" y1="290" x2="680" y2="290" stroke="var(--grid)" stroke-width="1"/>
+      <!-- output trace -->
+      <path d="M60,285 C90,283 110,282 125,270 C135,258 138,232 145,230 C152,232 158,262 170,274 C185,284 210,286 240,285 C265,284 300,280 315,268 C325,257 328,234 335,232 C342,234 350,264 362,276 C380,286 420,286 455,284 C480,282 495,276 505,264 C515,252 518,236 525,234 C532,236 540,262 552,274 C570,284 620,286 650,285 C665,284 675,284 680,284"
+            fill="none" stroke="var(--series-1)" stroke-width="2"/>
+    </svg>
+    <figcaption>شکل ۱ — <span class="en">convolution</span> یک‌بعدی: همان شابلون کوچک (<span class="en">kernel</span>) در همهٔ نقاطِ زمان تکرار می‌شود؛ هر جا شکل سیگنال با شابلون جور باشد، خروجی قله می‌زند.</figcaption>
+  </figure>
+
+  <p>حالا چند نکتهٔ مهم برای دادهٔ خودمان:</p>
+  <div class="card">
+    <p>• دادهٔ ما ۳۱ سیگنال موازی در ۵۰ گام زمانی است؛ پس از
+    <b><span class="en">Conv1d</span></b> استفاده می‌کنیم: <span class="en">kernel</span>
+    فقط در راستای زمان سُر می‌خورد (نه مثل عکس که دو بعد دارد و
+    <span class="en">Conv2d</span> لازم می‌شود).<br>
+    • هر <b><span class="en">layer</span></b> الگوهای کمی پیچیده‌تر از
+    <span class="en">layer</span> قبلی را می‌فهمد: اولی حرکت‌های خام (مثل «فرمان چرخید»)،
+    بعدی ترکیب‌ها («فرمان چرخید و فاصله کم شد»)، و آخری «امضای رفتاریِ» کاملِ تغییر خط.</p>
+  </div>
+
+  <p>و یک ترفند طلایی برای مدل‌های کوچک:
+  <b><span class="en">depthwise-separable convolution</span></b>.
+  این همان <span class="en">convolution</span> معمولی است که به دو مرحلهٔ ارزان‌تر
+  شکسته شده: اول هر کانال جداگانه با <span class="en">kernel</span> خودش پردازش می‌شود،
+  بعد کانال‌ها با یک <span class="en">kernel</span> اندازهٔ ۱ با هم ترکیب می‌شوند.
+  نتیجه: دقتِ تقریباً برابر با چند برابر پارامتر کمتر — برای
+  <span class="en">microcontroller</span> عالی است.</p>
+
+  <figure class="viz">
+    <svg viewBox="0 0 720 310" role="img" aria-label="مقایسهٔ convolution معمولی با depthwise-separable: در حالت معمولی هر کانال خروجی به همهٔ کانال‌های ورودی وصل است و پارامتر زیاد می‌شود؛ در حالت جداشدنی هر کانال اول جداگانه پردازش می‌شود و بعد با kernel اندازهٔ یک ترکیب می‌شود که خیلی ارزان‌تر است">
+      <defs>
+        <marker id="arr-b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="var(--muted)"/>
+        </marker>
+      </defs>
+      <!-- divider -->
+      <line x1="360" y1="24" x2="360" y2="286" stroke="var(--grid)" stroke-width="1.5" stroke-dasharray="5 5"/>
+
+      <!-- ===== right panel: normal convolution ===== -->
+      <text x="540" y="40" text-anchor="middle" fill="var(--ink)" font-size="14" font-weight="800" direction="ltr" font-family="ui-monospace, Consolas, monospace">Convolution</text>
+      <text x="540" y="60" text-anchor="middle" fill="var(--ink-2)" font-size="12.5" font-weight="700">همه با هم (گران)</text>
+      <!-- inputs -->
+      <text x="645" y="84" text-anchor="middle" fill="var(--muted)" font-size="11.5">کانال‌های ورودی</text>
+      <rect x="610" y="90" width="70" height="28" rx="6" fill="none" stroke="var(--muted)" stroke-width="1.5"/>
+      <rect x="610" y="135" width="70" height="28" rx="6" fill="none" stroke="var(--muted)" stroke-width="1.5"/>
+      <rect x="610" y="180" width="70" height="28" rx="6" fill="none" stroke="var(--muted)" stroke-width="1.5"/>
+      <!-- outputs -->
+      <text x="435" y="84" text-anchor="middle" fill="var(--muted)" font-size="11.5">کانال‌های خروجی</text>
+      <rect x="400" y="90" width="70" height="28" rx="6" fill="none" stroke="var(--series-1)" stroke-width="2"/>
+      <rect x="400" y="135" width="70" height="28" rx="6" fill="none" stroke="var(--series-1)" stroke-width="2"/>
+      <rect x="400" y="180" width="70" height="28" rx="6" fill="none" stroke="var(--series-1)" stroke-width="2"/>
+      <!-- 9 crossing connections -->
+      <g stroke="var(--series-1)" stroke-width="1.2" opacity="0.65">
+        <line x1="610" y1="104" x2="470" y2="104"/>
+        <line x1="610" y1="104" x2="470" y2="149"/>
+        <line x1="610" y1="104" x2="470" y2="194"/>
+        <line x1="610" y1="149" x2="470" y2="104"/>
+        <line x1="610" y1="149" x2="470" y2="149"/>
+        <line x1="610" y1="149" x2="470" y2="194"/>
+        <line x1="610" y1="194" x2="470" y2="104"/>
+        <line x1="610" y1="194" x2="470" y2="149"/>
+        <line x1="610" y1="194" x2="470" y2="194"/>
+      </g>
+      <text x="540" y="252" text-anchor="middle" fill="var(--ink-2)" font-size="12.5">هر خروجی به همهٔ کانال‌ها وصل است</text>
+      <text x="540" y="272" text-anchor="middle" fill="var(--ink-2)" font-size="12.5">→ اتصال و پارامترِ زیاد</text>
+
+      <!-- ===== left panel: depthwise-separable ===== -->
+      <text x="185" y="40" text-anchor="middle" fill="var(--ink)" font-size="14" font-weight="800" direction="ltr" font-family="ui-monospace, Consolas, monospace">Depthwise-Separable</text>
+      <text x="185" y="60" text-anchor="middle" fill="var(--ink-2)" font-size="12.5" font-weight="700">اول تک‌تک کانال‌ها، بعد ترکیب ۱×۱ (ارزان)</text>
+      <!-- inputs -->
+      <rect x="280" y="90" width="60" height="28" rx="6" fill="none" stroke="var(--muted)" stroke-width="1.5"/>
+      <rect x="280" y="135" width="60" height="28" rx="6" fill="none" stroke="var(--muted)" stroke-width="1.5"/>
+      <rect x="280" y="180" width="60" height="28" rx="6" fill="none" stroke="var(--muted)" stroke-width="1.5"/>
+      <!-- per-channel kernels -->
+      <g stroke="var(--series-2)" stroke-width="1.2">
+        <line x1="280" y1="104" x2="251" y2="104"/>
+        <line x1="280" y1="149" x2="251" y2="149"/>
+        <line x1="280" y1="194" x2="251" y2="194"/>
+      </g>
+      <rect x="225" y="91" width="26" height="26" rx="6" fill="var(--series-2)" fill-opacity="0.15" stroke="var(--series-2)" stroke-width="1.5"/>
+      <rect x="225" y="136" width="26" height="26" rx="6" fill="var(--series-2)" fill-opacity="0.15" stroke="var(--series-2)" stroke-width="1.5"/>
+      <rect x="225" y="181" width="26" height="26" rx="6" fill="var(--series-2)" fill-opacity="0.15" stroke="var(--series-2)" stroke-width="1.5"/>
+      <text x="238" y="228" text-anchor="middle" fill="var(--series-2)" font-size="11" direction="ltr" font-family="ui-monospace, Consolas, monospace">depthwise</text>
+      <!-- into 1x1 block -->
+      <g stroke="var(--series-2)" stroke-width="1.2">
+        <line x1="225" y1="104" x2="180" y2="136"/>
+        <line x1="225" y1="149" x2="180" y2="150"/>
+        <line x1="225" y1="194" x2="180" y2="164"/>
+      </g>
+      <rect x="120" y="120" width="60" height="60" rx="8" fill="none" stroke="var(--series-2)" stroke-width="2"/>
+      <text x="150" y="156" text-anchor="middle" fill="var(--ink)" font-size="14" font-weight="800" direction="ltr" font-family="ui-monospace, Consolas, monospace">1×1</text>
+      <text x="150" y="200" text-anchor="middle" fill="var(--series-2)" font-size="11" direction="ltr" font-family="ui-monospace, Consolas, monospace">pointwise</text>
+      <!-- output -->
+      <line x1="120" y1="150" x2="92" y2="150" stroke="var(--series-2)" stroke-width="1.5" marker-end="url(#arr-b)"/>
+      <rect x="30" y="125" width="58" height="50" rx="6" fill="none" stroke="var(--series-1)" stroke-width="2"/>
+      <text x="59" y="155" text-anchor="middle" fill="var(--ink-2)" font-size="11.5">خروجی</text>
+      <text x="185" y="252" text-anchor="middle" fill="var(--ink-2)" font-size="12.5">هر کانال اول جدا پردازش می‌شود؛ بعد ترکیب ۱×۱</text>
+      <text x="185" y="272" text-anchor="middle" fill="var(--ink-2)" font-size="12.5">→ پارامترِ خیلی کمتر، دقتِ تقریباً همان</text>
+    </svg>
+    <figcaption>شکل ۲ — <span class="en">convolution</span> معمولی (راست) در برابر <span class="en">depthwise-separable</span> (چپ): همان کار، با اتصال‌های خیلی کمتر.</figcaption>
+  </figure>
+
+  <p>ته شبکه هم یک خلاصه‌ساز داریم:
+  <b><span class="en">Global Average Pooling</span></b> از هر کانال فقط میانگین می‌گیرد —
+  خلاصه‌سازیِ شدید ولی مؤثر. بعد یک <span class="en">layer</span> خطی کوچک از همین
+  چند عدد، جواب نهایی را می‌سازد.</p>
+
+  <h2>در پروژهٔ ما 🧰</h2>
+  <div class="card">
+    <p>• مدل پایهٔ ما — یک <span class="en">1D CNN</span> کوچکِ
+    <span class="en">depthwise-separable</span> — در
+    <span class="en">src/models/baseline.py</span> است.<br>
+    • ساختارش دقیقاً همین درس است: یک <span class="en">Conv1d</span> ورودی
+    (<span class="en">stem</span>) + دو بلوک <span class="en">depthwise-separable</span> +
+    <span class="en">Global Average Pooling</span> + یک <span class="en">layer</span> خطی
+    برای خروجی.<br>
+    • کل <span class="en">training</span> فقط ۲۷ ثانیه طول کشید!</p>
+  </div>
+
+  <p>نتیجهٔ اولین اجرا (بدون هیچ تنظیمی) این بود. اول
+  <span class="en">accuracy</span> در <span class="en">classification</span>:</p>
+
+  <div class="tiles">
+    <div class="tile">
+      <div class="value">91.5%</div>
+      <div class="label"><span class="en">accuracy</span> — مدل ما</div>
+    </div>
+    <div class="tile">
+      <div class="value">92%</div>
+      <div class="label"><span class="en">accuracy</span> — هدف (نتیجهٔ مرجع)</div>
+    </div>
+  </div>
+
+  <p>و بعد <span class="en">RMSE</span> برای دو مسئلهٔ
+  <span class="en">regression</span> (چند ثانیه تا تغییر خط؟). یادت باشد اینجا
+  <b>پایین‌تر یعنی بهتر</b>:</p>
+
+  <figure class="viz">
+    <div class="legend">
+      <span class="key"><span class="swatch" style="background:var(--series-1)"></span> مدل ما</span>
+      <span class="key"><span class="swatch" style="background:var(--series-2)"></span> هدف (نتیجهٔ مرجع)</span>
+    </div>
+    <div class="hbar">
+      <div class="name">LCR — مدل ما</div>
+      <div class="track"><div class="fill" style="width:87.8%"></div></div>
+      <div class="val">0.439 s</div>
+      <div class="name">LCR — هدف</div>
+      <div class="track"><div class="fill alt" style="width:84%"></div></div>
+      <div class="val">0.42 s</div>
+    </div>
+    <div class="hbar" style="margin-top:16px">
+      <div class="name">LCL — مدل ما</div>
+      <div class="track"><div class="fill" style="width:91.8%"></div></div>
+      <div class="val">0.459 s</div>
+      <div class="name">LCL — هدف</div>
+      <div class="track"><div class="fill alt" style="width:88%"></div></div>
+      <div class="val">0.44 s</div>
+    </div>
+    <figcaption>شکل ۳ — <span class="en">RMSE</span> (ثانیه) مدل ما در برابر هدف؛ مقیاس مشترک هر دو نمودار از 0 تا 0.5 ثانیه است و پایین‌تر بهتر است.</figcaption>
+  </figure>
+
+  <p>همهٔ اعداد یک‌جا:</p>
+  <table>
+    <thead><tr><th>کار</th><th>معیار</th><th class="num">نتیجهٔ ما</th><th class="num">رکورد منتشرشده</th></tr></thead>
+    <tbody>
+      <tr><td>Classification</td><td><span class="en">accuracy</span></td><td class="num"><b>91.5%</b></td><td class="num">92%</td></tr>
+      <tr><td>Regression LCL</td><td><span class="en">RMSE</span></td><td class="num"><b>0.459 s</b></td><td class="num">0.44 s</td></tr>
+      <tr><td>Regression LCR</td><td><span class="en">RMSE</span></td><td class="num"><b>0.439 s</b></td><td class="num">0.42 s</td></tr>
+    </tbody>
+  </table>
+
+  <p>یعنی با یک مدل عمومیِ کوچک، فقط چند قدم با رکورد فاصله داریم. درس‌های بعدی
+  نشان می‌دهند چطور <b><span class="en">NAS</span></b> این فاصله را می‌بندد —
+  و مدل را همزمان کوچک‌تر هم می‌کند.</p>
+
+  <div id="quiz" class="quiz"></div>
+  <script type="application/json" id="quiz-data">
+  [
+    {"stem": "کار یک kernel (یا filter) در CNN چیست؟",
+     "options": ["کل سیگنال را یک‌جا حفظ می‌کند", "مثل یک شابلون کوچک روی سیگنال سُر می‌خورد و هر جا الگویش جور دربیاید، جواب قوی می‌دهد", "سیگنال را کوتاه‌تر می‌کند تا در حافظه جا شود"],
+     "answer": 1,
+     "explain": "در convolution همان شابلون کوچک در همهٔ نقاط زمان تکرار می‌شود؛ برای همین CNN با پارامترهای کم می‌تواند یک الگو را در «هر جای» سیگنال پیدا کند — نیازی به حفظ کردن کل سیگنال نیست."},
+    {"stem": "چرا برای دادهٔ ما Conv1d مناسب است، نه Conv2d؟",
+     "options": ["چون Conv1d همیشه دقیق‌تر از Conv2d است", "چون دادهٔ ما ۳۱ سیگنال در طول ۵۰ گام زمانی است و kernel فقط باید در راستای زمان سُر بخورد", "چون Conv2d روی microcontroller اصلاً اجرا نمی‌شود"],
+     "answer": 1,
+     "explain": "ورودی ما سری زمانی است: تنها بُعدی که «مکان» معنا دارد، زمان است. Conv2d برای داده‌هایی مثل عکس است که دو بعد مکانی (طول و عرض) دارند؛ برای سیگنال زمانی، سُر خوردن یک‌بعدی کافی و ارزان‌تر است."},
+    {"stem": "depthwise-separable convolution چه معامله‌ای به ما پیشنهاد می‌دهد؟",
+     "options": ["دقت خیلی بیشتر در ازای پارامتر بیشتر", "حذف کامل نیاز به training", "دقتِ تقریباً برابر با چند برابر پارامتر کمتر"],
+     "answer": 2,
+     "explain": "convolution معمولی همهٔ کانال‌ها را با هم پردازش می‌کند و گران است. نسخهٔ جداشدنی آن را به دو مرحلهٔ ارزان می‌شکند: اول هر کانال جدا، بعد ترکیب کانال‌ها با kernel اندازهٔ ۱. دقت تقریباً همان می‌ماند ولی پارامترها چند برابر کم می‌شوند — دقیقاً چیزی که microcontroller لازم دارد."},
+    {"stem": "Global Average Pooling در انتهای شبکه چه می‌کند؟",
+     "options": ["از هر کانال فقط یک میانگین می‌گیرد و کل سیگنال را به چند عدد خلاصه می‌کند", "کانال‌های جدید به شبکه اضافه می‌کند", "خطای مدل را مستقیماً صفر می‌کند"],
+     "answer": 0,
+     "explain": "GAP خلاصه‌سازی شدید ولی مؤثر است: از هر کانال یک عدد (میانگینش) نگه می‌دارد. بعد یک layer خطی کوچک از همین چند عدد، جواب نهایی (کلاس یا زمان تا تغییر خط) را می‌سازد — بدون میلیون‌ها پارامتر اضافه."}
+  ]
+  </script>
+
+  <div class="lesson-nav">
+    <a href="03-neural-networks.html"><div class="dir">→ قبلی</div><div>درس ۰۳ — Neural Network</div></a>
+    <a href="index.html"><div class="dir">بعدی ←</div><div>فهرست دوره — درس ۰۵ به‌زودی</div></a>
+  </div>
+  <footer class="site">LC-Intention-NAS · ELIOS Lab</footer>
+</main>
+</body>
+</html>

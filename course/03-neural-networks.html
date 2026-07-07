@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>درس ۰۳ — Neural Network به زبان آدمیزاد | LC-Intention-NAS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/course.css">
+<script src="assets/course.js" defer></script>
+</head>
+<body>
+<div class="topbar">
+  <a class="home" href="index.html">↪ فهرست دوره</a>
+  <div class="spacer"></div>
+  <button class="theme-toggle" onclick="toggleTheme()">🌗 روشن/تاریک</button>
+</div>
+<main>
+  <p class="kicker">درس ۰۳</p>
+  <h1><span class="en">Neural Network</span> به زبان آدمیزاد 🧠</h1>
+  <p class="lede">یک ماشینِ حدس‌زن که اولش کاملاً شانسی جواب می‌دهد، ولی بعد از هر اشتباه کمی خودش را اصلاح می‌کند.</p>
+
+  <div class="card callout story">
+    <p class="card-title">قصه 📖</p>
+    <p>فرض کن می‌خواهی به دوستت یاد بدهی صدای سازها را تشخیص بدهد، ولی اجازه نداری
+    هیچ قانونی بگویی؛ نمی‌توانی بگویی «گیتار صدای سیمی دارد» یا «پیانو صدای ضربه‌ای».
+    فقط می‌توانی هزاران بار برایش آهنگ پخش کنی و بگویی «این گیتار بود»، «این پیانو بود».
+    کم‌کم مغز دوستت خودش الگوها را پیدا می‌کند — بدون اینکه بتواند دقیقاً بگوید چطور.</p>
+    <p><b><span class="en">Neural network</span></b> همین کار را با عدد انجام می‌دهد:
+    یک ماشینِ حدس‌زن که اولش کاملاً شانسی جواب می‌دهد، ولی بعد از هر اشتباه، کمی خودش را اصلاح می‌کند.
+    بعد از میلیون‌ها اصلاحِ ریز، حدس‌هایش عالی می‌شوند.</p>
+  </div>
+
+  <h2>دقیق‌تر 🔬</h2>
+  <p>شبکه از لایه‌هایی از <span class="en">neuron</span>‌ها ساخته شده است.
+  هر <span class="en">neuron</span> موجود خیلی ساده‌ای است: چند عدد ورودی می‌گیرد،
+  هر کدام را در یک <b><span class="en">weight</span></b> (وزن) ضرب می‌کند، همه را جمع می‌زند
+  و نتیجه را از یک تابع سادهٔ غیرخطی به نام <b><span class="en">activation</span></b> عبور می‌دهد.
+  معروف‌ترین <span class="en">activation</span> همان <b><span class="en">ReLU</span></b> است که فقط یک قانون دارد:
+  «اگر منفی بود، صفر؛ وگرنه دست نزن».</p>
+  <p>وزن‌ها را مثل پیچ‌های ولومِ یک میز صدا تصور کن: هر پیچ می‌گوید صدای کدام ورودی
+  در جوابِ نهایی بلندتر شنیده شود. <b>«یادگیری» یعنی پیدا کردن تنظیم درستِ همین پیچ‌ها.</b></p>
+
+  <figure class="viz">
+    <svg viewBox="0 0 720 315" role="img" aria-label="ساختار یک neuron: سه ورودی با وزن‌های w یک تا w سه وارد گره جمع می‌شوند، سپس از ReLU عبور می‌کنند و خروجی ساخته می‌شود">
+      <defs>
+        <marker id="arr-n" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="var(--muted)"/>
+        </marker>
+      </defs>
+      <!-- inputs (right) -->
+      <text x="630" y="26" text-anchor="middle" fill="var(--ink-2)" font-size="12.5">ورودی‌ها</text>
+      <circle cx="630" cy="70" r="26" fill="none" stroke="var(--series-2)" stroke-width="2"/>
+      <text x="630" y="76" text-anchor="middle" fill="var(--ink)" font-size="16" font-weight="700">x₁</text>
+      <circle cx="630" cy="155" r="26" fill="none" stroke="var(--series-2)" stroke-width="2"/>
+      <text x="630" y="161" text-anchor="middle" fill="var(--ink)" font-size="16" font-weight="700">x₂</text>
+      <circle cx="630" cy="240" r="26" fill="none" stroke="var(--series-2)" stroke-width="2"/>
+      <text x="630" y="246" text-anchor="middle" fill="var(--ink)" font-size="16" font-weight="700">x₃</text>
+      <!-- weighted arrows -->
+      <line x1="606" y1="80" x2="450" y2="143" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#arr-n)"/>
+      <line x1="604" y1="155" x2="452" y2="155" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#arr-n)"/>
+      <line x1="606" y1="230" x2="450" y2="167" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#arr-n)"/>
+      <text x="533" y="100" text-anchor="middle" fill="var(--series-1)" font-size="15" font-weight="700">w₁</text>
+      <text x="530" y="147" text-anchor="middle" fill="var(--series-1)" font-size="15" font-weight="700">w₂</text>
+      <text x="533" y="218" text-anchor="middle" fill="var(--series-1)" font-size="15" font-weight="700">w₃</text>
+      <text x="528" y="290" text-anchor="middle" fill="var(--ink-2)" font-size="12">هر ورودی در وزنِ خودش ضرب می‌شود</text>
+      <!-- sum node -->
+      <circle cx="420" cy="155" r="30" fill="none" stroke="var(--series-1)" stroke-width="2.5"/>
+      <text x="420" y="164" text-anchor="middle" fill="var(--ink)" font-size="24" font-weight="700">Σ</text>
+      <text x="420" y="212" text-anchor="middle" fill="var(--ink-2)" font-size="12.5">جمع وزن‌دار</text>
+      <!-- ReLU -->
+      <line x1="390" y1="155" x2="318" y2="155" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#arr-n)"/>
+      <rect x="205" y="125" width="110" height="60" rx="10" fill="none" stroke="var(--series-2)" stroke-width="2.5"/>
+      <text x="260" y="152" text-anchor="middle" fill="var(--ink)" font-size="16" font-weight="700">ReLU</text>
+      <text x="260" y="172" text-anchor="middle" fill="var(--ink-2)" font-size="11">activation</text>
+      <text x="260" y="212" text-anchor="middle" fill="var(--ink-2)" font-size="12">اگر منفی بود، صفرش کن</text>
+      <!-- output -->
+      <line x1="205" y1="155" x2="132" y2="155" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#arr-n)"/>
+      <circle cx="97" cy="155" r="30" fill="none" stroke="var(--baseline)" stroke-width="2.5"/>
+      <text x="97" y="160" text-anchor="middle" fill="var(--ink)" font-size="12.5" font-weight="700">output</text>
+      <text x="97" y="212" text-anchor="middle" fill="var(--ink-2)" font-size="12">خروجی: حدسِ شبکه</text>
+    </svg>
+    <figcaption>شکل ۱ — یک <span class="en">neuron</span>: هر ورودی در <span class="en">weight</span> خودش ضرب می‌شود، همه جمع می‌شوند و نتیجه از <span class="en">ReLU</span> عبور می‌کند. یادگیری یعنی پیدا کردن مقدار درست همین وزن‌ها.</figcaption>
+  </figure>
+
+  <h3>چرخهٔ یادگیری: چهار قدم، میلیون‌ها بار 🔁</h3>
+  <p>خب، شبکه چطور تنظیم درست وزن‌ها را پیدا می‌کند؟ با یک چرخهٔ ساده که مدام تکرار می‌شود:</p>
+  <div class="card">
+    <p>۱. شبکه برای یک نمونه حدس می‌زند (به این مرحله <span class="en">forward</span> می‌گویند)؛<br>
+    ۲. یک تابع به نام <b><span class="en">loss</span></b> اندازه می‌گیرد حدس چقدر بد بود — مثل معلمی که فقط نمره می‌دهد؛<br>
+    ۳. الگوریتم <b><span class="en">backpropagation</span></b> حساب می‌کند هر <span class="en">weight</span> چقدر در این خطا مقصر بود؛<br>
+    ۴. <b><span class="en">optimizer</span></b> (مثل <b><span class="en">AdamW</span></b> که ما استفاده می‌کنیم) هر <span class="en">weight</span> را کمی در جهت درست هُل می‌دهد.</p>
+  </div>
+
+  <figure class="viz">
+    <svg viewBox="0 0 720 440" role="img" aria-label="چرخهٔ یادگیری با چهار مرحله: حدس بزن، خطا را اندازه بگیر، مقصرها را پیدا کن، وزن‌ها را کمی اصلاح کن — و دوباره از اول">
+      <defs>
+        <marker id="arr-l" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="var(--muted)"/>
+        </marker>
+      </defs>
+      <!-- stage 1: top -->
+      <rect x="250" y="22" width="220" height="62" rx="12" fill="none" stroke="var(--series-1)" stroke-width="2"/>
+      <text x="360" y="50" text-anchor="middle" fill="var(--ink)" font-size="15" font-weight="700">۱) حدس بزن</text>
+      <text x="360" y="71" text-anchor="middle" fill="var(--series-1)" font-size="12">forward</text>
+      <!-- stage 2: left -->
+      <rect x="15" y="189" width="225" height="62" rx="12" fill="none" stroke="var(--series-1)" stroke-width="2"/>
+      <text x="127" y="214" text-anchor="middle" fill="var(--ink)" font-size="14.5" font-weight="700">۲) خطا را اندازه بگیر</text>
+      <text x="127" y="236" text-anchor="middle" fill="var(--series-1)" font-size="12">loss</text>
+      <!-- stage 3: bottom -->
+      <rect x="235" y="356" width="250" height="62" rx="12" fill="none" stroke="var(--series-1)" stroke-width="2"/>
+      <text x="360" y="381" text-anchor="middle" fill="var(--ink)" font-size="14.5" font-weight="700">۳) مقصرها را پیدا کن</text>
+      <text x="360" y="403" text-anchor="middle" fill="var(--series-1)" font-size="12">backpropagation</text>
+      <!-- stage 4: right -->
+      <rect x="480" y="189" width="225" height="62" rx="12" fill="none" stroke="var(--series-1)" stroke-width="2"/>
+      <text x="592" y="214" text-anchor="middle" fill="var(--ink)" font-size="14" font-weight="700">۴) وزن‌ها را کمی اصلاح کن</text>
+      <text x="592" y="236" text-anchor="middle" fill="var(--series-1)" font-size="12">optimizer · AdamW</text>
+      <!-- arrows, counterclockwise (RTL) -->
+      <path d="M 250 53 Q 140 65 127 185" fill="none" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr-l)"/>
+      <path d="M 127 251 Q 138 375 231 385" fill="none" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr-l)"/>
+      <path d="M 485 385 Q 582 375 592 255" fill="none" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr-l)"/>
+      <path d="M 592 189 Q 580 65 474 53" fill="none" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr-l)"/>
+      <!-- center note -->
+      <text x="360" y="185" text-anchor="middle" fill="var(--ink)" font-size="14" font-weight="700">این چرخه میلیون‌ها بار</text>
+      <text x="360" y="208" text-anchor="middle" fill="var(--ink)" font-size="14" font-weight="700">تکرار می‌شود 🔁</text>
+      <text x="360" y="242" text-anchor="middle" fill="var(--ink-2)" font-size="12.5">هر دور کامل روی همهٔ داده</text>
+      <text x="360" y="264" text-anchor="middle" fill="var(--ink-2)" font-size="12.5">= یک epoch</text>
+    </svg>
+    <figcaption>شکل ۲ — چرخهٔ یادگیری: حدس، اندازه‌گیری خطا، پیدا کردن سهم تقصیر، اصلاح کوچک وزن‌ها — و دوباره از اول. هر دور کامل روی همهٔ دادهٔ <span class="en">train</span>، یک <span class="en">epoch</span> نام دارد.</figcaption>
+  </figure>
+
+  <p>نکتهٔ مهم: هیچ‌کدام از این اصلاح‌ها به‌تنهایی معجزه نمی‌کنند؛ هر بار وزن‌ها فقط
+  «کمی» بهتر می‌شوند. جادوی <span class="en">neural network</span> در تکرار است —
+  میلیون‌ها اصلاح ریز که روی هم جمع می‌شوند.</p>
+
+  <h3>خروجی شبکه چه شکلی است؟ 🎯</h3>
+  <div class="card">
+    <p>• برای <b><span class="en">classification</span></b>، خروجی شبکه سه عدد است (یکی برای هر کلاس)
+    و بزرگ‌ترین عدد، حدسِ شبکه است.<br>
+    • برای <b><span class="en">regression</span></b>، خروجی فقط یک عدد است: چند ثانیه تا تغییر خط.</p>
+  </div>
+
+  <h2>در پروژهٔ ما 🧰</h2>
+  <div class="card">
+    <p>• مدل پایهٔ ما یک <b><span class="en">CNN</span> یک‌بعدی</b> کوچک است (درس ۰۴ مفصل توضیح می‌دهد)
+    در <span class="en">src/models/baseline.py</span>.<br>
+    • چرخهٔ یادگیری در <span class="en">src/train.py</span> پیاده شده:
+    <span class="en">AdamW</span> + <span class="en">early stopping</span>
+    (اگر چند <span class="en">epoch</span> پشت‌سرهم بهتر نشد، بس کن).<br>
+    • اولین اجرا: فقط ۲۷ ثانیه <span class="en">training</span> روی <span class="en">GPU</span>
+    و دقت ۹۱٫۵٪ روی دادهٔ <span class="en">test</span> —
+    ثبت‌شده در <span class="en">logs/experiments.jsonl</span>.</p>
+  </div>
+
+  <div class="tiles">
+    <div class="tile">
+      <div class="value">27 s</div>
+      <div class="label">زمان <span class="en">training</span> اولین اجرا روی <span class="en">GPU</span></div>
+    </div>
+    <div class="tile">
+      <div class="value">91.5%</div>
+      <div class="label">دقت (<span class="en">accuracy</span>) روی دادهٔ <span class="en">test</span></div>
+    </div>
+  </div>
+
+  <div id="quiz" class="quiz"></div>
+  <script type="application/json" id="quiz-data">
+  [
+    {"stem": "کار weight در یک neuron چیست؟",
+     "options": ["تعداد لایه‌های شبکه را مشخص می‌کند", "تعیین می‌کند هر ورودی چقدر در جواب نهایی مهم باشد", "خطای شبکه را اندازه می‌گیرد"],
+     "answer": 1,
+     "explain": "هر ورودی در weight خودش ضرب می‌شود؛ مثل پیچ ولوم، weight بزرگ‌تر یعنی آن ورودی حرف بیشتری در جواب دارد. «یادگیری» دقیقاً یعنی پیدا کردن مقدار درست همین weightها."},
+    {"stem": "تابع loss چه چیزی را اندازه می‌گیرد؟",
+     "options": ["سرعت اجرای مدل روی GPU", "اینکه حدس شبکه چقدر بد بود", "تعداد neuronهای هر لایه"],
+     "answer": 1,
+     "explain": "loss مثل معلمی است که به هر حدس نمرهٔ بدی‌بودن می‌دهد. هدف کل training این است که این عدد کوچک و کوچک‌تر شود؛ بقیهٔ چرخه (backpropagation و optimizer) در خدمت همین هدف‌اند."},
+    {"stem": "ترتیب درست چرخهٔ یادگیری کدام است؟",
+     "options": ["forward → loss → backpropagation → optimizer", "optimizer → loss → forward → backpropagation", "loss → forward → optimizer → backpropagation"],
+     "answer": 0,
+     "explain": "اول شبکه حدس می‌زند (forward)، بعد loss اندازه می‌گیرد حدس چقدر بد بود، بعد backpropagation سهم تقصیر هر weight را حساب می‌کند و در آخر optimizer (در پروژهٔ ما AdamW) هر weight را کمی در جهت درست هُل می‌دهد. این چرخه میلیون‌ها بار تکرار می‌شود."},
+    {"stem": "یک epoch یعنی چه؟",
+     "options": ["یک بار اصلاح‌شدن یک weight", "یک دور کامل چرخهٔ یادگیری روی همهٔ دادهٔ train", "یک ثانیه از زمان training"],
+     "answer": 1,
+     "explain": "هر دور کامل روی همهٔ دادهٔ train یک epoch است و داخل هر epoch هزاران حدس و اصلاح ریز اتفاق می‌افتد. در پروژهٔ ما اگر چند epoch پشت‌سرهم نتیجه بهتر نشود، training را متوقف می‌کنیم — به این کار early stopping می‌گویند."}
+  ]
+  </script>
+
+  <div class="lesson-nav">
+    <a href="02-the-data.html"><div class="dir">→ قبلی</div><div>درس ۰۲ — داده</div></a>
+    <a href="04-1d-cnn.html"><div class="dir">بعدی ←</div><div>درس ۰۴ — CNN یک‌بعدی</div></a>
+  </div>
+  <footer class="site">LC-Intention-NAS · ELIOS Lab</footer>
+</main>
+</body>
+</html>

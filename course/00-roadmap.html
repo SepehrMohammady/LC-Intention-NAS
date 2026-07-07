@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>درس ۰۰ — نقشهٔ راه | LC-Intention-NAS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/course.css">
+<script src="assets/course.js" defer></script>
+</head>
+<body>
+<div class="topbar">
+  <a class="home" href="index.html">↪ فهرست دوره</a>
+  <div class="spacer"></div>
+  <button class="theme-toggle" onclick="toggleTheme()">🌗 روشن/تاریک</button>
+</div>
+<main>
+  <p class="kicker">درس ۰۰</p>
+  <h1>نقشهٔ راه: قرار است چه بسازیم؟ 🗺️</h1>
+  <p class="lede">یک دستیار ریزه‌میزه اما باهوش که چند ثانیه قبل از تغییر خط، نیت راننده را حدس می‌زند.</p>
+
+  <div class="card callout story">
+    <p class="card-title">قصه 📖</p>
+    <p>فرض کن یک دستیار خیلی کوچک و خیلی سریع کنار رانندهٔ ماشین نشسته. کارش فقط یک چیز است:
+    چند ثانیه قبل از اینکه راننده خط عوض کند، حدس بزند که او می‌خواهد این کار را بکند.
+    اگر دستیار زود بفهمد، ماشین می‌تواند هشدار بدهد یا خودش را آماده کند و از خیلی از تصادف‌ها جلوگیری شود.</p>
+    <p>مشکل اینجاست: این دستیار باید داخل یک تراشهٔ خیلی کوچک و ارزان زندگی کند
+    (به آن <span class="en">microcontroller</span> می‌گویند — مثل <span class="en">STM32</span>)،
+    نه داخل یک کامپیوتر بزرگ. تراشهٔ کوچک یعنی حافظهٔ کم و سرعت محدود.
+    پس دستیار ما باید هم <b>باهوش</b> باشد هم <b>ریزه‌میزه</b>.</p>
+  </div>
+
+  <h2>دقیق‌تر 🔬</h2>
+  <p>به این دستیار می‌گویند <span class="en">model</span> (یک <span class="en">neural network</span>).
+  ورودی‌اش سیگنال‌های ماشین در طول زمان است (<span class="en">time series</span>) و سه کار انجام می‌دهد:</p>
+
+  <figure class="viz">
+    <svg viewBox="0 0 720 250" role="img" aria-label="نمای کلی سیستم: سیگنال‌های ماشین وارد پنجرهٔ زمانی می‌شوند، مدل روی STM32 اجرا می‌شود و سه خروجی می‌دهد">
+      <defs>
+        <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="var(--muted)"/>
+        </marker>
+      </defs>
+      <!-- sensors -->
+      <rect x="590" y="85" width="120" height="80" rx="12" fill="none" stroke="var(--series-2)" stroke-width="2"/>
+      <text x="650" y="115" text-anchor="middle" fill="var(--ink)" font-size="15" font-weight="700">سنسورهای ماشین</text>
+      <text x="650" y="140" text-anchor="middle" fill="var(--ink-2)" font-size="12">سرعت، فرمان، فاصله‌ها…</text>
+      <!-- window -->
+      <line x1="590" y1="125" x2="520" y2="125" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr)"/>
+      <rect x="390" y="85" width="130" height="80" rx="12" fill="none" stroke="var(--baseline)" stroke-width="2"/>
+      <text x="455" y="115" text-anchor="middle" fill="var(--ink)" font-size="15" font-weight="700">پنجرهٔ زمانی</text>
+      <text x="455" y="140" text-anchor="middle" fill="var(--ink-2)" font-size="12" direction="ltr">50 × 31</text>
+      <!-- model on MCU -->
+      <line x1="390" y1="125" x2="320" y2="125" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr)"/>
+      <rect x="180" y="70" width="140" height="110" rx="12" fill="none" stroke="var(--series-1)" stroke-width="2.5"/>
+      <text x="250" y="105" text-anchor="middle" fill="var(--ink)" font-size="15" font-weight="700">Model</text>
+      <text x="250" y="130" text-anchor="middle" fill="var(--ink-2)" font-size="12">شبکهٔ عصبی کوچک</text>
+      <text x="250" y="160" text-anchor="middle" fill="var(--series-1)" font-size="12" font-weight="700">روی STM32 🧩</text>
+      <!-- outputs -->
+      <line x1="180" y1="95" x2="120" y2="45" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr)"/>
+      <line x1="180" y1="125" x2="120" y2="125" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr)"/>
+      <line x1="180" y1="155" x2="120" y2="205" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr)"/>
+      <text x="110" y="40" text-anchor="end" fill="var(--ink)" font-size="13.5" font-weight="700">قصد تغییر خط؟ (۳ کلاس)</text>
+      <text x="110" y="129" text-anchor="end" fill="var(--ink)" font-size="13.5" font-weight="700">چند ثانیه تا چپ؟ (LCL)</text>
+      <text x="110" y="214" text-anchor="end" fill="var(--ink)" font-size="13.5" font-weight="700">چند ثانیه تا راست؟ (LCR)</text>
+    </svg>
+    <figcaption>شکل ۱ — نمای کلی: سیگنال‌های خودرو در پنجره‌های ۵ ثانیه‌ای وارد مدل می‌شوند و مدل سه پرسش را جواب می‌دهد.</figcaption>
+  </figure>
+
+  <p>سه مسئلهٔ ما:</p>
+  <div class="card">
+    <p>۱. <b><span class="en">Classification</span></b>: راننده قصد دارد خط عوض کند یا نه؟
+    سه حالت: هیچ، راست (<span class="en">LCR</span> = Lane Change Right)، چپ (<span class="en">LCL</span> = Lane Change Left).<br>
+    ۲. <b><span class="en">Regression</span> برای LCL</b>: چند ثانیه دیگر به چپ می‌رود؟ (۰ تا ۴ ثانیه، گام ۰٫۱)<br>
+    ۳. <b><span class="en">Regression</span> برای LCR</b>: همان سؤال برای راست.</p>
+  </div>
+
+  <p>و به‌جای اینکه معماری شبکه را با آزمون‌وخطا خودمان طراحی کنیم، از
+  <b><span class="en">NAS (Neural Architecture Search)</span></b> استفاده می‌کنیم:
+  الگوریتمی که خودش هزاران طراحی را امتحان می‌کند و بهترین را پیدا می‌کند — با این شرط که در
+  حافظهٔ <span class="en">microcontroller</span> جا شود (روش <span class="en">µNAS</span>).</p>
+
+  <h2>هدف نهایی 🎯</h2>
+  <p>یک رکورد علمی را بشکنیم! بهترین نتیجهٔ منتشرشده روی این داده
+  (مقالهٔ <span class="en">IEEE SPL 2026</span> از همین آزمایشگاه) و نتیجه‌های مرجع داخلی تیم این‌هاست:</p>
+
+  <table>
+    <thead><tr><th>کار</th><th>معیار</th><th class="num">هدف</th><th class="num">اولین مدل ما (بدون تنظیم!)</th></tr></thead>
+    <tbody>
+      <tr><td>Classification</td><td><span class="en">accuracy</span></td><td class="num">92%</td><td class="num">91.5%</td></tr>
+      <tr><td>Regression LCR</td><td><span class="en">RMSE</span></td><td class="num">0.42 s</td><td class="num">0.439 s</td></tr>
+      <tr><td>Regression LCL</td><td><span class="en">RMSE</span></td><td class="num">0.44 s</td><td class="num">0.459 s</td></tr>
+      <tr><td>TTLC واحد (منتشرشده، Transformer)</td><td><span class="en">RMSE</span></td><td class="num">0.51 s</td><td class="num">—</td></tr>
+    </tbody>
+  </table>
+
+  <p>می‌خواهیم با مدلی <b>کوچک‌تر و سریع‌تر</b> از این نتیجه‌ها بهتر شویم، مدل را روی بورد
+  <span class="en">STM32H7B3I-DK</span> واقعاً اجرا کنیم، و نتیجه را به‌صورت یک
+  <span class="en">paper</span> در یک مجلهٔ معتبر (<span class="en">Q1</span>) منتشر کنیم.</p>
+
+  <h2>در پروژهٔ ما 🧰</h2>
+  <div class="card">
+    <p>• کد اصلی: پوشهٔ <span class="en">src/</span> و notebook اصلی <span class="en">notebooks/dimir_pipeline.ipynb</span><br>
+    • همهٔ آزمایش‌ها در <span class="en">logs/experiments.jsonl</span> ثبت می‌شوند تا موقع نوشتن paper هیچ عددی گم نشود.<br>
+    • پیش‌نویس مقاله: <span class="en">paper/main.tex</span> (بعد از هر تغییر، PDF ساخته می‌شود.)</p>
+  </div>
+
+  <div id="quiz" class="quiz"></div>
+  <script type="application/json" id="quiz-data">
+  [
+    {"stem": "چرا نمی‌توانیم از یک مدل خیلی بزرگ و دقیق استفاده کنیم؟",
+     "options": ["چون مدل بزرگ همیشه دقت کمتری دارد", "چون مدل باید داخل microcontroller با حافظه و سرعت محدود اجرا شود", "چون داده‌ها کم هستند"],
+     "answer": 1,
+     "explain": "دقت مدل بزرگ معمولاً بهتر است، اما جای آن در تراشهٔ کوچک نیست؛ محدودیت RAM و flash و سرعت، مدل را مجبور به کوچک بودن می‌کند."},
+    {"stem": "NAS چه کاری برای ما می‌کند؟",
+     "options": ["داده جمع می‌کند", "به‌جای ما، معماری‌های مختلف شبکه را امتحان و بهترین را پیدا می‌کند", "مدل را روی بورد نصب می‌کند"],
+     "answer": 1,
+     "explain": "NAS یعنی جست‌وجوی خودکار معماری: الگوریتم هزاران طراحی را می‌سازد، می‌سنجد و به سمت بهترین‌ها حرکت می‌کند."},
+    {"stem": "خروجی مسئلهٔ regression در این پروژه چیست؟",
+     "options": ["بله/خیر برای تغییر خط", "تعداد ماشین‌های اطراف", "چند ثانیه تا تغییر خط (عددی بین ۰ تا ۴)"],
+     "answer": 2,
+     "explain": "دو مسئلهٔ regression داریم (چپ و راست) و هر کدام یک عدد پیوسته بین ۰ تا ۴ ثانیه با گام ۰٫۱ پیش‌بینی می‌کنند."}
+  ]
+  </script>
+
+  <div class="lesson-nav">
+    <a href="index.html"><div class="dir">→ قبلی</div><div>فهرست دوره</div></a>
+    <a href="01-the-problem.html"><div class="dir">بعدی ←</div><div>درس ۰۱ — مسئله</div></a>
+  </div>
+  <footer class="site">LC-Intention-NAS · ELIOS Lab</footer>
+</main>
+</body>
+</html>

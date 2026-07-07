@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>درس ۰۲ — داده | LC-Intention-NAS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/course.css">
+<script src="assets/course.js" defer></script>
+</head>
+<body>
+<div class="topbar">
+  <a class="home" href="index.html">↪ فهرست دوره</a>
+  <div class="spacer"></div>
+  <button class="theme-toggle" onclick="toggleTheme()">🌗 روشن/تاریک</button>
+</div>
+<main>
+  <p class="kicker">درس ۰۲</p>
+  <h1>داده: <span class="en">Time Series</span> یعنی چه و دادهٔ ما چه شکلی است؟ 🎞️</h1>
+  <p class="lede">قبل از ساختن هر مدلی باید بدانیم مدل قرار است به چه چیزی نگاه کند: یک «فیلم عددیِ» ۵ ثانیه‌ای از حال‌واحوال ماشین.</p>
+
+  <div class="card callout story">
+    <p class="card-title">قصه 📖</p>
+    <p>تصور کن هر لحظه از رانندگی، یک عکسِ عددی از حال ماشین بگیریم: سرعت چند بود؟
+    فرمان چقدر چرخیده بود؟ فاصله تا خط چقدر بود؟ حالا اگر این عکس‌های عددی را
+    پشت‌سرهم بچینیم، یک «فیلم عددی» داریم. به این فیلم عددی می‌گویند
+    <b><span class="en">time series</span></b> (سریِ زمانی).</p>
+    <p>مدل ما هر بار یک تکهٔ کوتاه از این فیلم را می‌بیند — مثل اینکه فقط ۵۰ فریم آخر را
+    نگاه کند — و باید حدس بزند بعدش چه می‌شود. به این تکهٔ کوتاه می‌گویند
+    <span class="en">window</span> (پنجره).</p>
+  </div>
+
+  <h2>دقیق‌تر 🔬</h2>
+  <p>هر نمونهٔ ورودی (یک <span class="en">window</span>) در واقع یک جدول است:</p>
+
+  <div class="tiles">
+    <div class="tile"><div class="value">50</div><div class="label">گام زمانی (<span class="en">timestep</span>) در هر window</div></div>
+    <div class="tile"><div class="value">31</div><div class="label">سیگنال (<span class="en">feature</span>) در هر گام</div></div>
+    <div class="tile"><div class="value">10 Hz</div><div class="label">نرخ ثبت داده (۱۰ عکس در ثانیه)</div></div>
+    <div class="tile"><div class="value">5 s</div><div class="label">طول هر window (۵۰ × ۰٫۱ ثانیه)</div></div>
+  </div>
+
+  <p>پس شکل هر نمونه <span class="en">(50, 31)</span> است: ۵۰ سطرِ زمان و ۳۱ ستونِ سیگنال.
+  ضمناً داده از قبل توسط تیم آماده و <b><span class="en">normalize</span></b> شده — یعنی مقیاس
+  همهٔ سیگنال‌ها هم‌اندازه شده (مثل اینکه نمرهٔ همهٔ درس‌ها را از ۲۰ بنویسیم) تا شبکه راحت‌تر یاد بگیرد.</p>
+
+  <figure class="viz">
+    <svg viewBox="0 0 720 315" role="img" aria-label="نمای یک window ورودی: جدولی با ۵۰ گام زمانی در محور افقی و ۳۱ سیگنال در محور عمودی؛ چند سطر نمونه مثل vehicleSpeed و steeringAngle نشان داده شده و شکل داده ۵۰ در ۳۱ است">
+      <defs>
+        <marker id="arrT" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="var(--muted)"/>
+        </marker>
+      </defs>
+
+      <!-- shape badge -->
+      <rect x="495" y="8" width="170" height="30" rx="9" fill="none" stroke="var(--series-1)" stroke-width="2"/>
+      <text x="580" y="29" text-anchor="middle" fill="var(--series-1)" font-size="14" font-weight="700" direction="ltr">shape = (50, 31)</text>
+
+      <!-- labels column header -->
+      <text x="115" y="30" text-anchor="middle" fill="var(--ink-2)" font-size="13" font-weight="700">سیگنال‌ها</text>
+
+      <!-- grid frame -->
+      <rect x="205" y="50" width="460" height="216" rx="6" fill="none" stroke="var(--baseline)" stroke-width="1.5"/>
+      <!-- vertical grid lines (نمایی از ۵۰ ستون زمان) -->
+      <g stroke="var(--grid)" stroke-width="1">
+        <line x1="225" y1="50" x2="225" y2="266"/><line x1="245" y1="50" x2="245" y2="266"/>
+        <line x1="265" y1="50" x2="265" y2="266"/><line x1="285" y1="50" x2="285" y2="266"/>
+        <line x1="305" y1="50" x2="305" y2="266"/><line x1="325" y1="50" x2="325" y2="266"/>
+        <line x1="345" y1="50" x2="345" y2="266"/><line x1="365" y1="50" x2="365" y2="266"/>
+        <line x1="385" y1="50" x2="385" y2="266"/><line x1="405" y1="50" x2="405" y2="266"/>
+        <line x1="425" y1="50" x2="425" y2="266"/><line x1="445" y1="50" x2="445" y2="266"/>
+        <line x1="465" y1="50" x2="465" y2="266"/><line x1="485" y1="50" x2="485" y2="266"/>
+        <line x1="505" y1="50" x2="505" y2="266"/><line x1="525" y1="50" x2="525" y2="266"/>
+        <line x1="545" y1="50" x2="545" y2="266"/><line x1="565" y1="50" x2="565" y2="266"/>
+        <line x1="585" y1="50" x2="585" y2="266"/><line x1="605" y1="50" x2="605" y2="266"/>
+        <line x1="625" y1="50" x2="625" y2="266"/><line x1="645" y1="50" x2="645" y2="266"/>
+      </g>
+      <!-- horizontal row separators -->
+      <g stroke="var(--grid)" stroke-width="1">
+        <line x1="205" y1="86" x2="665" y2="86"/>
+        <line x1="205" y1="122" x2="665" y2="122"/>
+        <line x1="205" y1="158" x2="665" y2="158"/>
+        <line x1="205" y1="194" x2="665" y2="194"/>
+        <line x1="205" y1="230" x2="665" y2="230"/>
+      </g>
+
+      <!-- example signal traces -->
+      <polyline points="210,72 240,70 270,66 300,60 330,58 360,62 390,68 420,72 450,70 480,64 510,60 540,62 570,66 600,70 630,72 660,70"
+        fill="none" stroke="var(--series-1)" stroke-width="1.8"/>
+      <polyline points="210,104 245,100 280,108 315,98 350,110 385,100 420,106 455,96 490,108 525,102 560,106 595,100 630,104 660,103"
+        fill="none" stroke="var(--series-2)" stroke-width="1.8"/>
+      <polyline points="210,144 260,142 310,138 360,134 410,133 460,135 510,139 560,143 610,145 660,144"
+        fill="none" stroke="var(--muted)" stroke-width="1.8"/>
+      <text x="435" y="204" text-anchor="middle" fill="var(--muted)" font-size="20">⋮</text>
+      <polyline points="210,250 260,246 310,250 360,247 410,251 460,246 510,249 560,247 610,250 660,248"
+        fill="none" stroke="var(--muted)" stroke-width="1.8"/>
+
+      <!-- row labels -->
+      <text x="115" y="66" text-anchor="middle" fill="var(--ink)" font-size="12" font-weight="600" direction="ltr">vehicleSpeed</text>
+      <text x="115" y="81" text-anchor="middle" fill="var(--muted)" font-size="10.5">سرعت خودرو</text>
+      <text x="115" y="102" text-anchor="middle" fill="var(--ink)" font-size="12" font-weight="600" direction="ltr">steeringAngle</text>
+      <text x="115" y="117" text-anchor="middle" fill="var(--muted)" font-size="10.5">زاویهٔ فرمان</text>
+      <text x="115" y="138" text-anchor="middle" fill="var(--ink)" font-size="12" font-weight="600" direction="ltr">curvatureDx</text>
+      <text x="115" y="153" text-anchor="middle" fill="var(--muted)" font-size="10.5">انحنای مسیر</text>
+      <text x="115" y="204" text-anchor="middle" fill="var(--muted)" font-size="18">⋮</text>
+      <text x="115" y="246" text-anchor="middle" fill="var(--ink)" font-size="12" font-weight="600" direction="ltr">feature 31</text>
+      <text x="115" y="261" text-anchor="middle" fill="var(--muted)" font-size="10.5">سیگنال ۳۱</text>
+
+      <!-- time axis -->
+      <line x1="205" y1="280" x2="655" y2="280" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#arrT)"/>
+      <text x="230" y="300" text-anchor="middle" fill="var(--muted)" font-size="11" direction="ltr">t = 1</text>
+      <text x="435" y="302" text-anchor="middle" fill="var(--ink-2)" font-size="13" font-weight="700">زمان (۵۰ گام = ۵ ثانیه)</text>
+      <text x="640" y="300" text-anchor="middle" fill="var(--muted)" font-size="11" direction="ltr">t = 50</text>
+    </svg>
+    <figcaption>شکل ۱ — یک <span class="en">window</span> ورودی: جدولی با ۵۰ گام زمانی (چون داده با نرخ <span class="en">10 Hz</span> ثبت شده، یعنی ۵ ثانیه فیلم) و ۳۱ سیگنال. شکل داده <span class="en">(50, 31)</span> است.</figcaption>
+  </figure>
+
+  <h3>این داده از کجا آمده؟ 🎮</h3>
+  <div class="card">
+    <p>اسم رسمی این مجموعه‌داده <b><span class="en">Lane Change Intention Recognition Dataset</span></b> است.
+    داده‌ها در شبیه‌ساز رانندگی <span class="en">CARLA</span> جمع شده‌اند: ۵۰ رانندهٔ انسانیِ واقعی در شبیه‌ساز
+    رانندگی کرده‌اند و سیگنال‌های ماشین با نرخ <span class="en">10 Hz</span> (۱۰ بار در ثانیه) ثبت شده است.
+    برای همین پنجرهٔ ۵۰ گامی ما دقیقاً ۵ ثانیه از رانندگی را نشان می‌دهد.
+    (اسم <span class="en">DIMIR</span> فقط اسم داخلی پروژهٔ خود ماست، نه اسم مجموعه‌داده.)</p>
+  </div>
+
+  <h3>تقسیم داده (<span class="en">splits</span>) 📚</h3>
+  <p>برای اینکه امتحان مدل تقلبی نباشد، داده سه بخش دارد — مثل درس خواندن:
+  <b><span class="en">train</span></b> جزوهٔ تمرین است (مدل با آن یاد می‌گیرد)،
+  <b><span class="en">validation</span></b> کوئیزهای وسط ترم است (با آن مدل را تنظیم و بهترین را انتخاب می‌کنیم)،
+  و <b><span class="en">test</span></b> امتحان نهایی است که <b>فقط یک بار</b> در پایان کار برگزار می‌شود.
+  اگر بارها با <span class="en">test</span> مدل را تنظیم کنیم، عملاً جواب امتحان را لو داده‌ایم!</p>
+
+  <figure class="viz">
+    <div class="hbar" role="img" aria-label="اندازهٔ سه بخش داده برای مسئلهٔ classification: بخش train با ۹۴٬۶۲۰ نمونه، بخش validation با ۱۶٬۳۳۲ نمونه و بخش test با ۱۹٬۷۲۲ نمونه">
+      <div class="name">train</div><div class="track"><div class="fill" style="width:100%"></div></div><div class="val">94,620</div>
+      <div class="name">validation</div><div class="track"><div class="fill" style="width:17.3%"></div></div><div class="val">16,332</div>
+      <div class="name">test</div><div class="track"><div class="fill" style="width:20.8%"></div></div><div class="val">19,722</div>
+    </div>
+    <figcaption>شکل ۲ — تعداد نمونه‌های هر بخش برای مسئلهٔ <span class="en">classification</span>. بیشترِ داده صرف یادگیری می‌شود.</figcaption>
+  </figure>
+
+  <p>و برای هر سه مسئلهٔ ما، اندازهٔ بخش‌ها این است:</p>
+
+  <table>
+    <thead><tr><th>بخش</th><th>کارش</th><th class="num">Classification</th><th class="num">Regression LCL</th><th class="num">Regression LCR</th></tr></thead>
+    <tbody>
+      <tr><td><b><span class="en">train</span></b></td><td>یادگیری</td><td class="num">94,620</td><td class="num">39,313</td><td class="num">33,201</td></tr>
+      <tr><td><b><span class="en">validation</span></b></td><td>تنظیم و انتخاب مدل</td><td class="num">16,332</td><td class="num">7,742</td><td class="num">5,828</td></tr>
+      <tr><td><b><span class="en">test</span></b></td><td>امتحان نهایی (فقط یک بار!)</td><td class="num">19,722</td><td class="num">8,097</td><td class="num">7,073</td></tr>
+    </tbody>
+  </table>
+
+  <p>یک خبر خوب: در <span class="en">classification</span> هر سه کلاس (هیچ، چپ، راست) دقیقاً به یک
+  اندازه نمونه دارند — به این می‌گویند <b><span class="en">balanced</span></b>. این عالی است، چون مدل
+  نمی‌تواند با حقهٔ «همیشه بگو کلاسِ پرتعداد» نمرهٔ الکی بگیرد.</p>
+
+  <h3>چیزهای عجیبی که در داده پیدا کردیم 🕵️</h3>
+  <p>کار واقعی پژوهش همین است: قبل از هر مدل‌سازی، داده را زیر ذره‌بین گذاشتیم و دو نکتهٔ مهم پیدا شد:</p>
+
+  <div class="card callout" style="border-right-color: var(--critical);">
+    <p class="card-title">⚠️ دو شگفتی واقعی در دادهٔ ما</p>
+    <p>۱. <b>مقدارهای غول‌آسا فقط در <span class="en">test</span></b>: چند نمونهٔ نادر در بخش
+    <span class="en">test</span> مقدارهایی تا ۵ میلیون (<span class="en">5×10⁶</span>) دارند — روی جفت‌سیگنال‌های
+    <span class="en">(12, 13)</span> و <span class="en">(14, 15)</span> — در حالی که بیشترین مقدار در
+    <span class="en">train</span> حدود ۱۴۰ است! این احتمالاً یک خطای محاسباتی در آماده‌سازی داده است:
+    سیگنال‌های <span class="en">curvatureDx</span> (انحنای مسیر) ظاهراً از یک تقسیم ساخته می‌شوند و وقتی
+    مخرج به صفر نزدیک شود، جواب منفجر می‌شود. راه‌حل ما: مقدارهای
+    <span class="en">val</span>/<span class="en">test</span> را به محدودهٔ <span class="en">train</span> محدود
+    می‌کنیم (<b><span class="en">clipping</span></b>) و به دادهٔ <span class="en">train</span> دست نمی‌زنیم.</p>
+    <p>۲. <b><span class="en">Feature</span> شمارهٔ <span class="en">7</span> همیشه صفر است</b> (در دادهٔ
+    <span class="en">classification</span>) — یک سیگنال کاملاً ساکت که عملاً هیچ اطلاعاتی به مدل نمی‌دهد.</p>
+    <p>💡 درس بزرگ: <b>قبل از مدل‌سازی، همیشه داده را با چشم خودت بررسی کن.</b>
+    اگر مستقیم سراغ مدل رفته بودیم، این خطاها بی‌سروصدا نتیجه‌ها را خراب می‌کردند.</p>
+  </div>
+
+  <h2>در پروژهٔ ما 🧰</h2>
+  <div class="card">
+    <p>• کد خواندن و تمیزکاری داده: <span class="en">src/data.py</span><br>
+    • نمودارهای بررسی داده (<span class="en">EDA</span>): بخش ۴ از <span class="en">notebooks/dimir_pipeline.ipynb</span><br>
+    • همهٔ یافته‌های عجیبِ بالا مستند شده‌اند در: <span class="en">docs/DATA.md</span></p>
+  </div>
+
+  <div id="quiz" class="quiz"></div>
+  <script type="application/json" id="quiz-data">
+  [
+    {"stem": "شکل هر نمونهٔ ورودی (window) چیست؟",
+     "options": ["(31, 50) یعنی ۳۱ گام زمانی و ۵۰ سیگنال", "(50, 31) یعنی ۵۰ گام زمانی و ۳۱ سیگنال", "یک عکس عددی تکی از یک لحظهٔ رانندگی"],
+     "answer": 1,
+     "explain": "هر window جدولی است با ۵۰ سطرِ زمان و ۳۱ ستونِ سیگنال. یک عکس تکی کافی نیست — مدل باید «فیلم» را ببیند تا روند حرکت را بفهمد."},
+    {"stem": "دادهٔ ما با نرخ 10 Hz ثبت شده. یک window با ۵۰ گام زمانی چند ثانیه از رانندگی را نشان می‌دهد؟",
+     "options": ["۰٫۵ ثانیه", "۵ ثانیه", "۵۰ ثانیه"],
+     "answer": 1,
+     "explain": "نرخ 10 Hz یعنی ۱۰ عکس در ثانیه، پس هر گام ۰٫۱ ثانیه است: ۵۰ × ۰٫۱ = ۵ ثانیه. این همان پنجره‌ای است که مدل هر بار می‌بیند."},
+    {"stem": "چرا مجموعهٔ test را فقط یک بار در پایان استفاده می‌کنیم؟",
+     "options": ["چون تعداد نمونه‌هایش کم است و زود تمام می‌شود", "چون اگر بارها با آن مدل را تنظیم کنیم، عملاً جواب امتحان را لو داده‌ایم و نمره‌مان الکی بالا می‌رود", "چون اجرای مدل روی test خیلی کند است"],
+     "answer": 1,
+     "explain": "test مثل امتحان نهایی است: باید چیزی را بسنجد که مدل هرگز ندیده. برای تنظیم و انتخاب مدل، validation داریم — کوئیزهای وسط ترم."},
+    {"stem": "با مقدارهای غول‌آسا (تا ۵ میلیون) که فقط در بخش test پیدا شدند چه کردیم؟",
+     "options": ["دادهٔ train را هم تغییر دادیم تا شبیه test شود", "آن نمونه‌ها را کامل از داده حذف کردیم", "مقدارهای val و test را به محدودهٔ train محدود کردیم (clipping) و به train دست نزدیم"],
+     "answer": 2,
+     "explain": "این مقدارها احتمالاً خطای آماده‌سازی داده‌اند (تقسیم بر عدد نزدیک به صفر در سیگنال‌های curvatureDx). با clipping هیچ نمونه‌ای حذف نمی‌شود، فقط مقدارهای منفجرشده به بازهٔ آشنای train برمی‌گردند — و درس بزرگ‌تر: همیشه قبل از مدل‌سازی داده را با چشم خودت ببین."}
+  ]
+  </script>
+
+  <div class="lesson-nav">
+    <a href="01-the-problem.html"><div class="dir">→ قبلی</div><div>درس ۰۱ — مسئله</div></a>
+    <a href="03-neural-networks.html"><div class="dir">بعدی ←</div><div>درس ۰۳ — Neural Network</div></a>
+  </div>
+  <footer class="site">LC-Intention-NAS · ELIOS Lab</footer>
+</main>
+</body>
+</html>

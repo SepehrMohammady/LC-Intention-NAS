@@ -48,7 +48,8 @@ articles the team shared). Run every draft section against it.
       institutional access to the PDF).
 - [ ] SYNERGIES project acknowledgment text + grant number (baseline paper
       acknowledges Hi-Drive 101006664 — ours differs).
-- [ ] Target MCU confirmation: proposal = same boards as baseline
-      (STM32H7B3 high-end, STM32F401 low-end).
+- [x] Target MCU confirmed by user: **STM32H7B3I-DK** (same H7B3 family as the
+      baseline paper's high-end board → directly comparable). F401 optional
+      stretch target.
 - [ ] Venue decision: SPL (4 pages, head-to-head story) vs IoT-J (8 pages,
       IF 8.7) — discuss with supervisor.

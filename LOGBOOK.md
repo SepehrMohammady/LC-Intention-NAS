@@ -74,3 +74,21 @@ corrections and facts:
 **Next.** Colleague answers on split/column order → drop fileTime if
 confirmed → design 1D search space + aging-evolution loop with stedgeai-based
 constraint evaluation → NAS smoke run.
+
+## 2026-07-07 (later) — GitHub, hardware target, course website, PDF pipeline
+
+- Repository live: github.com/SepehrMohammady/LC-Intention-NAS (author
+  identity rewritten to Sepehr Mohammady on all commits before first push).
+- Deployment target confirmed by the team: **STM32H7B3I-DK** (Cortex-M7 @
+  280 MHz, 1.4 MB SRAM, 2 MB flash) — same H7B3 family as the baseline
+  paper's high-end board, so deployment tables stay directly comparable.
+  NAS budgets updated in docs/research/stm32-toolchain.md; F401 kept as an
+  optional low-end stretch target.
+- The Farsi course became a static website (course/index.html + lessons
+  00–04): RTL layout, light/dark themes, SVG diagrams, CSS bar charts on the
+  dataviz reference palette, and an interactive quiz per lesson. Markdown
+  lessons removed; HTML is canonical. Serving: enable GitHub Pages (main,
+  root) — the root index.html redirects into the course.
+- Paper now builds to PDF after every .tex change (MiKTeX pdflatex via
+  scripts/build_paper.ps1; main.pdf committed). Author set to Sepehr
+  Mohammady; H7B3I-DK written into the deployment section.

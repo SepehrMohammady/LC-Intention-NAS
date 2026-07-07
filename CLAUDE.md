@@ -1,8 +1,12 @@
-# Project conventions — DIMIR × µNAS
+# Project conventions — LC-Intention-NAS (internal name: DIMIR)
 
-PhD project (ELIOS Lab, UniGe): constrained NAS on the DIMIR lane-change
-time-series dataset, target Q1 paper + STM32 deployment. Baseline to beat:
-92% acc (3-class), 0.42 s RMSE (LCR), 0.44 s RMSE (LCL).
+PhD project (ELIOS Lab, UniGe): constrained NAS on the Lane Change Intention
+Recognition time-series dataset, target Q1 paper + STM32 deployment on
+**STM32H7B3I-DK**. Targets to beat: published SPL 2026 Transformer RMSE
+0.5102 s (single TTLC); internal reference 92% acc (3-class), 0.42 s RMSE
+(LCR), 0.44 s RMSE (LCL). Remote:
+https://github.com/SepehrMohammady/LC-Intention-NAS (git identity:
+Sepehr Mohammady <SMohammady@outlook.com>, repo-local config).
 
 ## Hard rules
 
@@ -15,8 +19,14 @@ time-series dataset, target Q1 paper + STM32 deployment. Baseline to beat:
   decisions get a dated entry in `LOGBOOK.md` via `append_logbook`.
 - **Keep the paper current**: when results or methods change, update
   `paper/main.tex` and `paper/NOTES.md` in the same session.
-- **Keep the course current**: `course/` (Farsi, technical terms in English)
-  gains/updates lessons when milestones land.
+- **Rebuild the PDF after every .tex change**:
+  `powershell -ExecutionPolicy Bypass -File scripts/build_paper.ps1`
+  (MiKTeX pdflatex, two passes; output paper/main.pdf, which is committed).
+- **Keep the course current**: `course/` is a static RTL Farsi website
+  (HTML pages with SVG diagrams + quizzes; lesson pages follow the structure
+  of `course/00-roadmap.html`; shared assets in `course/assets/`). New
+  milestones get new lesson pages; update `course/index.html` syllabus.
+  Charts follow the dataviz reference palette already encoded in course.css.
 
 ## Notebook style (notebooks/dimir_pipeline.ipynb)
 

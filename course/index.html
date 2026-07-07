@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>دورهٔ از صفر تا مقاله — LC-Intention-NAS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/course.css">
+<script src="assets/course.js" defer></script>
+</head>
+<body>
+<div class="topbar">
+  <a class="home" href="https://github.com/SepehrMohammady/LC-Intention-NAS">GitHub ↗</a>
+  <div class="spacer"></div>
+  <button class="theme-toggle" onclick="toggleTheme()">🌗 روشن/تاریک</button>
+</div>
+<main>
+  <p class="kicker">ELIOS Lab · University of Genoa</p>
+  <h1>از صفر تا مقاله 🚗🧠</h1>
+  <p class="lede">کل مسیر یک پژوهش واقعی، قدم‌به‌قدم و به زبان ساده: از دادهٔ رانندگی تا شبکهٔ عصبی، از
+  <span class="en">NAS</span> تا اجرای مدل روی تراشهٔ <span class="en">STM32</span> — و در آخر، یک
+  <span class="en">paper</span> برای مجلهٔ معتبر.</p>
+
+  <div class="card callout">
+    <p class="card-title">قانون طلایی دوره 📏</p>
+    <p>هر چیزی که اینجا می‌خوانی، در همین <a href="https://github.com/SepehrMohammady/LC-Intention-NAS">repository</a> واقعاً اتفاق افتاده:
+    کدش هست، نتیجه‌اش ثبت شده (<span class="en">logs/experiments.jsonl</span>) و قابل تکرار است. هیچ عدد ساختگی وجود ندارد.</p>
+  </div>
+
+  <h2>درس‌ها</h2>
+  <div class="syllabus">
+    <a class="lesson-card" href="00-roadmap.html">
+      <div class="num">۰۰</div>
+      <div><div class="t">نقشهٔ راه: قرار است چه بسازیم؟</div>
+      <div class="d">مسئله، هدف، رکوردی که باید شکسته شود</div></div>
+      <div class="spacer"></div><span class="badge">آماده</span>
+    </a>
+    <a class="lesson-card" href="01-the-problem.html">
+      <div class="num">۰۱</div>
+      <div><div class="t">مسئله: ماشین از کجا بفهمد راننده می‌خواهد خط عوض کند؟</div>
+      <div class="d">Lane change intention و چرا سرعت و حافظه مهم است</div></div>
+      <div class="spacer"></div><span class="badge">آماده</span>
+    </a>
+    <a class="lesson-card" href="02-the-data.html">
+      <div class="num">۰۲</div>
+      <div><div class="t">داده: <span class="en">Time Series</span> یعنی چه؟</div>
+      <div class="d">پنجره‌های ۵۰×۳۱، تقسیم train/val/test، و چیزهای عجیبی که پیدا کردیم</div></div>
+      <div class="spacer"></div><span class="badge">آماده</span>
+    </a>
+    <a class="lesson-card" href="03-neural-networks.html">
+      <div class="num">۰۳</div>
+      <div><div class="t"><span class="en">Neural Network</span> به زبان آدمیزاد</div>
+      <div class="d">neuron، weight، loss، و چرخهٔ یادگیری</div></div>
+      <div class="spacer"></div><span class="badge">آماده</span>
+    </a>
+    <a class="lesson-card" href="04-1d-cnn.html">
+      <div class="num">۰۴</div>
+      <div><div class="t"><span class="en">CNN</span> یک‌بعدی: شبکه‌ای که الگوهای زمانی را می‌بیند</div>
+      <div class="d">convolution، مدل پایهٔ ما و اولین نتیجه‌های واقعی</div></div>
+      <div class="spacer"></div><span class="badge">آماده</span>
+    </a>
+    <a class="lesson-card soon" href="#">
+      <div class="num">۰۵</div>
+      <div><div class="t">Training: شبکه چطور یاد می‌گیرد</div>
+      <div class="d">loss، optimizer، epoch، early stopping</div></div>
+      <div class="spacer"></div><span class="badge soon-b">به‌زودی</span>
+    </a>
+    <a class="lesson-card soon" href="#">
+      <div class="num">۰۶</div>
+      <div><div class="t">Validation و Overfitting</div>
+      <div class="d">چرا به شبکه نباید جواب امتحان را داد</div></div>
+      <div class="spacer"></div><span class="badge soon-b">به‌زودی</span>
+    </a>
+    <a class="lesson-card soon" href="#">
+      <div class="num">۰۷</div>
+      <div><div class="t"><span class="en">NAS</span>: وقتی کامپیوتر خودش شبکه طراحی می‌کند</div>
+      <div class="d">search space، evolution، constraint</div></div>
+      <div class="spacer"></div><span class="badge soon-b">به‌زودی</span>
+    </a>
+    <a class="lesson-card soon" href="#">
+      <div class="num">۰۸</div>
+      <div><div class="t">µNAS و محدودیت‌ها: مغز در تراشهٔ کوچک</div>
+      <div class="d">RAM، flash، MACs</div></div>
+      <div class="spacer"></div><span class="badge soon-b">به‌زودی</span>
+    </a>
+    <a class="lesson-card soon" href="#">
+      <div class="num">۰۹</div>
+      <div><div class="t"><span class="en">Quantization</span>: کوچک‌کردن اعداد</div>
+      <div class="d">int8 بدون خراب‌کردن جواب</div></div>
+      <div class="spacer"></div><span class="badge soon-b">به‌زودی</span>
+    </a>
+    <a class="lesson-card soon" href="#">
+      <div class="num">۱۰</div>
+      <div><div class="t"><span class="en">STM32</span>: اجرای مدل روی سخت‌افزار واقعی</div>
+      <div class="d">بورد STM32H7B3I-DK و اندازه‌گیری سرعت و حافظه</div></div>
+      <div class="spacer"></div><span class="badge soon-b">به‌زودی</span>
+    </a>
+    <a class="lesson-card soon" href="#">
+      <div class="num">۱۱</div>
+      <div><div class="t">مقاله‌نویسی: نتیجه‌ها چطور paper می‌شوند</div>
+      <div class="d">ساختار IEEE، جدول‌ها، و داوری</div></div>
+      <div class="spacer"></div><span class="badge soon-b">به‌زودی</span>
+    </a>
+  </div>
+
+  <h2>هر درس چه شکلی است؟</h2>
+  <div class="card">
+    <p>۱. <b>قصه</b> — توضیح با مثال روزمره؛<br>
+    ۲. <b>دقیق‌تر</b> — همان مطلب با واژه‌های فنی (<span class="en">English</span>)؛<br>
+    ۳. <b>در پروژهٔ ما</b> — این مفهوم دقیقاً کجای کد و نتایج ماست؛<br>
+    ۴. <b>آزمونک 🎯</b> — چند سؤال کوتاه با جواب و توضیح.</p>
+  </div>
+
+  <footer class="site">LC-Intention-NAS · ELIOS Lab · دوره همراه با پیشرفت پروژه به‌روز می‌شود</footer>
+</main>
+</body>
+</html>
