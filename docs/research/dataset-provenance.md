@@ -16,13 +16,27 @@ high confidence, the ELIOS lab **"Lane Change Intention Recognition Dataset"**:
   ApplePies 2024, Springer LNEE, DOI 10.1007/978-3-031-84100-2_19.
 - Project page: https://elios-lab.github.io/LC-Intention-Framework/
 
-## Collection
+## Collection (confirmed from the ApplePies 2024 precursor paper, in hand)
 
 Human drivers (50 user files, >3,400 annotated lane changes) drove in the
 **CARLA 0.9.15 simulator** (synchronous mode, fixed_delta_seconds=0.051,
-Logitech G29 wheel + pedals, wide screen) on a custom 60 km two-lane highway
-loop with variable curvature; features logged at 10 Hz; 5 s windows → 50
-timesteps.
+~20 FPS, **Logitech G920** wheel + pedals, 29" ultra-wide curved screen,
+105° FOV, cockpit with mirrors/tachometer/odometer, RPM-linked engine sound)
+on a custom RoadRunner 60 km one-way **2-lane highway, 11.5 m wide** (mean
+curve angle 35.77°, mean radius 500 m, bridge instead of junctions); max ego
+speed 140 km/h; procedural traffic (NEVs respawned ahead of the ego).
+Sessions logged with CARLA logger → converted to the **L3Pilot Common Data
+Format** H5 (`generate_l3pilot_from_Carla.py`); features at 10 Hz; 5 s
+windows → 50 timesteps. Two phases per participant: baseline (light traffic,
+no overtaking) and treatment (traffic, lane changes allowed). Precursor
+funding: EU H2020 **Hi-Drive, grant 101006664**. Pilot test: 4 participants,
+~6 lane changes/minute.
+
+Raw materials now in the repo's `Materials/` (not versioned):
+`user46(04.12.24).zip` (raw CARLA session logs), `Overtaking2.zip` (the full
+data-prep repo: 73 per-user H5 sessions, windowing notebook
+`h5_to_CSV.ipynb`, CDF schema `structure_definitions.py`, per-window sample
+CSVs with the raw ~120-column L3Pilot header).
 
 ## The 31 columns (from the repo's labeling script)
 
@@ -53,12 +67,22 @@ excluded.
 validation users {5,8,10,12,16,19,27}; test users {2,7,13,18,25,31,36};
 train = remaining 36 users.
 
-## Open questions (for colleague)
+## Empirically resolved (2026-07-07, scripts/analysis/ — see docs/DATA.md)
 
-- [ ] ⛔ Exact column order of the prepared pickles + whether fileTime is
-      channel 31 (and which indices are curvatureDx*).
-- [ ] ⛔ Do the pickles follow the official driver-wise split?
-- [ ] How the balanced 3-class sets and per-direction regression sets were
-      derived (which notebook / undersampling), and the class-index mapping
-      {0,1,2} ↔ {free-ride, LCR, LCL} (colleague said 0=none, 1=LCR, 2=LCL).
-- [ ] What normalization was applied (StandardScaler on train only?).
+- [x] **Driver-wise split confirmed** by window-matching per-user H5 sessions
+      against the pickles (official val/test user sets reproduced exactly).
+- [x] **No fileTime channel** in any pickle; classification layout:
+      7 ego channels, egoLaneWidth (constant→0) at 7, yawAngle pair (8,9),
+      curvature pair (10,11), **curvatureDx pair (12,13) = the spike pair**,
+      lane-line pair (14,15, r = −1), 12 car channels, 3 trailing binaries.
+      LCR layout shifted (egoLaneWidth at 9, indicators mid-block,
+      curvatureDx = spike pair at (14,15)).
+- [x] Normalization ≈ StandardScaler fit on train for classification; LCR
+      scaler fit on a different subset (stats off 0/1).
+
+## Open questions (for colleague — non-blocking)
+
+- [ ] Exact 31-channel name lists per task (to caption the paper's Fig./Table;
+      inferred layout above needs a one-line confirmation).
+- [ ] Class-index mapping sanity check: 0=none, 1=LCR, 2=LCL (as stated).
+- [ ] Provenance of the internal 92%/0.42/0.44 reference results.

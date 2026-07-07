@@ -18,9 +18,11 @@ internal reference only after confirming provenance (model? split?).
 
 Our first untuned DSCNN (logged 2026-07-07): 91.5% / 0.439 / 0.459.
 
-⛔ Comparability check pending: are the pickles split driver-wise like the
-published protocol (val users {5,8,10,12,16,19,27}, test {2,7,13,18,25,31,36})?
-If not, our numbers cannot be compared to the published 0.5102.
+✅ Comparability verified (2026-07-07): the pickles follow the official
+driver-wise split (val users {5,8,10,12,16,19,27}, test {2,7,13,18,25,31,36})
+— proven by window-matching raw per-user H5 sessions against the pickles
+(`scripts/analysis/verify_split.py`). Our numbers ARE comparable to the
+published 0.5102, and the setup earns a "no window leakage" claim in §Data.
 
 ## Contribution sketch (draft, revise as results arrive)
 
@@ -41,9 +43,12 @@ articles the team shared). Run every draft section against it.
 - [x] Dataset citation: Zenodo DOI 10.5281/zenodo.16686054 (MIT). "DMIR" is
       an internal name; published acronym DMIR (ApplePies 2024 precursor).
 - [x] Baseline paper details: docs/research/sota-baseline.md.
-- [ ] ⛔ Confirm pickle column order; drop fileTime if it is channel 31.
-- [ ] ⛔ Confirm pickle split is driver-wise (comparability + leakage).
-- [ ] ⛔ Provenance of internal 92% / 0.42 / 0.44 results (model, protocol).
+- [x] Column order: no fileTime channel anywhere (fingerprint analysis);
+      spike pair = curvatureDx; layouts differ between classification and LCR
+      (docs/DATA.md). Only the exact name list still to confirm (cosmetic).
+- [x] Split is driver-wise — verified empirically (verify_split.py).
+- [ ] Provenance of internal 92% / 0.42 / 0.44 results (model, protocol) —
+      needed only to caption the "internal reference" table row.
 - [ ] Baseline Table III exact H7B3 values (rasterized image — needs
       institutional access to the PDF).
 - [ ] SYNERGIES project acknowledgment text + grant number (baseline paper

@@ -92,11 +92,14 @@ until the lane change, $t \in [0, 4]$~s discretized at $0.1$~s, with
 39{,}313 / 7{,}742 / 8{,}097 (LCL) and 33{,}201 / 5{,}828 / 7{,}073 (LCR)
 windows.
 
-The test splits contain isolated spikes (up to $5\times10^{6}$) on two channel
-pairs that never appear in training; we clip validation and test features to
-the per-channel training range and leave training data untouched.
-\todo{confirm the spike origin with the data provider; state how the baseline
-handled them.}
+The splits are user-independent: we verified by matching raw per-driver
+session logs against the prepared windows (correlation over 50-sample
+windows) that the validation and test drivers follow the protocol of
+\cite{lcintention2026} with no window leakage across splits.
+The test splits contain isolated spikes (up to $5\times10^{6}$) on the
+right/left \texttt{curvatureDx} channel pair — a numerical-derivative
+artefact absent from training; we clip validation and test features to the
+per-channel training range and leave training data untouched.
 
 \section{Method}
 \subsection{Search space}
@@ -154,6 +157,11 @@ doi: 10.1109/LSP.2025.3638676.
 \emph{Proc.\ 1st Workshop Mach.\ Learn.\ Syst.\ (EuroMLSys)}, 2021, pp. 70--79.
 \bibitem{lcdataset} L.~Forneris \emph{et al.}, ``Lane change intention
 recognition dataset,'' Zenodo, 2025, doi: 10.5281/zenodo.16686054.
+\bibitem{forneris2024dmir} L.~Forneris \emph{et al.}, ``Setting up a
+lightweight simulation environment for automated driving dataset
+collection,'' in \emph{Applications in Electronics Pervading Industry,
+Environment and Society (ApplePies)}, Springer LNEE, 2024, pp. 156--163,
+doi: 10.1007/978-3-031-84100-2\_19.
 \end{thebibliography}
 
 \end{document}

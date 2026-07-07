@@ -164,8 +164,9 @@
     <p>۱. <b>مقدارهای غول‌آسا فقط در <span class="en">test</span></b>: چند نمونهٔ نادر در بخش
     <span class="en">test</span> مقدارهایی تا ۵ میلیون (<span class="en">5×10⁶</span>) دارند — روی جفت‌سیگنال‌های
     <span class="en">(12, 13)</span> و <span class="en">(14, 15)</span> — در حالی که بیشترین مقدار در
-    <span class="en">train</span> حدود ۱۴۰ است! این احتمالاً یک خطای محاسباتی در آماده‌سازی داده است:
-    سیگنال‌های <span class="en">curvatureDx</span> (انحنای مسیر) ظاهراً از یک تقسیم ساخته می‌شوند و وقتی
+    <span class="en">train</span> حدود ۱۴۰ است! ما بعداً با تحلیل اثرانگشتیِ کانال‌ها ثابت کردیم که این
+    مقدارها دقیقاً در جفت‌کانال <span class="en">curvatureDx</span> (نرخ تغییر انحنای مسیر) هستند:
+    این سیگنال از یک تقسیم ساخته می‌شود و وقتی
     مخرج به صفر نزدیک شود، جواب منفجر می‌شود. راه‌حل ما: مقدارهای
     <span class="en">val</span>/<span class="en">test</span> را به محدودهٔ <span class="en">train</span> محدود
     می‌کنیم (<b><span class="en">clipping</span></b>) و به دادهٔ <span class="en">train</span> دست نمی‌زنیم.</p>

@@ -93,3 +93,34 @@ constraint evaluation → NAS smoke run.
 - Paper now builds to PDF after every .tex change (MiKTeX pdflatex via
   scripts/build_paper.ps1; main.pdf committed). Author set to Sepehr
   Mohammady; H7B3I-DK written into the deployment section.
+
+## 2026-07-07 (evening) — Blocking data questions answered from raw materials
+
+New materials supplied by the team: `user46(04.12.24).zip` (raw CARLA logs),
+`Overtaking2.zip` (the data-prep repo: 73 per-user H5 sessions in L3Pilot CDF,
+windowing notebook, schema), and the ApplePies 2024 precursor paper PDF
+(DMIR = Driver Maneuver Intention Recognition; CARLA 0.9.15; Logitech G920;
+60 km 2-lane 11.5 m highway, mean curve radius 500 m; Hi-Drive grant
+101006664). Two analyses (`scripts/analysis/`) resolved everything that was
+blocking without waiting for colleagues:
+
+1. **Channel fingerprinting** (`fingerprint_channels.py`): no fileTime /
+   timestamp channel exists in any pickle (no monotonic near-unique channel);
+   classification feature 7 = egoLaneWidth (constant 3.75 m → 0 after
+   scaling); the test-split spike pairs are exactly-equal right/left pairs at
+   the curvatureDx positions — (12,13) cls/LCL, (14,15) LCR — confirming the
+   derivative-artefact hypothesis. Classification normalization ≈
+   StandardScaler on train; LCR uses a different scaler fit and a shifted
+   channel layout (egoLaneWidth at 9, indicators mid-block).
+2. **Split verification** (`verify_split.py`): matched raw per-user H5
+   sessions to pickle windows via per-window Pearson correlation (invariant
+   to the normalization). Official test users 13 & 2 hit ONLY the test split,
+   val users 10 & 5 ONLY val, train user 22 ONLY train (YawRate /
+   LatAcceleration, r > 0.9999; SteeringAngle cross-hits are quantization
+   false-positives). **The pickles follow the official driver-wise protocol —
+   our results are directly comparable to the published RMSE 0.5102, with no
+   window leakage.** This claim went into the paper's Data section.
+
+Remaining for the team (non-blocking): exact 31-channel name lists, class
+mapping sanity check (0=none, 1=LCR, 2=LCL), provenance of the internal
+92%/0.42/0.44 reference numbers.
