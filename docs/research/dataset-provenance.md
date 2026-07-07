@@ -80,9 +80,16 @@ train = remaining 36 users.
 - [x] Normalization ≈ StandardScaler fit on train for classification; LCR
       scaler fit on a different subset (stats off 0/1).
 
+## Feature identities (resolved 2026-07-07)
+
+Colleague supplied the authoritative `feature_description` doc and confirmed
+the split-by-user, no-fileTime-channel, `car2Present` as the 31st channel, and
+constant `egoLaneWidth`. Full verified channel map for both layouts:
+[feature-map.md](feature-map.md); machine-readable `src/features.py`. Includes
+the turn-indicator label-leak analysis (81.5% classification accuracy from the
+blinker alone).
+
 ## Open questions (for colleague — non-blocking)
 
-- [ ] Exact 31-channel name lists per task (to caption the paper's Fig./Table;
-      inferred layout above needs a one-line confirmation).
-- [ ] Class-index mapping sanity check: 0=none, 1=LCR, 2=LCL (as stated).
-- [ ] Provenance of the internal 92%/0.42/0.44 reference results.
+- [ ] Provenance of the internal 92%/0.42/0.44 reference results. Colleague:
+      92% is a CNN, the others are Transformers — exact configs pending.

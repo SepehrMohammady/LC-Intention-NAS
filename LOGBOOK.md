@@ -121,6 +121,30 @@ blocking without waiting for colleagues:
    our results are directly comparable to the published RMSE 0.5102, with no
    window leakage.** This claim went into the paper's Data section.
 
-Remaining for the team (non-blocking): exact 31-channel name lists, class
-mapping sanity check (0=none, 1=LCR, 2=LCL), provenance of the internal
-92%/0.42/0.44 reference numbers.
+Remaining for the team (non-blocking): provenance of the internal 92%/0.42/0.44
+reference numbers (colleague: 92% is a CNN; others are Transformers — asking).
+
+## 2026-07-07 (night) — Feature identities confirmed + turn-indicator leak
+
+Colleague sent the authoritative `feature_description` doc and confirmed:
+driver-wise split; `fileTime` is not in the arrays; the 31st channel is
+"is the left car present?" (`car2Present`); `egoLaneWidth` is constant and
+kept deliberately. The raw `DirectionIndicator` is ternary {0 off, 1 left,
+2 right}, split into two binaries in the prepared data.
+
+Verified the full channel map (`scripts/analysis/name_channels.py`: ego
+channels 0-7 matched to raw H5 signals at r ≈ 0.98) and wrote it up in
+docs/research/feature-map.md + machine-readable src/features.py. The two task
+layouts differ: regression keeps indicators inline (ch 3-4); classification
+relocates them to the end (ch 28-29), shifting egoLaneWidth to 7 and the
+curvatureDx spike pair to 12-13.
+
+**Turn-indicator label leak (paper-shaping).** The feature set includes the
+driver's turn signal. `indicator_leak.py`: the two indicator channels ALONE
+give 81.5% test accuracy (full DSCNN 91.5%, internal ref 92%); blinker-on
+rate 92%/71% for LCR/LCL vs 6.5% for no-intent. So the 3-class headline is
+largely "read the blinker." The regression is clean, though
+(`indicator_leak_regression.py`: indicator-only RMSE 0.72/0.90, far worse
+than our 0.439/0.459). Decision: lead the paper with the time-to-lane-change
+regression + STM32 deployment; treat classification with a with/without-
+indicator ablation and a no-signal-subset accuracy. Recorded in paper/NOTES.md.

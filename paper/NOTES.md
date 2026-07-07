@@ -24,14 +24,35 @@ driver-wise split (val users {5,8,10,12,16,19,27}, test {2,7,13,18,25,31,36})
 (`scripts/analysis/verify_split.py`). Our numbers ARE comparable to the
 published 0.5102, and the setup earns a "no window leakage" claim in §Data.
 
-## Contribution sketch (draft, revise as results arrive)
+## Contribution sketch (revised 2026-07-07 after the indicator-leak finding)
+
+Lead with the tasks that are NOT trivially leaky and with deployment:
 
 1. Constrained (µNAS-style) architecture search on 1D driving time series —
    accuracy/footprint Pareto front instead of a single model.
-2. Beats the published DMIR baseline on all three tasks with a fraction of
-   the memory/compute.
-3. Deployment on STM32 with measured flash/RAM/latency (ST Edge AI toolchain),
-   not just estimated MACs.
+2. **Time-to-lane-change regression** as the primary result (no trivial leak):
+   beat the published Transformer (RMSE 0.5102 s) at a fraction of the
+   footprint. This aligns with the baseline paper, which itself uses TTLC
+   regression, not 3-class accuracy.
+3. Deployment on **STM32H7B3I-DK** with measured flash/RAM/latency (ST Edge AI
+   toolchain) after int8 quantization — vs the baseline's FP32-only models.
+4. Classification handled honestly: report it, but with a with/without-turn-
+   indicator ablation and a no-signal-subset accuracy.
+
+### ⚠ Turn-indicator label leak (must address, do not hide)
+
+The feature set includes the driver's turn-signal state (verified: channels
+28/29 for classification, 3/4 for regression — see docs/research/feature-map.md).
+`scripts/analysis/indicator_leak.py`: those two channels ALONE give 81.5%
+test accuracy (full model 91.5%, internal reference 92%); blinker-on rate is
+92%/71% for LCR/LCL vs 6.5% for no-intent. A reviewer will notice that an
+"intention" classifier fed the blinker is largely reading a declared intent.
+Mitigations baked into the plan above. Regression checked
+(`indicator_leak_regression.py`): indicator-only test RMSE is 0.72 (LCR) /
+0.90 (LCL) — well above our DSCNN (0.439 / 0.459) and the SOTA (0.42 / 0.44),
+and only modestly better than predict-mean (~1.17). So the blinker does NOT
+trivialize the timing task; the regression win is meaningful. The leak is
+specific to 3-class classification.
 
 ## Writing style guard
 
