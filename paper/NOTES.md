@@ -26,7 +26,7 @@ If not, our numbers cannot be compared to the published 0.5102.
 
 1. Constrained (µNAS-style) architecture search on 1D driving time series —
    accuracy/footprint Pareto front instead of a single model.
-2. Beats the published DIMIR baseline on all three tasks with a fraction of
+2. Beats the published DMIR baseline on all three tasks with a fraction of
    the memory/compute.
 3. Deployment on STM32 with measured flash/RAM/latency (ST Edge AI toolchain),
    not just estimated MACs.
@@ -38,7 +38,7 @@ articles the team shared). Run every draft section against it.
 
 ## Open TO-DOs (blocking items marked ⛔)
 
-- [x] Dataset citation: Zenodo DOI 10.5281/zenodo.16686054 (MIT). "DIMIR" is
+- [x] Dataset citation: Zenodo DOI 10.5281/zenodo.16686054 (MIT). "DMIR" is
       an internal name; published acronym DMIR (ApplePies 2024 precursor).
 - [x] Baseline paper details: docs/research/sota-baseline.md.
 - [ ] ⛔ Confirm pickle column order; drop fileTime if it is channel 31.

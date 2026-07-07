@@ -1,4 +1,4 @@
-# Research logbook — DIMIR × µNAS
+# Research logbook — DMIR × µNAS
 
 Dated journal of decisions, findings, and results. Machine-readable run
 records live in `logs/experiments.jsonl`; this file records the *why*.
@@ -26,7 +26,7 @@ regression targets 0.0–4.0 s, step 0.1). Two findings:
 
 **Pipeline.** Built `src/` (config, data, baseline DSCNN, train/eval, EDA,
 logging), `scripts/check_pipeline.py` (3-task smoke test on real data —
-passing), and the main notebook `notebooks/dimir_pipeline.ipynb` (executes
+passing), and the main notebook `notebooks/dmir_pipeline.ipynb` (executes
 end-to-end headless, including ONNX export with PyTorch↔ONNX parity check).
 
 **First baseline result (logged run `baseline-dscnn`).** Generic
@@ -51,10 +51,11 @@ corrections and facts:
    3-class accuracy and no per-direction RMSE. The 92% / 0.42 / 0.44 numbers
    from the team are internal, unpublished results on our prepared pickles.
    Both now tracked separately in paper/NOTES.md.
-2. *"DIMIR" is an internal name.* The data is the "Lane Change Intention
+2. *DMIR is the project codename.* The data is the "Lane Change Intention
    Recognition Dataset" (Zenodo 10.5281/zenodo.16686054, MIT, CARLA, 50
-   drivers, 10 Hz; precursor acronym DMIR, ApplePies 2024). Official split is
-   driver-wise; whether our pickles follow it is an open (blocking) question.
+   drivers, 10 Hz; DMIR = Driver Maneuver Intention Recognition, the acronym
+   from the ApplePies 2024 precursor). Official split is driver-wise; whether
+   our pickles follow it is an open (blocking) question.
    The 31st channel is probably fileTime (official count: 30 features) —
    must confirm and drop.
 3. *µNAS method mapped* (aging evolution, morphisms, 4-objective random

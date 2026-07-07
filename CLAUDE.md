@@ -1,4 +1,4 @@
-# Project conventions — LC-Intention-NAS (internal name: DIMIR)
+# Project conventions — LC-Intention-NAS (codename: DMIR)
 
 PhD project (ELIOS Lab, UniGe): constrained NAS on the Lane Change Intention
 Recognition time-series dataset, target Q1 paper + STM32 deployment on
@@ -28,7 +28,7 @@ Sepehr Mohammady <SMohammady@outlook.com>, repo-local config).
   milestones get new lesson pages; update `course/index.html` syllabus.
   Charts follow the dataviz reference palette already encoded in course.css.
 
-## Notebook style (notebooks/dimir_pipeline.ipynb)
+## Notebook style (notebooks/dmir_pipeline.ipynb)
 
 - Every code cell is preceded by a markdown cell: title + short description.
 - Code cells stay short; anything long lives in `src/` and is called from the

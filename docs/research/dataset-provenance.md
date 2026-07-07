@@ -1,16 +1,17 @@
-# Dataset provenance — "DIMIR" is a local name
+# Dataset provenance — DMIR (Driver Maneuver Intention Recognition)
 
 Researched 2026-07-07.
 
 ## Identity
 
-No public dataset named "DIMIR" exists. Our data is, with high confidence, the
-ELIOS lab **"Lane Change Intention Recognition Dataset"**:
+The public dataset is not published under the name "DMIR". Our data is, with
+high confidence, the ELIOS lab **"Lane Change Intention Recognition Dataset"**:
 
 - Zenodo DOI **10.5281/zenodo.16686054**, v1.0.0, published 2025-08-01,
   **MIT license**, 486.7 MB (50 CSV + 50 H5, one per driver).
-- The published acronym in the precursor paper is **DMIR** (Driver Maneuver
-  Intention Recognition): Forneris et al., "Setting Up a Lightweight
+- **DMIR** = Driver Maneuver Intention Recognition, the acronym used in the
+  precursor paper and as this project's codename: Forneris et al., "Setting Up
+  a Lightweight
   Simulation Environment for Automated Driving Dataset Collection,"
   ApplePies 2024, Springer LNEE, DOI 10.1007/978-3-031-84100-2_19.
 - Project page: https://elios-lab.github.io/LC-Intention-Framework/
