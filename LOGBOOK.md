@@ -148,3 +148,26 @@ largely "read the blinker." The regression is clean, though
 than our 0.439/0.459). Decision: lead the paper with the time-to-lane-change
 regression + STM32 deployment; treat classification with a with/without-
 indicator ablation and a no-signal-subset accuracy. Recorded in paper/NOTES.md.
+
+## 2026-07-08 — NAS tool decided: reuse the ELIOS µNAS fork
+
+Colleague pointed to github.com/Elios-Lab/uNAS (their keywords: "take µNAS
+code", "efficiency", "setting threshold"). Inspected it: the fork adds, over
+upstream, a **1D multi-channel CNN search space** (takes our (50,31) directly),
+**regression** (num_classes=1, MAE loss), **QAT + INT8 TFLite** output for the
+ST tools, and CLI-overridable **BoundConfig** thresholds. Aging-evolution
+fitness = -max_i( normalise(feature_i, bound_i)/lambda_i ) over
+[val_error, peak_mem, model_size, MACs] — so "efficiency" = the resource
+objectives and "setting threshold" = the BoundConfig bounds (our STM32 budget).
+
+Decision: **reuse the fork** (matches the colleague's directive; gives a direct
+TFLite→ST deployment path) instead of reimplementing µNAS in PyTorch. Wrote our
+adapters in `unas/` (DMIR dataset serving the real pickles for all 3 tasks with
+train-range clipping + optional indicator-drop ablation; configs with
+STM32H7B3I-DK thresholds) — MIT, kept separate from the unlicensed fork.
+Decision + plan in docs/research/unas-integration.md.
+
+Open decision (needs user/compute input): the fork is TensorFlow. Windows pins
+tensorflow<2.11 (CPU-only; old TF can't drive the Blackwell RTX 5070); GPU needs
+Linux/WSL2 TF 2.18 (Blackwell support unverified) or the lab cluster. Plan:
+CPU correctness pass locally with small rounds, then full search on lab compute.

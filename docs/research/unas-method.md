@@ -27,12 +27,15 @@ arXiv:2010.14246, DOI 10.1145/3437984.3458836.
 - **Results**: e.g. Speech Commands 95.58% @ 37 KB flash / 21.1 KB RAM /
   1.1M MACs. Search cost 0.5–3 GPU-days (small tasks) up to ~40 GPU-days.
 
-## Why we implement our own (PyTorch)
+## We reuse the ELIOS fork (decision 2026-07-08)
 
-The official repo (github.com/eliberis/uNAS) is TF 2.3 / Python 3.7,
-unmaintained since Jan 2021, **has no license file** (reuse legally blocked),
-and supports only 2D conv — audio is fed as 2D MFCC images. A 1D-native
-PyTorch implementation on our data is both necessary and a contribution.
+**Superseded plan** (reimplement in PyTorch): the *upstream* repo
+(github.com/eliberis/uNAS) is TF 2.3 / Python 3.7, 2D-only. But the lab
+maintains its own fork — **github.com/Elios-Lab/uNAS** — that adds 1D
+multi-channel search, regression (`num_classes=1`), QAT, and INT8 TFLite output
+for the ST tools. The colleague pointed us there ("take µNAS code"). We adapt
+that fork to DMIR instead of reimplementing. Full decision + the "efficiency"/
+"threshold" decoding: `docs/research/unas-integration.md`; adapters in `unas/`.
 
 ## Directly related work (for Related Work section + baselines)
 
