@@ -37,24 +37,34 @@ EDA, and the data analyses.
   `-max_i( normalise(feature_i, bound_i)/lambda_i )`; exceeding a threshold is
   penalised first. We set them to the STM32H7B3I-DK budget.
 
-## Environment — the open decision (needs a choice)
+## Environment — WSL2 GPU, verified working (2026-07-08)
 
-The fork is TensorFlow. Three ways to run it here; they trade off setup effort
-vs search speed:
+Chosen path: **WSL2 / Linux GPU**. It works on this machine with the RTX 5070
+(Blackwell). Verified recipe:
 
-1. **Windows, CPU-only** (`tensorflow<2.11`, `numpy==1.23.5`, Python 3.10 venv).
-   Simplest to stand up; the old TF cannot use the RTX 5070 (Blackwell needs
-   CUDA 12.8). Candidates are tiny 1D CNNs, but 2000 rounds on CPU is ~days.
-   Fine for a first end-to-end validation with reduced `rounds` (e.g. 100-300).
-2. **WSL2 / Linux, GPU** (`tensorflow[and-cuda]`, TF 2.18). Uses the RTX 5070
-   *if* TF 2.18 has Blackwell (sm_120) kernels — unverified; may need TF 2.19+.
-   Most setup risk, best speed if it works.
-3. **Lab / SYNERGIES compute** (Linux GPU cluster). Likely the real venue for
-   the full-budget search; run first validation locally, scale there.
+- Ubuntu 22.04 under WSL2 (driver 610.62 on the Windows host; GPU passes
+  through), Python 3.10.12.
+- Fresh venv `~/dmir_nas` with `pip install "tensorflow[and-cuda]"` →
+  **TensorFlow 2.21.0 + CUDA 12.9 + cuDNN 9.24 + Keras 3.12**. TF creates the
+  device as *"RTX 5070 Laptop GPU, compute capability 12.0a"* (sm_120), and
+  matmul + Conv1D on our `(N,50,31)` shape run on GPU. So the earlier "Blackwell
+  unverified" worry is resolved — CUDA 12.9 has native sm_120.
+- **One gotcha:** the pip TF wheel needs `LD_LIBRARY_PATH` pointed at the pip
+  `nvidia/*/lib` dirs (and `ptxas` on `PATH`), else `list_physical_devices('GPU')`
+  is empty. Our env setup writes `~/dmir_nas/env.sh` with these; all run scripts
+  source it.
+- Fork deps: `scikit-learn scipy tqdm matplotlib ray dragonfly-opt` (dragonfly
+  needs `--no-build-isolation` since its legacy build imports numpy) and
+  `tensorflow-model-optimization tf_keras` (tfmot 0.8.1 imports fine under
+  Keras 3; only needed because `model_trainer.py` imports it at module top —
+  QAT itself is off during search).
 
-Recommendation: (1) now for a correctness pass on real DMIR data with small
-`rounds`, then (3) for the full search. Confirm compute access before investing
-in (2).
+Scripts (in `unas/`): `setup_fork.sh` (clone + register adapters),
+`run_smoke.sh` (small-rounds GPU validation). The env-setup steps above are
+captured in `unas/setup_wsl_env.sh`.
+
+The lab / SYNERGIES GPU cluster remains the venue for the full-budget search;
+this local RTX 5070 handles development, smoke runs, and moderate searches.
 
 ## Next steps
 

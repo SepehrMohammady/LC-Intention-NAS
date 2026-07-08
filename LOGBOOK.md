@@ -167,7 +167,55 @@ train-range clipping + optional indicator-drop ablation; configs with
 STM32H7B3I-DK thresholds) — MIT, kept separate from the unlicensed fork.
 Decision + plan in docs/research/unas-integration.md.
 
-Open decision (needs user/compute input): the fork is TensorFlow. Windows pins
-tensorflow<2.11 (CPU-only; old TF can't drive the Blackwell RTX 5070); GPU needs
-Linux/WSL2 TF 2.18 (Blackwell support unverified) or the lab cluster. Plan:
-CPU correctness pass locally with small rounds, then full search on lab compute.
+Compute path chosen (user): WSL2/Linux GPU.
+
+## 2026-07-08 — WSL2 GPU env stood up; RTX 5070 (Blackwell) runs the search
+
+Built the NAS environment under WSL2 Ubuntu 22.04 (driver 610.62, GPU
+passthrough, Python 3.10.12). Fresh venv `~/dmir_nas` with
+`tensorflow[and-cuda]` → **TF 2.21.0 + CUDA 12.9 + cuDNN 9.24 + Keras 3.12**;
+TF registers the GPU as "compute capability 12.0a" (sm_120) and runs matmul +
+Conv1D on our (N,50,31) shape. The Blackwell question is settled: it works.
+Gotcha captured — the pip TF wheel needs `LD_LIBRARY_PATH` at the pip
+`nvidia/*/lib` dirs (written to `~/dmir_nas/env.sh`).
+
+Fork deps installed (ray 2.56, dragonfly-opt via --no-build-isolation, sklearn,
+scipy, tqdm, matplotlib, tfmot 0.8.1 + tf_keras). Cloned the fork to `~/uNAS`,
+registered our adapters (setup_fork.sh). Reproducible setup scripts committed
+in `unas/` (setup_wsl_env.sh, setup_fork.sh, run_smoke.sh).
+
+Smoke-run debugging on real DMIR data (dmir_lcr):
+1. adapter import fused onto the last line of dataset/__init__.py → fixed
+   setup_fork.sh to prepend a newline.
+2. `model_trainer.py` imports tfmot at module top even though QAT is off →
+   installed tfmot (0.8.1 imports cleanly under Keras 3).
+3. Keras-version mix: models are built with bare `keras` (Keras 3) but tfmot
+   flips `tf.keras` to legacy Keras 2, so `tf.keras.callbacks.ReduceLROnPlateau`
+   (Keras 2, reads optimizer.lr) crashed against the Keras-3 Adam
+   (learning_rate). Fixed by building our callbacks from `keras` (Keras 3) in
+   dmir_config.py — same Keras as the models. The chain already trained a real
+   128 k-param 1D CNN on GPU before this callback fired, so everything upstream
+   (ray actor, data, model build, GPU training) is confirmed working.
+4. Keras 3 EarlyStopping needs explicit `mode=` for `val_mae` → added mode to
+   all callbacks (max for accuracy, min for mae/loss).
+
+**Smoke SUCCESS (dmir_lcr, 4 rounds, 3 epochs each).** The full NAS chain runs
+end-to-end on the RTX 5070: aging evolution builds real 1D CNNs from the DMIR
+(50,31) windows, trains them on GPU (~3 ms/step after the first-epoch compile),
+computes resource features [peak_mem, model_size, MACs] via to_resource_graph,
+and completes. Threshold mechanism behaves correctly — with `error_bound`=0.30
+MAE and only 3 epochs, candidates land at val_mae ≈ 0.41 (above the bound) so
+"pareto" saves 0 models. Encouraging signal: a 72,729-param (284 KB) candidate
+reached **val_mae 0.41 / test 0.405 in just 3 epochs** (resource features
+peak_mem 9 KB, MACs 0.84 M) — with the full 120-epoch schedule this class of
+tiny model should reach the SOTA MAE (0.298) region while staying MCU-sized.
+Env + adapters + run scripts are reproducible in `unas/`.
+
+Model saving confirmed separately (loosened bound so candidates pass): 3
+Pareto `.h5` models written to `artifacts/dmir_lcr/models/` (Keras warns that
+`.h5` is legacy, but the fork's `test.py` expects `.h5` for TFLite conversion,
+so we keep it). So the complete pipeline is validated end-to-end on the RTX
+5070: search → GPU training → resource_features → Pareto `.h5` save.
+
+Next: full-budget searches per task (regression first — the un-leaky, primary
+result), then QAT → INT8 TFLite → ST Edge AI for the H7B3I-DK numbers.
