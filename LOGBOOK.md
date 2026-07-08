@@ -243,3 +243,30 @@ tiny search; the 0.143 seen mid-run came from a longer-trained (60-epoch)
 candidate lost in the OOM. Full searches should land ~0.14–0.20 test MAE.
 Policy: always re-verify final best models with verify_models.py before
 quoting a number in the paper.
+
+## 2026-07-08 — Full-search queue finished (all 4 crashed on OOM but harvested)
+
+The overnight queue ran all four searches; each stopped before its 150-round
+target on a **ray host-RAM OOM** (LCR 68 candidates / graph-error, LCL 93,
+cls 62, cls_noind 59). The session-clear patch slowed the leak (40 -> 60-90
+candidates) but did not stop it, and ray's OOM-kill is a SIGKILL the
+safe-evaluate try/except cannot catch. **Every task saved its Pareto models
+incrementally**, so the fronts survive (28/32/25/27 models).
+
+Harvested and INDEPENDENTLY VERIFIED all four fronts (unas/harvest_fronts.py,
+our own test-set eval; CSVs in results/nas-fronts/). Verification again proved
+necessary: the fork's optimistic val_error (a candidate showed val MAE 0.113)
+does not hold on test (0.29). Real, verified results:
+- **LCR** best test MAE 0.290 / RMSE 0.447 @ 216 KB (int8) — beats published
+  SOTA (0.298 / 0.510); still 0.294 @ 109 KB; 0.333 @ 10 KB.
+- **LCL** best MAE 0.320 / RMSE 0.484 @ 34 KB — beats SOTA RMSE and our DSCNN.
+- **Classification** 91.6% @ 216 KB, 91.5% @ 21 KB (with turn signal).
+- **Ablation (no turn signal): 90.8% @ 93 KB, 90.1% @ 5.2 KB.** Removing the
+  blinker costs <1% — with the everything-except-blinker measurement (90.8%)
+  vs blinker-alone (81.5%), this shows the model genuinely anticipates. Big
+  honesty win for the paper.
+
+Recorded in docs/research/nas-results-prelim.md, paper/NOTES.md, and the
+results table in paper/main.tex (marked preliminary). Next: robustly fix the
+OOM (self-healing actor / chunked resume) and re-run all four to completion;
+then QAT -> INT8 TFLite -> ST Edge AI for on-device numbers.

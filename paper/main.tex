@@ -117,24 +117,44 @@ constraint handling; search cost budget.}
 logged to the released experiments.jsonl.}
 
 \subsection{Results}
+Table~\ref{tab:results} reports test-set metrics. All searched-model numbers
+are our own test-set evaluation of the saved models. \emph{These are
+preliminary}: each search stopped before its target budget and will be re-run
+to completion. \todo{replace with final full-search numbers; add peak-RAM,
+MACs, and measured on-device latency columns from ST Edge AI.}
+
 \begin{table}[t]
 \caption{Test-set comparison. The published baseline \cite{lcintention2026}
-reports a single time-to-lane-change regression (RMSE 0.51~s, Transformer);
-the three-task formulation numbers are internal reference results on the same
-prepared data. \todo{fill our rows from logs/experiments.jsonl; add params,
-flash, RAM, MACs columns; confirm internal-baseline provenance with the
-team.}}
+reports a single time-to-lane-change regression (Transformer, $\sim$54\,k
+parameters, FP32); the internal-reference row is unpublished results on the
+same prepared data. Model size is the int8 weight footprint.}
+\label{tab:results}
 \centering
-\begin{tabular}{lccc}
+\begin{tabular}{lcccc}
 \toprule
-Model & Acc.\ (\%) & RMSE LCR (s) & RMSE LCL (s) \\
+Model & Size & Acc.\ (\%) & MAE LCR & MAE LCL \\
+      & (KB) &            & (s)     & (s) \\
 \midrule
-Internal reference (unpublished)      & 92.0 & 0.42 & 0.44 \\
-Published Transformer \cite{lcintention2026} & --- & \multicolumn{2}{c}{0.51 (single TTLC)} \\
-Ours (searched)                       & \todo{} & \todo{} & \todo{} \\
+Published Transformer \cite{lcintention2026} & $\sim$216 & --- & \multicolumn{2}{c}{0.298 (single TTLC)} \\
+Internal reference (unpub.)          & ---   & 92.0 & \multicolumn{2}{c}{RMSE 0.42/0.44} \\
+Our DSCNN baseline                   & $\sim$10 & 91.5 & 0.318 & 0.333 \\
+\midrule
+Ours (searched, best)                & 216 & 91.6 & 0.290 & 0.320 \\
+Ours (searched, compact)             & 21  & 91.5 & 0.294 & 0.321 \\
+Ours, no turn-signal (ablation)      & 5.2 & 90.1 & --- & --- \\
 \bottomrule
 \end{tabular}
 \end{table}
+
+The searched models improve on the published SOTA MAE (0.290 vs 0.298 for LCR)
+at a wide range of footprints, down to a few tens of kilobytes. Removing the
+turn-signal channels (the leaky feature) drops three-class accuracy by under
+one point (91.6\% to 90.8\%), and a 5.2~KB model without them still reaches
+90.1\%---evidence that the model anticipates from vehicle dynamics and
+surrounding traffic rather than reading a declared signal.
+\todo{RMSE columns and the internal-reference RMSE (0.42/0.44) are not yet
+matched because the search optimizes MAE; decide RMSE-aware objective vs
+MAE-primary framing.}
 
 \subsection{Deployment on STM32}
 Target platform: STM32H7B3I-DK discovery kit (Cortex-M7 at 280~MHz, 1.4~MB
