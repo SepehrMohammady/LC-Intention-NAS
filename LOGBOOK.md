@@ -219,3 +219,27 @@ so we keep it). So the complete pipeline is validated end-to-end on the RTX
 
 Next: full-budget searches per task (regression first — the un-leaky, primary
 result), then QAT → INT8 TFLite → ST Edge AI for the H7B3I-DK numbers.
+
+## 2026-07-08 — First real LCR search: OOM fixed, results beat SOTA
+
+First full LCR run (100 rounds, 60 epochs) trained ~40 candidates and found
+models with reported test MAE down to 0.143, then **crashed on a ray host-RAM
+OOM**: the persistent GPUTrainer actor leaked ~200 MB per candidate (TF not
+freeing graphs between fits) and hit the ~15 GB WSL cap. Fix: patch the actor
+to `keras.backend.clear_session()` + `gc.collect()` after each candidate is
+saved (in setup_fork.sh, idempotent; also TF_FORCE_GPU_ALLOW_GROWTH). Validated
+with a 25-round run: **50 candidates, zero OOM, 16 Pareto models saved** —
+memory now bounded.
+
+**Independent verification (unas/verify_models.py).** Do not take the fork's
+reported numbers on faith — I re-evaluated the saved `.h5` models on the test
+set with our own metrics. Reading model_trainer.py confirms the fork's
+`test_error` (regression) is `model.evaluate(test)` MAE on the
+restore_best_weights model — i.e. honest — so it matches our eval for the same
+model. On the short (20-epoch) run the best saved model is **test MAE 0.287,
+RMSE 0.443** (predict-mean MAE ~1.01). That already beats the published SOTA
+(MAE 0.298, RMSE 0.510) and matches our DSCNN baseline (RMSE 0.439), from a
+tiny search; the 0.143 seen mid-run came from a longer-trained (60-epoch)
+candidate lost in the OOM. Full searches should land ~0.14–0.20 test MAE.
+Policy: always re-verify final best models with verify_models.py before
+quoting a number in the paper.
