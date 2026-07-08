@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>درس ۱۱ — مقاله‌نویسی | LC-Intention-NAS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/course.css">
+<script src="assets/course.js" defer></script>
+</head>
+<body>
+<div class="topbar">
+  <a class="home" href="index.html">↪ فهرست دوره</a>
+  <div class="spacer"></div>
+  <button class="theme-toggle" onclick="toggleTheme()">🌗 روشن/تاریک</button>
+</div>
+<main>
+  <p class="kicker">درس ۱۱</p>
+  <h1>مقاله‌نویسی: نتیجه‌ها چطور تبدیل به <span class="en">paper</span> می‌شوند 📝</h1>
+  <p class="lede">ماه‌ها آزمایش کرده‌ایم و عددهای خوبی گرفته‌ایم؛ حالا باید همهٔ این‌ها را به یک سند چندصفحه‌ای تبدیل کنیم که سخت‌گیرترین داورهای دنیا هم قانع شوند.</p>
+
+  <div class="card callout story">
+    <p class="card-title">قصه 📖</p>
+    <p>علم مثل یک دادگاه بزرگ است. ما یک <b>ادعا</b> داریم: «مدل کوچک ما زمان تغییر خط را
+    دقیق‌تر از رکورد قبلی پیش‌بینی می‌کند و روی یک تراشهٔ واقعی هم اجرا می‌شود.»
+    مقاله (<span class="en">paper</span>) پروندهٔ ماست: هر ادعایی که در آن می‌نویسیم،
+    باید همان‌جا مدرک داشته باشد — یک جدول، یک نمودار، یک آزمایش قابل‌تکرار.</p>
+    <p>قاضی‌های این دادگاه، داورها (<span class="en">reviewers</span>) هستند: دانشمندانی
+    ناشناس که پرونده را می‌خوانند و دنبال کوچک‌ترین سوراخ می‌گردند. اگر یک عدد بدون مدرک
+    باشد یا یک نقطه‌ضعف پنهان شده باشد، پرونده برمی‌گردد. برای همین قانون ما ساده است:
+    <b>هیچ ادعایی بدون مدرک، و هیچ نقطه‌ضعفی پنهان.</b></p>
+  </div>
+
+  <h2>دقیق‌تر 🔬</h2>
+  <p>مقاله‌های <span class="en">IEEE</span> تقریباً همیشه یک اسکلت ثابت دارند. اگر این اسکلت را
+  بشناسی، هر مقاله‌ای را می‌توانی سریع بخوانی:</p>
+
+  <table>
+    <thead><tr><th>بخش</th><th>یک جمله چه می‌گوید؟</th></tr></thead>
+    <tbody>
+      <tr><td><span class="en">Abstract</span></td><td>کل قصه در چند جمله: چه کردیم و چه عددی گرفتیم.</td></tr>
+      <tr><td><span class="en">Introduction</span></td><td>چرا این مسئله مهم است و ما دقیقاً چه چیز تازه‌ای اضافه می‌کنیم.</td></tr>
+      <tr><td><span class="en">Related Work</span></td><td>دیگران تا امروز چه کرده‌اند و جای خالی کار ما کجاست.</td></tr>
+      <tr><td><span class="en">Method</span></td><td>دستور پخت کامل: آن‌قدر دقیق که هر کسی بتواند کار را تکرار کند.</td></tr>
+      <tr><td><span class="en">Experiments</span></td><td>مدرک‌ها: جدول‌ها و نمودارهایی که تک‌تک ادعاها را ثابت می‌کنند.</td></tr>
+      <tr><td><span class="en">Conclusion</span></td><td>جمع‌بندی: چه یاد گرفتیم و قدم بعدی چیست.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>هر عدد باید ردیابی‌شدنی باشد 🔎</h3>
+  <p>وقتی داوری بپرسد «این <span class="en">0.287</span> از کجا آمد؟» باید بتوانیم در چند ثانیه
+  جواب بدهیم. برای همین از روز اول سه عادت داریم: هر اجرا با همهٔ جزئیاتش
+  (تنظیمات، محیط اجرا، نتیجه‌ها) در فایل <span class="en">logs/experiments.jsonl</span> ثبت می‌شود؛
+  دلیلِ هر تصمیم در <span class="en">LOGBOOK.md</span> نوشته می‌شود؛ و بعد از هر تغییر در متن مقاله
+  (<span class="en">paper/main.tex</span>)، فایل <span class="en">PDF</span> دوباره ساخته می‌شود تا
+  متن و عددها هیچ‌وقت از هم عقب نیفتند. یک قانون طلایی هم داریم: هیچ عددی وارد مقاله نمی‌شود مگر اینکه
+  خودمان مدل ذخیره‌شده را با <span class="en">verify_models.py</span> روی دادهٔ
+  <span class="en">test</span> دوباره سنجیده باشیم.</p>
+
+  <figure class="viz">
+    <svg viewBox="0 0 760 300" role="img" aria-label="چرخهٔ ساخت مقاله: آزمایش‌ها در experiments.jsonl ثبت می‌شوند، تصمیم‌ها در LOGBOOK می‌روند، متن در main.tex نوشته و به PDF تبدیل می‌شود، به مجله ارسال می‌شود، داوری می‌شود و در نهایت منتشر می‌شود؛ اگر داورها اصلاح بخواهند، فلش برگشت دوباره به متن مقاله می‌رسد">
+      <defs>
+        <marker id="arr-p" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="var(--muted)"/>
+        </marker>
+      </defs>
+      <!-- row 1: right to left -->
+      <rect x="600" y="48" width="140" height="64" rx="12" fill="none" stroke="var(--series-2)" stroke-width="2"/>
+      <text x="670" y="76" text-anchor="middle" fill="var(--ink)" font-size="14.5" font-weight="700">آزمایش 🧪</text>
+      <text x="670" y="98" text-anchor="middle" fill="var(--ink-2)" font-size="10.5" direction="ltr" font-family="ui-monospace, Consolas, monospace">experiments.jsonl</text>
+      <line x1="600" y1="80" x2="552" y2="80" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr-p)"/>
+
+      <rect x="405" y="48" width="145" height="64" rx="12" fill="none" stroke="var(--series-2)" stroke-width="2"/>
+      <text x="477" y="76" text-anchor="middle" fill="var(--ink)" font-size="14.5" font-weight="700">تصمیم‌ها 📓</text>
+      <text x="477" y="98" text-anchor="middle" fill="var(--ink-2)" font-size="11" direction="ltr" font-family="ui-monospace, Consolas, monospace">LOGBOOK.md</text>
+      <line x1="405" y1="80" x2="357" y2="80" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr-p)"/>
+
+      <rect x="210" y="48" width="145" height="64" rx="12" fill="none" stroke="var(--series-1)" stroke-width="2.5"/>
+      <text x="282" y="76" text-anchor="middle" fill="var(--ink)" font-size="14.5" font-weight="700">متن مقاله ✍️</text>
+      <text x="282" y="98" text-anchor="middle" fill="var(--ink-2)" font-size="11" direction="ltr" font-family="ui-monospace, Consolas, monospace">main.tex</text>
+      <line x1="210" y1="80" x2="162" y2="80" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr-p)"/>
+
+      <rect x="30" y="48" width="130" height="64" rx="12" fill="none" stroke="var(--series-1)" stroke-width="2"/>
+      <text x="95" y="76" text-anchor="middle" fill="var(--ink)" font-size="14.5" font-weight="700">PDF 📄</text>
+      <text x="95" y="98" text-anchor="middle" fill="var(--ink-2)" font-size="11">بعد از هر تغییر</text>
+
+      <!-- down to row 2 -->
+      <line x1="95" y1="112" x2="95" y2="186" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr-p)"/>
+
+      <!-- row 2: left to right -->
+      <rect x="30" y="192" width="130" height="64" rx="12" fill="none" stroke="var(--baseline)" stroke-width="2"/>
+      <text x="95" y="220" text-anchor="middle" fill="var(--ink)" font-size="14.5" font-weight="700">ارسال 🚀</text>
+      <text x="95" y="242" text-anchor="middle" fill="var(--ink-2)" font-size="11" direction="ltr" font-family="ui-monospace, Consolas, monospace">submit</text>
+      <line x1="160" y1="224" x2="204" y2="224" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr-p)"/>
+
+      <rect x="210" y="192" width="145" height="64" rx="12" fill="none" stroke="var(--baseline)" stroke-width="2"/>
+      <text x="282" y="220" text-anchor="middle" fill="var(--ink)" font-size="14.5" font-weight="700">داوری 🕵️</text>
+      <text x="282" y="242" text-anchor="middle" fill="var(--ink-2)" font-size="11" direction="ltr" font-family="ui-monospace, Consolas, monospace">review</text>
+      <line x1="355" y1="224" x2="399" y2="224" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr-p)"/>
+
+      <rect x="405" y="192" width="145" height="64" rx="12" fill="none" stroke="var(--series-2)" stroke-width="2.5"/>
+      <text x="477" y="220" text-anchor="middle" fill="var(--ink)" font-size="14.5" font-weight="700">انتشار 🎉</text>
+      <text x="477" y="242" text-anchor="middle" fill="var(--ink-2)" font-size="11" direction="ltr" font-family="ui-monospace, Consolas, monospace">publish</text>
+      <text x="655" y="228" text-anchor="middle" fill="var(--muted)" font-size="11.5">در دسترس همهٔ دنیا 🌍</text>
+
+      <!-- revision loop -->
+      <line x1="282" y1="192" x2="282" y2="118" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="5 5" marker-end="url(#arr-p)"/>
+      <text x="296" y="148" text-anchor="start" fill="var(--ink-2)" font-size="12" font-weight="700">اصلاح و دوباره ارسال 🔁</text>
+      <text x="296" y="168" text-anchor="start" fill="var(--muted)" font-size="11" direction="ltr" font-family="ui-monospace, Consolas, monospace">revision</text>
+    </svg>
+    <figcaption>شکل ۱ — خط تولید مقاله: هر عدد از یک آزمایشِ ثبت‌شده شروع می‌شود و ردپایش تا <span class="en">PDF</span> حفظ می‌شود. اگر داورها اصلاح بخواهند (<span class="en">revision</span>)، فلش برگشت دوباره به متن مقاله می‌رسد و چرخه ادامه پیدا می‌کند.</figcaption>
+  </figure>
+
+  <p>ادعای اصلیِ پرونده هم همین حالا مدرک دارد — بهترین مدلِ جست‌وجوی
+  <span class="en">NAS</span> ما (که خودمان مستقل روی <span class="en">test</span> تأیید کردیم)
+  در برابر رکوردِ منتشرشده:</p>
+
+  <div class="tiles">
+    <div class="tile"><div class="value">0.287</div><div class="label"><span class="en">MAE</span> مدل ما (ثانیه، تأیید مستقل)</div></div>
+    <div class="tile"><div class="value">0.298</div><div class="label"><span class="en">MAE</span> رکورد منتشرشده</div></div>
+    <div class="tile"><div class="value">0.443</div><div class="label"><span class="en">RMSE</span> مدل ما (ثانیه)</div></div>
+    <div class="tile"><div class="value">0.510</div><div class="label"><span class="en">RMSE</span> رکورد منتشرشده</div></div>
+  </div>
+
+  <h2>داوری: بازرس‌های سخت‌گیر 🕵️</h2>
+  <p>داورها ناشناس‌اند، تعارف ندارند و کارشان همین است: نقطه‌ضعف پیدا کنند.
+  بهترین دفاع؟ <b>نقطه‌ضعف را خودمان اول بگوییم.</b> نمونهٔ واقعی در پروژهٔ ما، نشتیِ
+  چراغ راهنماست: دو کانال <span class="en">blinker</span> به‌تنهایی — بدون هیچ هوش دیگری —
+  در مسئلهٔ <span class="en">classification</span> به دقت <span class="en">81.5%</span> روی
+  <span class="en">test</span> می‌رسند. چرا؟ چون راهنما تقریباً همیشه لو می‌دهد:</p>
+
+  <figure class="viz">
+    <div class="hbar" role="img" aria-label="درصد روشن بودن چراغ راهنما در پنجره‌های هر کلاس: ۹۲ درصد در تغییر خط به راست، ۷۱ درصد در تغییر خط به چپ و فقط شش و نیم درصد در پنجره‌های بدون قصد">
+      <div class="name">تغییر خط به راست (<span class="en">LCR</span>)</div><div class="track"><div class="fill" style="width:92%"></div></div><div class="val">92%</div>
+      <div class="name">تغییر خط به چپ (<span class="en">LCL</span>)</div><div class="track"><div class="fill" style="width:71%"></div></div><div class="val">71%</div>
+      <div class="name">بدون قصد تغییر خط</div><div class="track"><div class="fill" style="width:6.5%"></div></div><div class="val">6.5%</div>
+    </div>
+    <figcaption>شکل ۲ — چراغ راهنما در چند درصد پنجره‌های هر کلاس روشن است (مقیاس ۰ تا ۱۰۰٪). همین اختلاف بزرگ است که به مدلِ <span class="en">classification</span> اجازهٔ «تقلب» می‌دهد.</figcaption>
+  </figure>
+
+  <p>خبر خوب: مسئلهٔ <span class="en">regression</span> تمیز است. اگر فقط از راهنما استفاده کنیم،
+  <span class="en">MAE</span> به <span class="en">0.72</span> و <span class="en">0.90</span> ثانیه می‌رسد،
+  در حالی که مدل پایهٔ ما <span class="en">0.318</span> و <span class="en">0.333</span> می‌گیرد —
+  یعنی مدل واقعاً از رفتار راننده یاد می‌گیرد، نه از چراغ راهنما. برای همین مقالهٔ ما با
+  <span class="en">regression</span> و اجرای واقعی روی بورد جلو می‌رود، و برای
+  <span class="en">classification</span> یک آزمایشِ مقایسه‌ای با/بدون
+  <span class="en">blinker</span> (به آن <span class="en">ablation</span> می‌گویند)
+  را <b>آشکارا</b> گزارش می‌کند. داوری که ببیند خودمان سخت‌گیرترین بازرسِ کار خودمان بوده‌ایم،
+  به بقیهٔ عددها هم بیشتر اعتماد می‌کند.</p>
+
+  <h2>کدام مجله؟ ⚖️</h2>
+  <p>دو گزینهٔ اصلی داریم و انتخاب واقعاً سخت است:</p>
+
+  <table>
+    <thead><tr><th>مجله</th><th class="num">رتبه</th><th class="num">سقف صفحه</th><th class="num">IF</th><th class="num">جواب اول (هفته)</th></tr></thead>
+    <tbody>
+      <tr><td><span class="en">IEEE Signal Processing Letters</span></td><td class="num">Q1</td><td class="num">4</td><td class="num">4.6</td><td class="num">≈6</td></tr>
+      <tr><td><span class="en">IEEE Internet of Things Journal</span></td><td class="num">Q1</td><td class="num">8</td><td class="num">8.7</td><td class="num">≈7</td></tr>
+    </tbody>
+  </table>
+
+  <p><span class="en">SPL</span> همان مجله‌ای است که رکورد فعلی (کارِ ۲۰۲۶ همین آزمایشگاه) در آن
+  چاپ شده — پس مقایسهٔ ما دقیقاً همان‌جا دیده می‌شود. اما سقف ۴ صفحه‌ایِ آن <b>سخت</b> است:
+  قصهٔ ما (<span class="en">NAS</span> + <span class="en">quantization</span> + اجرای واقعی روی بورد +
+  آزمایش صداقتِ <span class="en">blinker</span>) به‌سختی در ۴ صفحه جا می‌شود و باید چیزهایی را
+  قربانی کنیم. <span class="en">IoT-J</span> با ۸ صفحه جای نفس‌کشیدن می‌دهد،
+  <span class="en">IF</span> بالایی دارد (<span class="en">8.7</span>) و جواب اولش هم حدود ۷ هفته
+  است — ولی مخاطبش کمی متفاوت است. این تصمیم را وقتی نتیجه‌های نهاییِ جست‌وجوها آمدند می‌گیریم:
+  اندازهٔ قصه، اندازهٔ مجله را تعیین می‌کند.</p>
+
+  <h2>نگهبان سبک: عدد به‌جای صفت ✍️</h2>
+  <p>یک خطر بامزه هم هست: متنی که «ربات‌نوشته» به نظر برسد. بعضی کلمه‌ها آن‌قدر در متن‌های
+  تولید هوش مصنوعی تکرار شده‌اند که داورها با دیدنشان ابرو بالا می‌اندازند. برای همین در
+  <span class="en">paper/STYLE.md</span> یک فهرست کلمهٔ ممنوع داریم:
+  <span class="en">delve</span>، <span class="en">leverage</span>، <span class="en">robust</span>،
+  <span class="en">seamless</span> و دوستانشان.</p>
+
+  <div class="card callout">
+    <p class="card-title">قانون طلایی سبک 🏅</p>
+    <p>صفت تحویل داور نده؛ عدد و جدول بده.</p>
+    <p>❌ «مدل ما به‌طرز <span class="en">seamless</span> و شگفت‌انگیزی از کارهای قبلی بهتر است.»<br>
+    ✅ «<span class="en">MAE</span> مدل ما <span class="en">0.287</span> ثانیه است در برابر
+    <span class="en">0.298</span> برای رکورد قبلی (جدول <span class="en">III</span>).»</p>
+    <p>جملهٔ اول قابل بحث است؛ جملهٔ دوم قابل بررسی. در علم، فقط دومی ارزش دارد.</p>
+  </div>
+
+  <h2>در پروژهٔ ما 🧰</h2>
+  <div class="card">
+    <p>• <span class="en">logs/experiments.jsonl</span>: هر اجرا با تنظیمات + محیط + نتیجه‌ها ثبت می‌شود — هیچ عددی گم نمی‌شود.<br>
+    • <span class="en">LOGBOOK.md</span>: دلیلِ هر تصمیم، برای روزی که بپرسند «چرا این‌طوری؟»<br>
+    • <span class="en">paper/main.tex</span>: پیش‌نویس مقاله؛ بعد از هر تغییر، <span class="en">PDF</span> دوباره ساخته می‌شود.<br>
+    • <span class="en">paper/STYLE.md</span>: فهرست کلمه‌های ممنوع و قانون «عدد به‌جای صفت».<br>
+    • <span class="en">verify_models.py</span>: هیچ عددی بدون تأیید مستقل روی <span class="en">test</span> وارد مقاله نمی‌شود.<br>
+    • قانون صداقت: نشتی <span class="en">blinker</span> با آزمایش با/بدون آن، آشکارا گزارش می‌شود.<br>
+    • انتخاب مجله (<span class="en">SPL</span> یا <span class="en">IoT-J</span>) بعد از پایان جست‌وجوهای کامل انجام می‌شود.</p>
+  </div>
+
+  <div id="quiz" class="quiz"></div>
+  <script type="application/json" id="quiz-data">
+  [
+    {"stem": "کدام بخش مقاله باید آن‌قدر دقیق باشد که دیگران بتوانند کل کار را تکرار کنند؟",
+     "options": ["Abstract", "Method", "Conclusion"],
+     "answer": 1,
+     "explain": "Method دستور پخت کامل کار است. تکرارپذیری پایهٔ علم است: اگر کسی نتواند با خواندن Method همان نتیجه را بگیرد، ادعای ما قابل بررسی نیست."},
+    {"stem": "چرا هر اجرا را در logs/experiments.jsonl ثبت می‌کنیم؟",
+     "options": ["چون مجله‌ها این فایل را از ما می‌خواهند", "تا هر عددِ مقاله قابل ردیابی به تنظیمات، محیط و نتیجهٔ همان اجرا باشد", "برای اینکه مدل سریع‌تر آموزش ببیند"],
+     "answer": 1,
+     "explain": "وقتی داور بپرسد «این عدد از کجا آمد؟»، باید در چند ثانیه به اجرای دقیقش برسیم: چه تنظیماتی، چه محیطی، چه نتیجه‌ای. بدون ثبتِ منظم، عددها بعد از چند ماه گم می‌شوند."},
+    {"stem": "با نشتی چراغ راهنما (blinker) در مقاله چه می‌کنیم؟",
+     "options": ["پنهانش می‌کنیم تا نتیجه بهتر دیده شود", "خودمان اول و آشکارا گزارشش می‌کنیم، با آزمایش با/بدون blinker", "کل داده را دور می‌ریزیم و از اول جمع می‌کنیم"],
+     "answer": 1,
+     "explain": "داورها بازرس‌های سخت‌گیرند و چنین نشتی‌ای را پیدا می‌کنند. وقتی خودمان اول بگوییم (و نشان بدهیم regression تمیز است)، هم صادق بوده‌ایم هم اعتماد به بقیهٔ عددها بیشتر می‌شود."},
+    {"stem": "کدام جمله برای متن paper مناسب است؟",
+     "options": ["«مدل ما فوق‌العاده robust و seamless است»", "«مدل ما خیلی بهتر از کارهای قبلی است»", "«MAE مدل ما 0.287 ثانیه است در برابر 0.298 برای رکورد قبلی (جدول III)»"],
+     "answer": 2,
+     "explain": "قانون سبک ما: عدد و جدول به‌جای صفت. جملهٔ سوم قابل بررسی و ردیابی است؛ دو جملهٔ دیگر فقط ادعا هستند و کلمه‌هایی مثل robust و seamless در STYLE.md ممنوع‌اند."}
+  ]
+  </script>
+
+  <div class="lesson-nav">
+    <a href="10-stm32.html"><div class="dir">→ قبلی</div><div>درس ۱۰ — STM32</div></a>
+    <a href="index.html"><div class="dir">بعدی ←</div><div>فهرست دوره</div></a>
+  </div>
+  <footer class="site">LC-Intention-NAS · ELIOS Lab</footer>
+</main>
+</body>
+</html>

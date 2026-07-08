@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>درس ۰۷ — NAS | LC-Intention-NAS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/course.css">
+<script src="assets/course.js" defer></script>
+</head>
+<body>
+<div class="topbar">
+  <a class="home" href="index.html">↪ فهرست دوره</a>
+  <div class="spacer"></div>
+  <button class="theme-toggle" onclick="toggleTheme()">🌗 روشن/تاریک</button>
+</div>
+<main>
+  <p class="kicker">درس ۰۷</p>
+  <h1><span class="en">NAS</span>: وقتی کامپیوتر خودش شبکه طراحی می‌کند 🧬</h1>
+  <p class="lede">به‌جای اینکه معماری شبکه را با حدس و آزمون خودمان بسازیم، یک مسابقهٔ تکاملی راه می‌اندازیم: صد طراحی با هم رقابت می‌کنند، بهترین‌ها بچه‌دار می‌شوند و پیرها بازنشسته.</p>
+
+  <div class="card callout story">
+    <p class="card-title">قصه 📖 — آشپزی تکاملی</p>
+    <p>فرض کن یک دفترچه با ۱۰۰ دستور غذا داری و می‌خواهی به بهترین سوپ دنیا برسی.
+    هر روز این بازی را می‌کنی: ۲۵ دستور را <b>تصادفی</b> از دفترچه برمی‌داری و می‌چشی؛
+    خوشمزه‌ترینِ همین ۲۵ تا «والد» امروز است. حالا دستورش را <b>کمی</b> تغییر می‌دهی —
+    یک ادویهٔ تازه، کمی پیاز بیشتر — نه اینکه از صفر بنویسی. دستور جدید را می‌پزی،
+    امتیازش را می‌نویسی و به دفترچه اضافه می‌کنی.</p>
+    <p>و حالا قانون عجیب بازی: <b>قدیمی‌ترین دستور دفترچه بازنشسته می‌شود</b> — حتی اگر
+    روزی قهرمان بوده باشد! چرا؟ چون اگر قهرمان قدیمی برای همیشه بماند، هر روز فقط او
+    والد می‌شود و دفترچه پر از کپی‌های او می‌شود؛ دیگر هیچ ایدهٔ تازه‌ای شانس رشد ندارد.
+    ولی وقتی همه بالاخره بازنشسته می‌شوند، یک دستور خوب فقط از راه «بچه‌هایش» زنده می‌ماند —
+    و دفترچه همیشه تازه و متنوع است. بعد از صدها روز، دفترچه پر از دستورهای عالی و متفاوت است.</p>
+  </div>
+
+  <h2>دقیق‌تر 🔬</h2>
+  <h3>قدم اول: فضای جست‌وجو</h3>
+  <p>قبل از هر جست‌وجویی باید بگوییم «چه چیزهایی اجازه داریم بسازیم». به این می‌گویند
+  <b><span class="en">search space</span></b>: مجموعهٔ همهٔ طراحی‌های ممکن. در پروژهٔ ما
+  این فضا شامل شبکه‌های <span class="en">1D CNN</span> است: چند
+  <span class="en">layer</span>؟ چه نوعی (<span class="en">Conv1D</span> معمولی،
+  <span class="en">depthwise</span> یا <span class="en">1x1</span> که درس ۰۴ دیدیم)؟
+  <span class="en">kernel</span> چه اندازه‌ای (۳ تا ۷)؟ هر لایه چند کانال؟
+  <span class="en">pooling</span> بگذاریم یا نه؟ و آخرش یک
+  <span class="en">dense head</span> کوچک برای جواب نهایی.</p>
+  <p>هر ترکیب از این انتخاب‌ها یک شبکهٔ متفاوت است — و تعداد ترکیب‌ها نجومی است.
+  امتحان کردن همه غیرممکن است؛ پس به یک جست‌وجوگر باهوش نیاز داریم.</p>
+
+  <h3>قدم دوم: تکاملِ پیرشونده</h3>
+  <p>الگوریتم ما <b><span class="en">aging evolution</span></b> نام دارد و دقیقاً همان
+  بازی آشپزی است، فقط به‌جای دستور غذا، معماری شبکه داریم:</p>
+  <div class="card">
+    <p>۱. یک <b>جمعیت</b> (<span class="en">population</span>) از معماری‌ها نگه می‌داریم — مثلاً ۱۰۰ تا.<br>
+    ۲. هر دور، یک نمونهٔ تصادفی برمی‌داریم — مثلاً ۲۵ تا.<br>
+    ۳. <b>بهترینِ همین نمونه</b> والد می‌شود (یک مسابقهٔ کوچک، نه کل جمعیت).<br>
+    ۴. والد <b>جهش</b> (<span class="en">mutation</span>) می‌کند: یک تغییر کوچک مثل اضافه یا حذف یک <span class="en">layer</span>، یا پهن‌تر کردن یکی (کانال بیشتر). به این تغییرِ ساختارِ شبکه <span class="en">morphism</span> هم می‌گویند.<br>
+    ۵. فرزند <b>آموزش می‌بیند</b> و با نمره‌اش به جمعیت اضافه می‌شود.<br>
+    ۶. <b>پیرترین عضو جمعیت حذف می‌شود</b> — نه بدترین!</p>
+  </div>
+
+  <figure class="viz">
+    <svg viewBox="0 0 720 390" role="img" aria-label="چرخهٔ aging evolution: از جمعیت صد معماری، بیست‌وپنج تا تصادفی نمونه‌گیری می‌شود، بهترینِ نمونه والد می‌شود، با جهش کمی تغییر می‌کند، فرزند آموزش می‌بیند و به جمعیت برمی‌گردد؛ همزمان پیرترین عضو جمعیت بازنشسته می‌شود">
+      <defs>
+        <marker id="arr-c" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="var(--muted)"/>
+        </marker>
+      </defs>
+      <!-- step numbers -->
+      <text x="605" y="42" text-anchor="middle" fill="var(--muted)" font-size="12" font-weight="800">۱</text>
+      <text x="365" y="20" text-anchor="middle" fill="var(--muted)" font-size="12" font-weight="800">۲</text>
+      <text x="120" y="42" text-anchor="middle" fill="var(--muted)" font-size="12" font-weight="800">۳</text>
+      <text x="160" y="227" text-anchor="middle" fill="var(--muted)" font-size="12" font-weight="800">۴</text>
+      <text x="470" y="227" text-anchor="middle" fill="var(--muted)" font-size="12" font-weight="800">۵</text>
+      <!-- A: population -->
+      <rect x="520" y="50" width="170" height="70" rx="12" fill="none" stroke="var(--series-1)" stroke-width="2.5"/>
+      <text x="605" y="80" text-anchor="middle" fill="var(--ink)" font-size="15" font-weight="700">جمعیت</text>
+      <text x="605" y="103" text-anchor="middle" fill="var(--ink-2)" font-size="12">مثلاً ۱۰۰ معماری</text>
+      <!-- B: sampling -->
+      <rect x="285" y="28" width="160" height="70" rx="12" fill="none" stroke="var(--baseline)" stroke-width="2"/>
+      <text x="365" y="58" text-anchor="middle" fill="var(--ink)" font-size="15" font-weight="700">نمونه‌گیری</text>
+      <text x="365" y="81" text-anchor="middle" fill="var(--ink-2)" font-size="12">مثلاً ۲۵ تای تصادفی</text>
+      <!-- C: fittest parent -->
+      <rect x="40" y="50" width="160" height="70" rx="12" fill="none" stroke="var(--series-2)" stroke-width="2"/>
+      <text x="120" y="80" text-anchor="middle" fill="var(--ink)" font-size="15" font-weight="700">بهترین والد 🏆</text>
+      <text x="120" y="103" text-anchor="middle" fill="var(--ink-2)" font-size="12">برندهٔ همین نمونه</text>
+      <!-- D: mutation -->
+      <rect x="75" y="235" width="170" height="70" rx="12" fill="none" stroke="var(--baseline)" stroke-width="2"/>
+      <text x="160" y="263" text-anchor="middle" fill="var(--ink)" font-size="15" font-weight="700">جهش</text>
+      <text x="160" y="286" text-anchor="middle" fill="var(--ink-2)" font-size="12">لایه اضافه یا پهن‌تر کن</text>
+      <text x="160" y="324" text-anchor="middle" fill="var(--muted)" font-size="11" direction="ltr" font-family="ui-monospace, Consolas, monospace">mutation / morphism</text>
+      <!-- E: train child -->
+      <rect x="385" y="235" width="170" height="70" rx="12" fill="none" stroke="var(--baseline)" stroke-width="2"/>
+      <text x="470" y="263" text-anchor="middle" fill="var(--ink)" font-size="15" font-weight="700">آموزش فرزند</text>
+      <text x="470" y="286" text-anchor="middle" fill="var(--ink-2)" font-size="12">چند دور آموزشِ کوتاه</text>
+      <!-- ghost: oldest retires -->
+      <text x="548" y="303" text-anchor="middle" fill="var(--muted)" font-size="12" font-weight="800">۶</text>
+      <rect x="540" y="310" width="150" height="58" rx="12" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="6 5"/>
+      <text x="615" y="335" text-anchor="middle" fill="var(--ink-2)" font-size="13">پیرترین عضو</text>
+      <text x="615" y="356" text-anchor="middle" fill="var(--muted)" font-size="12">بازنشسته می‌شود 👋</text>
+      <!-- cycle arrows -->
+      <line x1="520" y1="80" x2="448" y2="66" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr-c)"/>
+      <line x1="285" y1="63" x2="205" y2="80" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr-c)"/>
+      <line x1="110" y1="120" x2="148" y2="231" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr-c)"/>
+      <line x1="247" y1="270" x2="381" y2="270" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr-c)"/>
+      <line x1="497" y1="233" x2="560" y2="124" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr-c)"/>
+      <text x="445" y="180" text-anchor="middle" fill="var(--muted)" font-size="11.5">به جمعیت اضافه می‌شود</text>
+      <!-- aging side arrow -->
+      <line x1="612" y1="122" x2="612" y2="306" stroke="var(--muted)" stroke-width="2" stroke-dasharray="5 5" marker-end="url(#arr-c)"/>
+      <text x="666" y="195" text-anchor="middle" fill="var(--muted)" font-size="11.5">پیرترین</text>
+      <text x="666" y="215" text-anchor="middle" fill="var(--muted)" font-size="11.5">حذف می‌شود</text>
+    </svg>
+    <figcaption>شکل ۱ — چرخهٔ <span class="en">aging evolution</span>: هر دور یک مسابقهٔ کوچک، یک جهش کوچک، یک فرزند تازه — و یک بازنشستگی. همین چرخه صدها بار تکرار می‌شود.</figcaption>
+  </figure>
+
+  <p>نکتهٔ طلایی همان مرحلهٔ ۵ است. اگر همیشه «بدترین» را حذف می‌کردیم، یک برندهٔ
+  خوش‌شانسِ اولیه می‌توانست برای همیشه در جمعیت بماند، مدام والد شود و جمعیت را از
+  کپی‌های خودش پر کند. با حذفِ <b>پیرترین</b>، حتی قهرمان هم تاریخ انقضا دارد:
+  ایده‌های خوبش فقط از راه فرزندانش زنده می‌ماند و جست‌وجو هیچ‌وقت از کشف کردن
+  دست نمی‌کشد.</p>
+
+  <h3>قدم سوم: هیچ «بهترین» واحدی وجود ندارد — مرز Pareto</h3>
+  <p>ما دو هدف همزمان داریم که با هم می‌جنگند: <b>خطای کم</b> و <b>اندازهٔ کوچک</b>
+  (تا مدل در <span class="en">microcontroller</span> جا شود). مدلی که هم کوچک‌تر و هم
+  دقیق‌تر از مدل دیگری باشد، آن را «شکست می‌دهد». اما خیلی وقت‌ها این‌طور نیست:
+  یکی کوچک‌تر است و دیگری دقیق‌تر — هیچ‌کدام برندهٔ مطلق نیست. مجموعهٔ مدل‌هایی که
+  هیچ‌کس نمی‌تواند هر دو معیار را همزمان از آن‌ها بهتر بزند، یک «مرزِ معامله» می‌سازد:
+  <b><span class="en">Pareto front</span></b>.</p>
+
+  <figure class="viz">
+    <div class="legend">
+      <span class="key"><span class="swatch" style="background:var(--series-1)"></span> مدل‌های مرز <span class="en">Pareto</span> — بهترین معامله‌ها</span>
+      <span class="key"><span class="swatch" style="background:var(--muted)"></span> مدل‌های مغلوب — یکی دیگر هم کوچک‌تر و هم دقیق‌تر است</span>
+    </div>
+    <svg viewBox="0 0 720 400" role="img" aria-label="نمودار مفهومی مرز Pareto: پراکندگی معماری‌ها روی دو محور اندازهٔ مدل و خطا؛ چهار نقطهٔ مرزی با یک خط پله‌ای به هم وصل شده‌اند و بقیهٔ نقاط مغلوب هستند">
+      <defs>
+        <marker id="arr-ax" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="var(--baseline)"/>
+        </marker>
+        <marker id="arr-p" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="var(--series-1)"/>
+        </marker>
+      </defs>
+      <!-- grid -->
+      <line x1="80" y1="105" x2="680" y2="105" stroke="var(--grid)" stroke-width="1"/>
+      <line x1="80" y1="180" x2="680" y2="180" stroke="var(--grid)" stroke-width="1"/>
+      <line x1="80" y1="255" x2="680" y2="255" stroke="var(--grid)" stroke-width="1"/>
+      <!-- axes -->
+      <line x1="80" y1="330" x2="695" y2="330" stroke="var(--baseline)" stroke-width="1.5" marker-end="url(#arr-ax)"/>
+      <line x1="80" y1="330" x2="80" y2="30" stroke="var(--baseline)" stroke-width="1.5" marker-end="url(#arr-ax)"/>
+      <text x="380" y="368" text-anchor="middle" fill="var(--ink-2)" font-size="13">اندازهٔ مدل (<tspan direction="ltr">KB</tspan>)</text>
+      <text x="135" y="22" text-anchor="middle" fill="var(--ink-2)" font-size="13">خطا (<tspan direction="ltr">MAE</tspan>)</text>
+      <!-- ideal corner -->
+      <text x="150" y="318" text-anchor="middle" fill="var(--series-2)" font-size="12">🎯 گوشهٔ ایده‌آل</text>
+      <!-- dominated dots -->
+      <g fill="var(--muted)">
+        <circle cx="235" cy="115" r="5"/>
+        <circle cx="320" cy="155" r="5"/>
+        <circle cx="355" cy="95" r="5"/>
+        <circle cx="300" cy="70" r="5"/>
+        <circle cx="480" cy="175" r="5"/>
+        <circle cx="530" cy="125" r="5"/>
+        <circle cx="625" cy="205" r="5"/>
+      </g>
+      <!-- Pareto step line -->
+      <path d="M150,140 H260 V205 H400 V255 H600 V290" fill="none" stroke="var(--series-1)" stroke-width="2"/>
+      <!-- Pareto dots -->
+      <g fill="var(--series-1)">
+        <circle cx="150" cy="140" r="6"/>
+        <circle cx="260" cy="205" r="6"/>
+        <circle cx="400" cy="255" r="6"/>
+        <circle cx="600" cy="290" r="6"/>
+      </g>
+      <!-- annotation -->
+      <text x="215" y="292" text-anchor="middle" fill="var(--series-1)" font-size="13" font-weight="700">مرز <tspan direction="ltr">Pareto</tspan></text>
+      <line x1="228" y1="275" x2="252" y2="218" stroke="var(--series-1)" stroke-width="1.5" stroke-dasharray="4 4" marker-end="url(#arr-p)"/>
+    </svg>
+    <figcaption>شکل ۲ — نمای مفهومی مرز <span class="en">Pareto</span>: هر نقطه یک معماری است؛ راست‌تر یعنی بزرگ‌تر، بالاتر یعنی پرخطاتر، و گوشهٔ پایین-چپ ایده‌آل است. نقاط آبی را هیچ مدل دیگری همزمان در هر دو معیار شکست نمی‌دهد؛ انتخاب بین آن‌ها به بودجهٔ سخت‌افزار بستگی دارد.</figcaption>
+  </figure>
+
+  <p>برای همین خروجی <span class="en">NAS</span> یک مدل نیست، بلکه یک «ویترین» از
+  معامله‌های بهینه است — و ما بسته به بورد هدف، از این ویترین انتخاب می‌کنیم.
+  این‌که دقیقاً چطور «کوچک بودن» را بدون سخت‌افزار اندازه می‌گیریم و چه سقف‌هایی
+  به الگوریتم می‌دهیم، داستان درس بعدی (<span class="en">µNAS</span>) است.</p>
+
+  <h2>در پروژهٔ ما 🧰</h2>
+  <p>ما از نسخهٔ آزمایشگاه خودمان (<span class="en">ELIOS</span>) از
+  <span class="en">µNAS</span> استفاده می‌کنیم که با <span class="en">TensorFlow</span>
+  کار می‌کند. اولین اجرای آزمایشیِ کوتاه (<span class="en">smoke test</span>) روی
+  <span class="en">RTX 5070</span> همین چرخه را راه انداخت و خیلی زود جواب داد:</p>
+
+  <div class="tiles">
+    <div class="tile">
+      <div class="value">72,729</div>
+      <div class="label">پارامتر (284 KB <span class="en">float</span>) — یک کاندیدای اولیه</div>
+    </div>
+    <div class="tile">
+      <div class="value">0.41</div>
+      <div class="label"><span class="en">val MAE</span> همان کاندیدا — فقط بعد از ۳ <span class="en">epoch</span></div>
+    </div>
+    <div class="tile">
+      <div class="value">31</div>
+      <div class="label">مدل ذخیره‌شده روی مرز <span class="en">Pareto</span> در جست‌وجوی کوتاه</div>
+    </div>
+  </div>
+
+  <p>بعد یک جست‌وجوی کوتاه واقعی اجرا کردیم: ۲۵ دور، هر فرزند فقط ۲۰
+  <span class="en">epoch</span>. نتیجه ۳۱ مدل روی مرز <span class="en">Pareto</span> بود.
+  بهترینِ آن‌ها را جداگانه روی مجموعهٔ <span class="en">test</span> سنجیدیم — و رکورد
+  منتشرشده (<span class="en">Transformer</span> مقالهٔ <span class="en">IEEE SPL 2026</span>)
+  همین حالا شکسته شده است:</p>
+
+  <figure class="viz">
+    <div class="legend">
+      <span class="key"><span class="swatch" style="background:var(--series-1)"></span> بهترین مدل <span class="en">NAS</span> ما (تأیید مستقل روی <span class="en">test</span>)</span>
+      <span class="key"><span class="swatch" style="background:var(--series-2)"></span> رکورد منتشرشده (<span class="en">Transformer</span>)</span>
+    </div>
+    <div class="hbar">
+      <div class="name">MAE — مدل ما</div>
+      <div class="track"><div class="fill" style="width:47.8%"></div></div>
+      <div class="val">0.287 s</div>
+      <div class="name">MAE — رکورد</div>
+      <div class="track"><div class="fill alt" style="width:49.7%"></div></div>
+      <div class="val">0.298 s</div>
+    </div>
+    <div class="hbar" style="margin-top:16px">
+      <div class="name">RMSE — مدل ما</div>
+      <div class="track"><div class="fill" style="width:73.8%"></div></div>
+      <div class="val">0.443 s</div>
+      <div class="name">RMSE — رکورد</div>
+      <div class="track"><div class="fill alt" style="width:85%"></div></div>
+      <div class="val">0.510 s</div>
+    </div>
+    <figcaption>شکل ۳ — خطای <span class="en">test</span> بهترین مدلِ جست‌وجوی کوتاه در برابر رکورد منتشرشده؛ مقیاس مشترک هر دو نمودار از 0 تا 0.6 ثانیه است و پایین‌تر بهتر است.</figcaption>
+  </figure>
+
+  <table>
+    <thead><tr><th>معیار</th><th class="num">بهترین مدل ما (جست‌وجوی کوتاه)</th><th class="num">رکورد منتشرشده (SPL 2026)</th></tr></thead>
+    <tbody>
+      <tr><td><span class="en">MAE</span></td><td class="num"><b>0.287 s</b></td><td class="num">0.298 s</td></tr>
+      <tr><td><span class="en">RMSE</span></td><td class="num"><b>0.443 s</b></td><td class="num">0.510 s</td></tr>
+    </tbody>
+  </table>
+
+  <p>دو نکتهٔ صداقت علمی: اول، این عددها را خودِ جست‌وجو به ما نداد — طبق قانون
+  همیشگی‌مان، مدل ذخیره‌شده را با <span class="en">verify_models.py</span> جداگانه
+  بارگذاری و روی رانندگان <span class="en">test</span> (که هرگز در آموزش نبوده‌اند)
+  دوباره سنجیدیم. دوم، این تازه جست‌وجوی «کوتاه» بود: جست‌وجوهای کامل — ۱۵۰ دور،
+  ۱۰۰ <span class="en">epoch</span>، برای همهٔ مسئله‌ها و از جمله نسخهٔ بدون
+  راهنما (<span class="en">no-blinker ablation</span>) — همین حالا در حال اجرا هستند.</p>
+
+  <div class="card callout">
+    <p class="card-title">مهندسی واقعی 🔧 — جنگ با نشت حافظه</p>
+    <p>اولین جست‌وجوی ما بعد از حدود ۴۰ کاندیدا ناگهان خراب می‌شد. چرا؟
+    <span class="en">TensorFlow</span> مدل‌های قدیمی را — هر کدام حدود ۲۰۰ مگابایت —
+    در حافظه نگه می‌داشت تا اینکه <span class="en">RAM</span> تمام می‌شد.
+    راه‌حل: بعد از هر کاندیدا، <span class="en">session</span> را آزاد کن.
+    درسش ساده اما مهم است: کارهای طولانیِ یادگیری ماشین به بهداشت حافظه
+    (<span class="en">memory hygiene</span>) نیاز دارند — وگرنه در نیمه‌راهِ شبِ سوم می‌میرند.</p>
+  </div>
+
+  <div id="quiz" class="quiz"></div>
+  <script type="application/json" id="quiz-data">
+  [
+    {"stem": "«search space» در NAS یعنی چه؟",
+     "options": ["فضای دیسکی که مدل‌ها در آن ذخیره می‌شوند", "مجموعهٔ همهٔ معماری‌هایی که الگوریتم اجازه دارد بسازد و امتحان کند", "داده‌های آموزشی که مدل باید در آن‌ها جست‌وجو کند"],
+     "answer": 1,
+     "explain": "search space یعنی «چه چیزهایی اجازه داریم بسازیم». در پروژهٔ ما: شبکه‌های 1D CNN با انواع لایه (Conv1D، depthwise، 1x1)، kernel بین ۳ تا ۷، تعداد کانال و عمق متغیر، pooling اختیاری و یک dense head. تعداد ترکیب‌ها نجومی است — برای همین به جست‌وجوی هوشمند نیاز داریم، نه امتحان همه."},
+    {"stem": "در aging evolution، بعد از اضافه شدن فرزند جدید، چه کسی از جمعیت خارج می‌شود؟",
+     "options": ["ضعیف‌ترین عضو", "پیرترین عضو — حتی اگر قهرمان باشد", "یک عضو کاملاً تصادفی"],
+     "answer": 1,
+     "explain": "حذفِ پیرترین (نه بدترین) همان «aging» است. اگر بهترین‌ها برای همیشه می‌ماندند، یک برندهٔ خوش‌شانسِ اولیه مدام والد می‌شد و جمعیت را از کپی‌های خودش پر می‌کرد. با بازنشستگی اجباری، ایده‌های خوب فقط از راه فرزندها زنده می‌مانند و جست‌وجو همیشه در حال کشف می‌ماند."},
+    {"stem": "مدل A کوچک‌تر ولی کمی پرخطاتر است؛ مدل B بزرگ‌تر ولی دقیق‌تر. کدام «بهتر» است؟",
+     "options": ["همیشه مدل دقیق‌تر بهتر است", "همیشه مدل کوچک‌تر بهتر است", "هیچ‌کدام برندهٔ مطلق نیست؛ هر دو می‌توانند روی مرز Pareto باشند"],
+     "answer": 2,
+     "explain": "وقتی دو هدف داریم (خطا و اندازه)، فقط مدلی حذف می‌شود که مدل دیگری در هر دو معیار همزمان از آن بهتر باشد. بقیه یک مرزِ معامله (Pareto front) می‌سازند و انتخاب نهایی به بودجهٔ سخت‌افزار بستگی دارد — برای همین جست‌وجوی کوتاه ما ۳۱ مدل ذخیره کرد، نه یکی."},
+    {"stem": "چرا عدد MAE = 0.287 را قبل از اعلام رکورد، خودمان دوباره حساب کردیم؟",
+     "options": ["چون فایل مدل‌ها ممکن بود خراب شده باشد", "چون عددهای حین جست‌وجو روی دادهٔ validation است؛ فقط ارزیابی مستقل روی test قابل استناد است", "چون TensorFlow اعداد را همیشه گرد می‌کند"],
+     "answer": 1,
+     "explain": "در طول جست‌وجو، الگوریتم فقط دادهٔ validation را می‌بیند و همان راهنمای انتخاب‌هایش است. ادعای «رکورد» فقط وقتی معتبر است که مدلِ ذخیره‌شده جداگانه بارگذاری شود و روی رانندگان test — که هرگز در آموزش و انتخاب نقشی نداشته‌اند — سنجیده شود. ما این کار را با verify_models.py برای هر مدل انجام می‌دهیم."}
+  ]
+  </script>
+
+  <div class="lesson-nav">
+    <a href="06-validation-overfitting.html"><div class="dir">→ قبلی</div><div>درس ۰۶ — Validation</div></a>
+    <a href="08-munas-constraints.html"><div class="dir">بعدی ←</div><div>درس ۰۸ — µNAS و محدودیت‌ها</div></a>
+  </div>
+  <footer class="site">LC-Intention-NAS · ELIOS Lab</footer>
+</main>
+</body>
+</html>

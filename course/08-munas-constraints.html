@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>درس ۰۸ — µNAS و محدودیت‌ها | LC-Intention-NAS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/course.css">
+<script src="assets/course.js" defer></script>
+</head>
+<body>
+<div class="topbar">
+  <a class="home" href="index.html">↪ فهرست دوره</a>
+  <div class="spacer"></div>
+  <button class="theme-toggle" onclick="toggleTheme()">🌗 روشن/تاریک</button>
+</div>
+<main>
+  <p class="kicker">درس ۰۸</p>
+  <h1><span class="en">µNAS</span> و محدودیت‌ها: جا دادن مغز در یک تراشهٔ کوچک 🎒</h1>
+  <p class="lede">جست‌وجوی معماری وقتی معنا دارد که هر مدل کاندید، قبل از هر چیز، در بودجهٔ تراشه جا شود — و این را می‌شود بدون خودِ تراشه اندازه گرفت.</p>
+
+  <div class="card callout story">
+    <p class="card-title">قصه 📖</p>
+    <p>فرض کن برای یک کوه‌نوردی یک‌روزه فقط یک کوله‌پشتی کوچک داری. سه محدودیت جدی داری:
+    <b>جای داخل کوله</b> (هر لحظه چقدر وسیله می‌توانی باز و دم دست داشته باشی)،
+    <b>وزن کل بار</b> (چقدر می‌توانی حمل کنی)، و <b>سرعت راه رفتنت</b>
+    (هر چه کارهای بین راه بیشتر، دیرتر می‌رسی).</p>
+    <p>نکتهٔ هوشمندانه اینجاست: لازم نیست برای امتحان هر چیدمان، واقعاً تا قله بروی!
+    با یک متر و یک ترازو، <b>در خانه و قبل از حرکت</b> همه‌چیز را می‌سنجی.
+    <span class="en">µNAS</span> هم با هر مدل کاندید دقیقاً همین کار را می‌کند:
+    قبل از اینکه مدل حتی یک بار روی تراشه اجرا شود، روی کاغذ حساب می‌کند
+    چقدر حافظهٔ لحظه‌ای می‌خواهد، وزن‌هایش چند بایت است، و چند ضرب‌جمع باید انجام دهد.
+    جای کوله = <span class="en">RAM</span>، وزن بار = اندازهٔ مدل در <span class="en">flash</span>،
+    و سرعت راه رفتن = تعداد ضرب‌جمع‌ها.</p>
+  </div>
+
+  <h2>دقیق‌تر 🔬</h2>
+  <p>برای هر معماری کاندید، <span class="en">µNAS</span> سه معیار «کارایی» را
+  <b>بدون هیچ سخت‌افزاری</b> — فقط از روی ساختار شبکه — محاسبه می‌کند:</p>
+
+  <div class="card">
+    <p>۱. <b><span class="en">peak RAM</span></b>: هنگام اجرا، خروجی هر لایه
+    (<span class="en">activations</span>) باید موقتاً جایی نگه داشته شود.
+    بزرگ‌ترین بار حافظهٔ لحظه‌ای در طول اجرا همان <span class="en">peak RAM</span> است
+    و باید در <span class="en">SRAM</span> تراشه جا شود.<br>
+    ۲. <b><span class="en">model size</span></b>: مجموع وزن‌های شبکه به بایت،
+    با فرض <span class="en">int8</span> (هر وزن یک بایت). این‌ها در
+    <span class="en">flash</span> ذخیره می‌شوند.<br>
+    ۳. <b><span class="en">MACs</span></b>: تعداد ضرب‌جمع‌ها
+    (<span class="en">multiply-accumulate</span>) برای یک پیش‌بینی — پیش‌بینیِ سرعت.
+    این عدد با تأخیر واقعی روی <span class="en">STM32</span> همبستگی
+    <span class="en">r&#178;=0.975</span> دارد؛ یعنی تقریباً همان کرنومتر است، بدون بورد!</p>
+  </div>
+
+  <p>چرا این «بدون سخت‌افزار بودن» این‌قدر مهم است؟ چون جست‌وجو باید صدها معماری را
+  بسنجد. اگر برای هر کدام لازم بود مدل را روی بورد بریزیم و کرنومتر بگیریم،
+  جست‌وجو هفته‌ها طول می‌کشید. با این سه معیارِ کاغذی، سنجش هر کاندید تقریباً آنی است.</p>
+
+  <figure class="viz">
+    <svg viewBox="0 0 720 320" role="img" aria-label="استعارهٔ کوله‌پشتی: دو تراشه با سه محفظهٔ RAM و Flash و سرعت. در تراشهٔ سمت راست، مدل کوچک در هر سه محفظه زیر خط سقف می‌ماند و پذیرفته می‌شود؛ در تراشهٔ سمت چپ، مدل بزرگ از سقف RAM و Flash سرریز می‌کند و جریمه می‌شود">
+      <line x1="360" y1="24" x2="360" y2="300" stroke="var(--grid)" stroke-width="1.5" stroke-dasharray="5 5"/>
+
+      <!-- ===== right panel: small model fits ===== -->
+      <text x="540" y="22" text-anchor="middle" fill="var(--series-2)" font-size="14" font-weight="800">مدل کوچک — جا می‌شود ✓</text>
+      <rect x="440" y="58" width="200" height="192" rx="12" fill="none" stroke="var(--ink-2)" stroke-width="2"/>
+      <g stroke="var(--muted)" stroke-width="4" opacity="0.7">
+        <line x1="470" y1="250" x2="470" y2="262"/>
+        <line x1="505" y1="250" x2="505" y2="262"/>
+        <line x1="540" y1="250" x2="540" y2="262"/>
+        <line x1="575" y1="250" x2="575" y2="262"/>
+        <line x1="610" y1="250" x2="610" y2="262"/>
+      </g>
+      <!-- bound line -->
+      <text x="540" y="78" text-anchor="middle" fill="var(--muted)" font-size="10.5">سقف هر معیار (<tspan direction="ltr" font-family="ui-monospace, Consolas, monospace">bound</tspan>)</text>
+      <line x1="450" y1="85" x2="630" y2="85" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="4 4"/>
+      <!-- compartments -->
+      <rect x="576" y="85" width="48" height="130" fill="none" stroke="var(--baseline)" stroke-width="1.5"/>
+      <rect x="516" y="85" width="48" height="130" fill="none" stroke="var(--baseline)" stroke-width="1.5"/>
+      <rect x="456" y="85" width="48" height="130" fill="none" stroke="var(--baseline)" stroke-width="1.5"/>
+      <!-- green fills, all under the cap -->
+      <rect x="579" y="133" width="42" height="82" fill="var(--series-2)"/>
+      <rect x="519" y="147" width="42" height="68" fill="var(--series-2)"/>
+      <rect x="459" y="125" width="42" height="90" fill="var(--series-2)"/>
+      <!-- compartment labels -->
+      <text x="600" y="234" text-anchor="middle" fill="var(--ink-2)" font-size="11.5" direction="ltr" font-family="ui-monospace, Consolas, monospace">RAM</text>
+      <text x="540" y="234" text-anchor="middle" fill="var(--ink-2)" font-size="11.5" direction="ltr" font-family="ui-monospace, Consolas, monospace">Flash</text>
+      <text x="480" y="234" text-anchor="middle" fill="var(--ink-2)" font-size="11.5">سرعت</text>
+      <text x="480" y="246" text-anchor="middle" fill="var(--muted)" font-size="9.5" direction="ltr" font-family="ui-monospace, Consolas, monospace">MACs</text>
+      <text x="540" y="288" text-anchor="middle" fill="var(--ink-2)" font-size="12.5">هر سه معیار زیر سقف → بدون جریمه</text>
+
+      <!-- ===== left panel: big model overflows ===== -->
+      <text x="180" y="22" text-anchor="middle" fill="var(--critical)" font-size="14" font-weight="800">مدل بزرگ — سرریز ✗</text>
+      <rect x="80" y="58" width="200" height="192" rx="12" fill="none" stroke="var(--ink-2)" stroke-width="2"/>
+      <g stroke="var(--muted)" stroke-width="4" opacity="0.7">
+        <line x1="110" y1="250" x2="110" y2="262"/>
+        <line x1="145" y1="250" x2="145" y2="262"/>
+        <line x1="180" y1="250" x2="180" y2="262"/>
+        <line x1="215" y1="250" x2="215" y2="262"/>
+        <line x1="250" y1="250" x2="250" y2="262"/>
+      </g>
+      <line x1="90" y1="85" x2="270" y2="85" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="4 4"/>
+      <!-- compartments -->
+      <rect x="216" y="85" width="48" height="130" fill="none" stroke="var(--baseline)" stroke-width="1.5"/>
+      <rect x="156" y="85" width="48" height="130" fill="none" stroke="var(--baseline)" stroke-width="1.5"/>
+      <rect x="96" y="85" width="48" height="130" fill="none" stroke="var(--baseline)" stroke-width="1.5"/>
+      <!-- RAM & Flash overflow (red), speed stays under (green) -->
+      <rect x="219" y="45" width="42" height="170" fill="var(--critical)"/>
+      <rect x="159" y="65" width="42" height="150" fill="var(--critical)"/>
+      <rect x="99" y="125" width="42" height="90" fill="var(--series-2)"/>
+      <text x="240" y="40" text-anchor="middle" fill="var(--critical)" font-size="10.5" font-weight="700">✗ سرریز</text>
+      <!-- compartment labels -->
+      <text x="240" y="234" text-anchor="middle" fill="var(--ink-2)" font-size="11.5" direction="ltr" font-family="ui-monospace, Consolas, monospace">RAM</text>
+      <text x="180" y="234" text-anchor="middle" fill="var(--ink-2)" font-size="11.5" direction="ltr" font-family="ui-monospace, Consolas, monospace">Flash</text>
+      <text x="120" y="234" text-anchor="middle" fill="var(--ink-2)" font-size="11.5">سرعت</text>
+      <text x="120" y="246" text-anchor="middle" fill="var(--muted)" font-size="9.5" direction="ltr" font-family="ui-monospace, Consolas, monospace">MACs</text>
+      <text x="180" y="288" text-anchor="middle" fill="var(--ink-2)" font-size="12.5">حتی یک سرریز کافی است تا مدل اول از همه جریمه شود</text>
+    </svg>
+    <figcaption>شکل ۱ — استعارهٔ کوله‌پشتی: تراشه سه «محفظه» دارد (<span class="en">RAM</span>، <span class="en">flash</span>، سرعت). مدل کوچک (راست) در هر سه زیر خط سقف می‌ماند؛ مدل بزرگ (چپ) از سقف <span class="en">RAM</span> و <span class="en">flash</span> سرریز می‌کند — سرعتش خوب است ولی فایده ندارد.</figcaption>
+  </figure>
+
+  <h3>سقف‌ها و فرمول نمره‌دهی</h3>
+  <p>این سقف‌ها در تنظیماتی به نام <span class="en">BoundConfig</span> تعریف می‌شوند:
+  <span class="en">error_bound</span> (بیشترین خطای قابل‌قبول)،
+  <span class="en">peak_mem_bound</span>، <span class="en">model_size_bound</span> و
+  <span class="en">mac_bound</span>. بعد هر کاندید با این فرمول نمره می‌گیرد:</p>
+
+  <div class="card">
+    <p style="direction:ltr;text-align:left"><code>fitness = -max_i( normalise(feature_i / bound_i) / lambda_i )</code></p>
+    <p>یعنی: هر معیار را بر سقفش تقسیم کن، همه را هم‌مقیاس
+    (<span class="en">normalise</span>) کن، و <b>بدترین‌شان</b> نمرهٔ مدل باشد (با علامت منفی —
+    چون بدترینِ بزرگ‌تر یعنی نمرهٔ کمتر). اگر معیاری از سقفش رد شود، نسبتش از بقیه بزرگ‌تر
+    می‌شود، در <span class="en">max</span> برنده می‌شود و نمرهٔ مدل را خراب می‌کند:
+    <b>رد شدن از سقف همیشه اول جریمه می‌شود.</b></p>
+  </div>
+
+  <p>و آن <span class="en">lambda</span>ها چه هستند؟ هر دورِ جست‌وجو، مقدارهای تصادفی
+  می‌گیرند. یعنی الگوریتم هر دور با <b>عینک متفاوتی</b> به معیارها وزن می‌دهد:
+  یک دور سخت‌گیرتر به حافظه، دور بعد سخت‌گیرتر به سرعت. نتیجه این است که جست‌وجو
+  به یک مصالحهٔ ثابت گیر نمی‌کند و خانواده‌ای متنوع از مدل‌های خوب
+  (<span class="en">Pareto</span>) پیدا می‌کند. ولی چون سرریز از سقف همیشه در
+  <span class="en">max</span> برنده می‌شود، هیچ عینکی نمی‌تواند تخلف از بودجه را نادیده بگیرد.</p>
+
+  <h2>بودجهٔ واقعی ما 📏</h2>
+  <p>بورد هدف ما <span class="en">STM32H7B3I-DK</span> است:</p>
+
+  <div class="tiles">
+    <div class="tile">
+      <div class="value">280 MHz</div>
+      <div class="label">پردازنده — <span class="en">Arm Cortex-M7</span></div>
+    </div>
+    <div class="tile">
+      <div class="value">1.4 MB</div>
+      <div class="label"><span class="en">SRAM</span> (حافظهٔ لحظه‌ای)</div>
+    </div>
+    <div class="tile">
+      <div class="value">2 MB</div>
+      <div class="label"><span class="en">flash</span> (حافظهٔ دائمی)</div>
+    </div>
+  </div>
+
+  <p>و سقف‌هایی که در <span class="en">BoundConfig</span> گذاشته‌ایم — عمداً خیلی
+  سفت‌وسخت‌تر از ظرفیت بورد، تا مدل‌ها جمع‌وجور بمانند:</p>
+
+  <table>
+    <thead><tr><th>معیار</th><th class="num">سقف ما</th><th>چرا این عدد؟</th></tr></thead>
+    <tbody>
+      <tr><td><span class="en">peak RAM</span> (activations)</td><td class="num">256 KB</td><td>خیلی کمتر از <span class="en">SRAM</span> بورد؛ جا برای بقیهٔ برنامه می‌ماند</td></tr>
+      <tr><td><span class="en">model size</span> (int8)</td><td class="num">256 KB</td><td>خیلی کمتر از <span class="en">flash</span> بورد؛ رو به بوردهای کوچک‌تر هم امید داریم</td></tr>
+      <tr><td><span class="en">MACs</span></td><td class="num">2,000,000</td><td>جانشین سرعت (همبستگی <span class="en">r&#178;=0.975</span> با تأخیر واقعی)</td></tr>
+      <tr><td>خطا — <span class="en">MAE</span></td><td class="num">&le; 0.30 s</td><td>هم‌سطح رکورد منتشرشده (<span class="en">MAE 0.2978</span>)؛ کوچکی نباید بهانهٔ بی‌دقتی شود</td></tr>
+    </tbody>
+  </table>
+
+  <p>چرا این‌قدر سخت‌گیری؟ چون یک هدف کشش هم داریم: بورد ارزان‌قیمت
+  <span class="en">STM32F401</span> با فقط <span class="en">96 KB</span> حافظهٔ
+  <span class="en">RAM</span> و <span class="en">512 KB</span> حافظهٔ <span class="en">flash</span>.
+  در مقالهٔ منتشرشدهٔ همین آزمایشگاه، مدل <span class="en">Transformer</span> آن‌ها
+  اصلاً در <span class="en">RAM</span> این بورد <b>جا نشد</b>، و مدل
+  <span class="en">1DCNN</span>شان <span class="en">40.8 ms</span> طول کشید.
+  اگر مدل‌های ما در سقف‌های بالا بمانند، شانس خوبی دارند که روی این بورد کوچک هم زندگی کنند.</p>
+
+  <p>یک نکتهٔ ظریف: چرا <span class="en">model size</span> را با فرض
+  <span class="en">int8</span> حساب می‌کنیم؟ چون برنامهٔ ما این است که مدل نهایی را
+  <span class="en">quantize</span> کنیم (درس بعد!). ببین با یک کاندید واقعی از اولین
+  جست‌وجوی ما چه می‌شود — مدلی با <span class="en">72,729</span> پارامتر:</p>
+
+  <figure class="viz">
+    <div class="legend">
+      <span class="key"><span class="swatch" style="background:var(--series-1)"></span> <span class="en">float32</span> — امروز</span>
+      <span class="key"><span class="swatch" style="background:var(--series-2)"></span> <span class="en">int8</span> — بعد از <span class="en">quantization</span></span>
+    </div>
+    <div class="hbar">
+      <div class="name">float32</div>
+      <div class="track"><div class="fill" style="width:94.7%"></div></div>
+      <div class="val">284 KB</div>
+      <div class="name">int8</div>
+      <div class="track"><div class="fill alt" style="width:23.7%"></div></div>
+      <div class="val">&asymp;71 KB</div>
+    </div>
+    <figcaption>شکل ۲ — اندازهٔ همان مدل با دو نوع ذخیره‌سازی؛ مقیاس مشترک 0 تا 300 KB. نسخهٔ <span class="en">float32</span> (هر وزن ۴ بایت) از سقف 256 KB ما بزرگ‌تر است، ولی نسخهٔ <span class="en">int8</span> (هر وزن ۱ بایت) با فاصلهٔ زیاد جا می‌شود — برای همین سقف اندازه را با <span class="en">int8</span> می‌سنجیم.</figcaption>
+  </figure>
+
+  <h2>در پروژهٔ ما 🧰</h2>
+  <div class="card">
+    <p>• جست‌وجو با نسخهٔ آزمایشگاه <span class="en">ELIOS</span> از
+    <span class="en">µNAS</span> (روی <span class="en">TensorFlow</span>) انجام می‌شود؛
+    سقف‌های جدول بالا مستقیماً در <span class="en">BoundConfig</span> نوشته شده‌اند.<br>
+    • همین بودجه جواب داده: یک کاندید <span class="en">72,729</span> پارامتری بعد از فقط
+    ۳ <span class="en">epoch</span> به <span class="en">val MAE 0.41</span> رسید، و بهترین
+    مدلِ یک جست‌وجوی کوتاه، پس از سنجش مستقل روی <span class="en">test</span>، به
+    <span class="en">MAE 0.287</span> رسید — بهتر از رکورد منتشرشده
+    (<span class="en">0.298</span>).<br>
+    • هیچ عددی را از خود جست‌وجو قبول نمی‌کنیم: هر مدل ذخیره‌شده را خودمان با
+    <span class="en">verify_models.py</span> روی مجموعهٔ <span class="en">test</span>
+    دوباره می‌سنجیم، و هر اجرا در <span class="en">logs/experiments.jsonl</span> ثبت می‌شود.</p>
+  </div>
+
+  <div id="quiz" class="quiz"></div>
+  <script type="application/json" id="quiz-data">
+  [
+    {"stem": "سه معیار کارایی µNAS (peak RAM، model size، MACs) چگونه اندازه گرفته می‌شوند؟",
+     "options": ["مدل روی بورد واقعی اجرا می‌شود و با کرنومتر می‌سنجیم", "از روی خودِ ساختار شبکه و روی کاغذ، بدون هیچ سخت‌افزاری", "با پرسش‌نامه از راننده‌های شبیه‌ساز"],
+     "answer": 1,
+     "explain": "هر سه فقط از معماری قابل محاسبه‌اند: بزرگ‌ترین بار activations می‌شود peak RAM، جمع بایت‌های وزن‌ها می‌شود model size، و شمارش ضرب‌جمع‌ها می‌شود MACs. چون MACs با تأخیر واقعی روی STM32 همبستگی r²=0.975 دارد، نیازی نیست صدها کاندید را یکی‌یکی روی بورد بریزیم — سنجش تقریباً آنی است."},
+    {"stem": "عبارت max در فرمول fitness چه رفتاری به جست‌وجو می‌دهد؟",
+     "options": ["میانگین همهٔ معیارها نمره را تعیین می‌کند، پس ضعف یک معیار با قوت بقیه جبران می‌شود", "فقط دقت مدل مهم است و بقیهٔ معیارها تزئینی‌اند", "بدترین معیار (نسبت به سقفش) نمره را تعیین می‌کند؛ پس رد شدن از هر سقفی همیشه اول جریمه می‌شود"],
+     "answer": 2,
+     "explain": "با max، مدل نمی‌تواند ضعفش را با قوت‌های دیگر بپوشاند: اگر حتی یک معیار از سقفش رد شود، نسبتِ آن معیار از بقیه بزرگ‌تر می‌شود، در max برنده می‌شود و نمره را خراب می‌کند. برای همین اول از همه «در بودجه ماندن» مهم است — دقیقاً همان چیزی که برای یک تراشهٔ کوچک لازم داریم."},
+    {"stem": "چرا lambda ها در هر دورِ جست‌وجو تصادفی عوض می‌شوند؟",
+     "options": ["تا هر دور با وزن‌دهی (عینک) متفاوتی به معیارها نگاه شود و خانواده‌ای متنوع از مدل‌های Pareto پیدا شود", "چون training با اعداد تصادفی سریع‌تر همگرا می‌شود", "چون مقدار درست lambda روی هر بورد فرق می‌کند"],
+     "answer": 0,
+     "explain": "اگر وزن‌ها ثابت بودند، جست‌وجو همیشه به یک مصالحهٔ واحد (مثلاً فقط کوچک‌ترین مدل) میل می‌کرد. عینک‌های تصادفی باعث می‌شوند دورهای مختلف گوشه‌های مختلف مرز مصالحه (Pareto) را بکاوند. ولی سقف‌ها همیشه سقف‌اند: هیچ وزن‌دهی‌ای سرریز از bound را بی‌جریمه نمی‌گذارد."},
+    {"stem": "چرا model size با فرض int8 (هر وزن یک بایت) حساب می‌شود؟",
+     "options": ["چون float32 روی STM32 اصلاً اجرا نمی‌شود", "چون int8 همیشه دقیق‌تر از float32 است", "چون برنامهٔ نهایی ما quantize کردن مدل است: همان مدل 284 کیلوبایتیِ float32 به‌صورت int8 حدود 71 کیلوبایت می‌شود و راحت در سقف 256 کیلوبایتی جا می‌گیرد"],
+     "answer": 2,
+     "explain": "int8 یعنی هر وزن ۱ بایت به‌جای ۴ بایت — حدود ۴ برابر کوچک‌تر. float32 هم روی STM32 اجرا می‌شود (مقالهٔ منتشرشده همین کار را کرده بود) ولی جا و زمان بیشتری می‌گیرد. چون مقصد نهایی ما مدل int8 است، منصفانه است که سقف اندازه را هم با همان مقیاس بسنجیم. جزئیات quantization در درس بعدی!"}
+  ]
+  </script>
+
+  <div class="lesson-nav">
+    <a href="07-nas.html"><div class="dir">→ قبلی</div><div>درس ۰۷ — NAS</div></a>
+    <a href="09-quantization.html"><div class="dir">بعدی ←</div><div>درس ۰۹ — Quantization</div></a>
+  </div>
+  <footer class="site">LC-Intention-NAS · ELIOS Lab</footer>
+</main>
+</body>
+</html>
