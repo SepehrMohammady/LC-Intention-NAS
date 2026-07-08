@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>درس ۰۹ — Quantization | LC-Intention-NAS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/course.css">
+<script src="assets/course.js" defer></script>
+</head>
+<body>
+<div class="topbar">
+  <a class="home" href="index.html">↪ فهرست دوره</a>
+  <div class="spacer"></div>
+  <button class="theme-toggle" onclick="toggleTheme()">🌗 روشن/تاریک</button>
+</div>
+<main>
+  <p class="kicker">درس ۰۹</p>
+  <h1><span class="en">Quantization</span>: کوچک‌کردن اعداد بدون خراب‌کردن جواب 📏</h1>
+  <p class="lede">وزن‌های مدل را از اعداد ۳۲ بیتی به اعداد ۸ بیتی تبدیل می‌کنیم: تقریباً چهار برابر کوچک‌تر و روی تراشه سریع‌تر — به شرطی که حواس‌مان به گردکردن باشد.</p>
+
+  <div class="card callout">
+    <p class="card-title">وضعیت این مرحله 🚦</p>
+    <p>این مرحله در پروژه <b>هنوز اجرا نشده است</b>: اول باید جست‌وجوهای <span class="en">NAS</span> تمام شوند،
+    بعد نوبت <span class="en">quantization</span> می‌رسد. وقتی عددهای واقعی آمدند، این درس به‌روزرسانی خواهد شد.</p>
+  </div>
+
+  <div class="card callout story">
+    <p class="card-title">قصه 📖</p>
+    <p>فرض کن می‌خواهی قد دوستت را اندازه بگیری. دو خط‌کش داری: یکی میلی‌متری با هزاران
+    خط ریز، و یکی ساده که فقط سانتی‌متر دارد. خط‌کش میلی‌متری دقیق‌تر است، ولی راستش
+    برای اندازه‌گیری قد، «۱۷۳ سانتی‌متر» همان‌قدر به درد می‌خورد که «۱۷۳۰ میلی‌متر» —
+    و خط‌کش ساده‌تر سبک‌تر است و سریع‌تر خوانده می‌شود.</p>
+    <p><b><span class="en">Quantization</span></b> دقیقاً همین معامله است: به‌جای اینکه هر
+    <span class="en">weight</span> مدل را با یک عدد اعشاری خیلی دقیق نگه داریم، آن را با
+    یک خط‌کشِ درشت‌تر اندازه می‌گیریم که فقط ۲۵۶ خط دارد. دقتِ تک‌تک اعداد کمی کم می‌شود،
+    ولی جوابِ کلی مدل — اگر درست عمل کنیم — تقریباً همان می‌ماند. در عوض مدل خیلی
+    کوچک‌تر و سریع‌تر می‌شود؛ برای تراشهٔ کوچک ما دقیقاً همین را می‌خواهیم.</p>
+  </div>
+
+  <h2>دقیق‌تر 🔬</h2>
+  <p>در کامپیوتر، هر <span class="en">weight</span> معمولاً یک عدد اعشاری از نوع
+  <span class="en">float32</span> است و ۳۲ بیت حافظه می‌گیرد. اگر همان عدد را به‌صورت
+  <span class="en">int8</span> (عدد صحیح ۸ بیتی) ذخیره کنیم، فقط ۸ بیت لازم است —
+  یعنی حجم وزن‌ها تقریباً <b>یک‌چهارم</b> می‌شود. تازه یک هدیهٔ دوم هم داریم:
+  <span class="en">microcontroller</span>ها برای حساب با اعداد صحیح مدارهای سریعی دارند،
+  پس مدل <span class="en">int8</span> نه فقط کوچک‌تر، بلکه <b>سریع‌تر</b> هم اجرا می‌شود.</p>
+
+  <p>ولی یک سؤال بزرگ می‌ماند: عدد ۸ بیتی فقط ۲۵۶ حالت دارد. چطور بی‌شمار عدد اعشاری را
+  در ۲۵۶ حالت جا بدهیم؟ جواب: بازهٔ اعدادِ واقعی را به ۲۵۶ پلهٔ مساوی تقسیم می‌کنیم و
+  هر عدد را به نزدیک‌ترین پله گرد می‌کنیم:</p>
+
+  <figure class="viz">
+    <svg viewBox="0 0 720 300" role="img" aria-label="نگاشت خط اعداد پیوستهٔ float32 به ۲۵۶ پلهٔ گسستهٔ int8: هر عدد واقعی به نزدیک‌ترین پله گرد می‌شود؛ scale اندازهٔ هر پله است و zero-point پله‌ای است که نقش صفر را دارد">
+      <defs>
+        <marker id="arr-q" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="var(--muted)"/>
+        </marker>
+        <linearGradient id="f32grad" gradientUnits="userSpaceOnUse" x1="60" y1="0" x2="660" y2="0">
+          <stop offset="0" stop-color="var(--series-1)"/>
+          <stop offset="1" stop-color="var(--series-2)"/>
+        </linearGradient>
+      </defs>
+
+      <!-- ===== float32 line (top) ===== -->
+      <text x="60" y="30" text-anchor="start" fill="var(--series-1)" font-size="13" font-weight="700" direction="ltr" font-family="ui-monospace, Consolas, monospace">float32 (32-bit)</text>
+      <text x="660" y="30" text-anchor="end" fill="var(--ink-2)" font-size="12.5">پیوسته — بین هر دو عدد باز هم عدد هست</text>
+      <line x1="60" y1="70" x2="660" y2="70" stroke="var(--muted)" stroke-width="12" stroke-dasharray="1 4" opacity="0.5"/>
+      <rect x="60" y="68.5" width="600" height="3" fill="url(#f32grad)"/>
+      <text x="60" y="97" text-anchor="start" fill="var(--muted)" font-size="11.5">کوچک‌ترین عدد</text>
+      <text x="660" y="97" text-anchor="end" fill="var(--muted)" font-size="11.5">بزرگ‌ترین عدد</text>
+      <!-- real zero on the float line -->
+      <circle cx="290" cy="70" r="4.5" fill="var(--ink)"/>
+      <text x="290" y="52" text-anchor="middle" fill="var(--ink)" font-size="12.5" font-weight="700" direction="ltr" font-family="ui-monospace, Consolas, monospace">0</text>
+      <!-- a sample real value -->
+      <circle cx="470" cy="70" r="4.5" fill="var(--ink)"/>
+
+      <!-- ===== mapping arrows ===== -->
+      <line x1="290" y1="80" x2="291.5" y2="194" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="4 4" marker-end="url(#arr-q)"/>
+      <line x1="470" y1="80" x2="475.5" y2="194" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="4 4" marker-end="url(#arr-q)"/>
+      <text x="575" y="140" text-anchor="middle" fill="var(--ink-2)" font-size="12">هر عدد به نزدیک‌ترین پله گرد می‌شود</text>
+
+      <!-- ===== int8 line (bottom) ===== -->
+      <text x="60" y="172" text-anchor="start" fill="var(--series-2)" font-size="13" font-weight="700" direction="ltr" font-family="ui-monospace, Consolas, monospace">int8 (8-bit)</text>
+      <text x="660" y="172" text-anchor="end" fill="var(--ink-2)" font-size="12.5">گسسته — فقط ۲۵۶ پله</text>
+      <line x1="60" y1="210" x2="660" y2="210" stroke="var(--series-2)" stroke-width="2" opacity="0.45"/>
+      <line x1="60" y1="210" x2="661" y2="210" stroke="var(--series-2)" stroke-width="20" stroke-dasharray="3 43"/>
+      <text x="61.5" y="243" text-anchor="middle" fill="var(--muted)" font-size="12" direction="ltr" font-family="ui-monospace, Consolas, monospace">-128</text>
+      <text x="659.5" y="243" text-anchor="middle" fill="var(--muted)" font-size="12" direction="ltr" font-family="ui-monospace, Consolas, monospace">+127</text>
+
+      <!-- zero-point label -->
+      <text x="291.5" y="245" text-anchor="middle" fill="var(--ink)" font-size="12" font-weight="700" direction="ltr" font-family="ui-monospace, Consolas, monospace">zero-point</text>
+      <text x="291.5" y="264" text-anchor="middle" fill="var(--ink-2)" font-size="11.5">پله‌ای که نقش «صفر» را دارد</text>
+
+      <!-- scale bracket between two adjacent buckets -->
+      <path d="M429.5,232 v8 h46 v-8" fill="none" stroke="var(--ink-2)" stroke-width="1.5"/>
+      <text x="452.5" y="260" text-anchor="middle" fill="var(--ink)" font-size="12" font-weight="700" direction="ltr" font-family="ui-monospace, Consolas, monospace">scale</text>
+      <text x="452.5" y="279" text-anchor="middle" fill="var(--ink-2)" font-size="11.5">اندازهٔ یک پله</text>
+    </svg>
+    <figcaption>شکل ۱ — نگاشت اعداد پیوستهٔ <span class="en">float32</span> (بالا) به ۲۵۶ پلهٔ گسستهٔ <span class="en">int8</span> (پایین): <span class="en">scale</span> اندازهٔ هر پله است و <span class="en">zero-point</span> می‌گوید صفرِ واقعی روی کدام پله می‌افتد.</figcaption>
+  </figure>
+
+  <div class="card">
+    <p>دستور نگاشت همین‌قدر ساده است:<br>
+    <b>عدد واقعی ≈ <span class="en">scale</span> × (کد <span class="en">int8</span> − <span class="en">zero-point</span>)</b><br>
+    • <b><span class="en">scale</span></b>: اندازهٔ هر پله — بازهٔ اعداد واقعی تقسیم بر ۲۵۶.<br>
+    • <b><span class="en">zero-point</span></b>: کدی که نقش صفر را بازی می‌کند؛ لازم نیست وسط باشد،
+    چون بازهٔ اعداد واقعی هم لزوماً حول صفر متقارن نیست.</p>
+  </div>
+
+  <div class="tiles">
+    <div class="tile">
+      <div class="value">×4</div>
+      <div class="label">کوچک‌تر شدن حجم وزن‌ها</div>
+    </div>
+    <div class="tile">
+      <div class="value">8 bit</div>
+      <div class="label">حافظهٔ هر <span class="en">weight</span> (به‌جای ۳۲ بیت)</div>
+    </div>
+    <div class="tile">
+      <div class="value">~256</div>
+      <div class="label">تعداد پله‌های خط‌کش <span class="en">int8</span></div>
+    </div>
+  </div>
+
+  <h3>بازه را از کجا بدانیم؟ <span class="en">calibration</span> 🎯</h3>
+  <p>برای اینکه پله‌ها را درست بچینیم، باید بدانیم اعداد واقعاً در چه محدوده‌ای می‌افتند.
+  برای <span class="en">weight</span>ها آسان است — جلوی چشم‌مان‌اند. ولی خروجی‌های میانی
+  لایه‌ها (<span class="en">activations</span>) به ورودی بستگی دارند. راه‌حل:
+  <b>چند صد نمونهٔ واقعی</b> (همان پنجره‌های ۵ ثانیه‌ای خودمان) را از مدل عبور می‌دهیم و
+  می‌بینیم اعداد هر لایه معمولاً کجا می‌افتند. به این کار <span class="en">calibration</span>
+  می‌گویند. اگر بازه را اشتباه انتخاب کنیم، یا کلی پله بی‌استفاده هدر می‌رود، یا اعداد
+  بزرگ از خط‌کش بیرون می‌زنند و بریده می‌شوند.</p>
+
+  <h3>دو راه برای گردکردن: <span class="en">PTQ</span> و <span class="en">QAT</span> ⚖️</h3>
+  <p>گردکردن، یک خطای ریز به هر عدد اضافه می‌کند. سؤال این است که مدل کِی با این خطا
+  آشنا شود:</p>
+  <table>
+    <thead><tr><th>روش</th><th>چطور کار می‌کند</th><th>نتیجه</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><span class="en">PTQ</span><br><small>Post-Training Quantization</small></td>
+        <td>بعد از تمام‌شدن آموزش، وزن‌ها یک‌جا گرد می‌شوند؛ سریع و بی‌دردسر</td>
+        <td>گاهی کمی از دقت کم می‌شود</td>
+      </tr>
+      <tr>
+        <td><span class="en">QAT</span><br><small>Quantization-Aware Training</small></td>
+        <td>در یک آموزشِ کوتاهِ دوباره، گردکردن به‌صورت «قلابی» شبیه‌سازی می‌شود تا شبکه یاد بگیرد با آن کنار بیاید</td>
+        <td>دقت بهتر حفظ می‌شود</td>
+      </tr>
+    </tbody>
+  </table>
+  <p>در <span class="en">QAT</span> شبکه انگار از قبل می‌داند که قرار است با خط‌کش درشت
+  اندازه‌گیری شود، پس وزن‌هایش را طوری تنظیم می‌کند که بعد از گردکردن هم جواب خوب بماند.
+  چون ما می‌خواهیم نتیجهٔ رکوردشکن‌مان بعد از کوچک‌شدن هم رکوردشکن بماند،
+  برنامهٔ ما <span class="en">QAT</span> است.</p>
+
+  <h2>در پروژهٔ ما 🧰</h2>
+  <figure class="viz">
+    <svg viewBox="0 0 720 170" role="img" aria-label="خط تولید ما: مدل برندهٔ NAS با فرمت float32 وارد مرحلهٔ QAT می‌شود، آموزش کوتاهی با شبیه‌سازی گردکردن می‌بیند و در پایان یک فایل INT8 TFLite آمادهٔ بورد ساخته می‌شود">
+      <defs>
+        <marker id="arr-p" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="var(--muted)"/>
+        </marker>
+      </defs>
+      <!-- right: NAS winner -->
+      <rect x="520" y="45" width="160" height="80" rx="12" fill="none" stroke="var(--baseline)" stroke-width="2"/>
+      <text x="600" y="80" text-anchor="middle" fill="var(--ink)" font-size="14.5" font-weight="700">مدل برندهٔ NAS</text>
+      <text x="600" y="105" text-anchor="middle" fill="var(--ink-2)" font-size="12" direction="ltr" font-family="ui-monospace, Consolas, monospace">float32</text>
+      <!-- arrow -->
+      <line x1="520" y1="85" x2="466" y2="85" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr-p)"/>
+      <!-- middle: QAT -->
+      <rect x="278" y="45" width="184" height="80" rx="12" fill="none" stroke="var(--series-2)" stroke-width="2.5"/>
+      <text x="370" y="74" text-anchor="middle" fill="var(--ink)" font-size="15" font-weight="800" direction="ltr" font-family="ui-monospace, Consolas, monospace">QAT</text>
+      <text x="370" y="96" text-anchor="middle" fill="var(--ink-2)" font-size="11.5">آموزش کوتاه با شبیه‌سازی گردکردن</text>
+      <text x="370" y="114" text-anchor="middle" fill="var(--ink-2)" font-size="11.5">تا مدل به int8 عادت کند</text>
+      <!-- arrow -->
+      <line x1="278" y1="85" x2="224" y2="85" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr-p)"/>
+      <!-- left: INT8 TFLite -->
+      <rect x="64" y="45" width="160" height="80" rx="12" fill="none" stroke="var(--series-1)" stroke-width="2.5"/>
+      <text x="144" y="80" text-anchor="middle" fill="var(--ink)" font-size="14" font-weight="800" direction="ltr" font-family="ui-monospace, Consolas, monospace">INT8 TFLite</text>
+      <text x="144" y="105" text-anchor="middle" fill="var(--ink-2)" font-size="11.5">فایل نهایی، آمادهٔ بورد</text>
+    </svg>
+    <figcaption>شکل ۲ — خط تولید ما: مدل برندهٔ <span class="en">NAS</span> یک <span class="en">QAT fine-tune</span> کوتاه می‌گیرد و خروجی، فایل <span class="en">INT8 TFLite</span> است.</figcaption>
+  </figure>
+
+  <div class="card">
+    <p>• برنامه: هر مدل برندهٔ <span class="en">NAS</span> یک <span class="en">QAT fine-tune</span>
+    کوتاه می‌گیرد و خروجی، یک فایل <span class="en">INT8 TFLite</span> می‌شود.<br>
+    • جالب اینکه <span class="en">µNAS</span> از همین الان اندازهٔ مدل را برحسب بایت‌های
+    <span class="en">int8</span> حساب می‌کند (سقف ما: <span class="en">256 KB</span>) —
+    یعنی جست‌وجو از اول با فرض <span class="en">quantization</span> انجام می‌شود.<br>
+    • برای <span class="en">calibration</span> از چند صد پنجرهٔ واقعی خود دیتاست استفاده می‌کنیم.<br>
+    • فایل <span class="en">TFLite</span> بعداً به ابزار <span class="en">ST Edge AI</span> داده
+    می‌شود تا حافظه و سرعت واقعی روی بورد سنجیده شود — این داستانِ درس بعدی است.</p>
+  </div>
+
+  <div class="card callout">
+    <p class="card-title">دانستنی 💡</p>
+    <p>مقالهٔ رکورددار (<span class="en">IEEE SPL 2026</span>) مدلش را <b>بدون</b>
+    <span class="en">quantization</span> و با همان <span class="en">float32</span> روی بورد
+    گذاشت؛ نتیجه اینکه روی بورد کوچک‌ترِ آزمایش‌شان (<span class="en">STM32F401</span>)
+    مدل <span class="en">Transformer</span> آن‌ها اصلاً در <span class="en">RAM</span> جا نشد!
+    مرحلهٔ <span class="en">int8</span> یکی از راه‌های ماست که از آن‌ها کوچک‌تر و سریع‌تر شویم.
+    مثلاً یکی از کاندیداهای جست‌وجوی ما با ۷۲٬۷۲۹ پارامتر به‌صورت
+    <span class="en">float</span> حدود <span class="en">284 KB</span> است — با
+    <span class="en">int8</span> به حدود یک‌چهارم می‌رسد و راحت زیر سقف
+    <span class="en">256 KB</span> می‌ماند.</p>
+  </div>
+
+  <div id="quiz" class="quiz"></div>
+  <script type="application/json" id="quiz-data">
+  [
+    {"stem": "چرا int8 حجم مدل را تقریباً چهار برابر کوچک می‌کند؟",
+     "options": ["چون تعداد weightها یک‌چهارم می‌شود", "چون هر weight به‌جای ۳۲ بیت فقط ۸ بیت جا می‌گیرد", "چون لایه‌های اضافی مدل حذف می‌شوند"],
+     "answer": 1,
+     "explain": "تعداد weightها همان می‌ماند؛ فقط جای هر کدام از ۳۲ بیت به ۸ بیت می‌رسد (۳۲ ÷ ۸ = ۴). یک هدیهٔ دوم هم هست: microcontroller حساب با اعداد صحیح را سریع‌تر از اعشاری انجام می‌دهد."},
+    {"stem": "scale و zero-point در این نگاشت چه‌کاره‌اند؟",
+     "options": ["scale سرعت مدل را تعیین می‌کند و zero-point تعداد لایه‌ها را", "scale اندازهٔ هر پله است و zero-point می‌گوید کدام پله نقش صفر را دارد", "هر دو فقط برای فشرده‌سازی فایل روی دیسک‌اند و در حساب مدل نقشی ندارند"],
+     "answer": 1,
+     "explain": "بازهٔ اعداد واقعی به ۲۵۶ پلهٔ مساوی تقسیم می‌شود: عدد واقعی ≈ scale × (کد int8 − zero-point). scale اندازهٔ یک پله است و zero-point جای صفر — که لزوماً وسط بازه نیست."},
+    {"stem": "چرا برای quantization به چند صد نمونهٔ واقعی نیاز داریم (calibration)؟",
+     "options": ["برای اینکه مدل از صفر دوباره آموزش ببیند", "برای اندازه‌گیری سرعت مدل روی بورد", "برای اینکه بفهمیم اعداد هر لایه واقعاً در چه بازه‌ای می‌افتند تا پله‌ها را درست بچینیم"],
+     "answer": 2,
+     "explain": "خروجی‌های میانی لایه‌ها به ورودی بستگی دارند؛ با عبور دادن چند صد نمونهٔ واقعی، بازهٔ معمولِ هر لایه را می‌بینیم. بازهٔ غلط یعنی یا پله‌های هدررفته یا اعدادی که از خط‌کش بیرون می‌زنند و بریده می‌شوند."},
+    {"stem": "فرق QAT با PTQ چیست و چرا ما QAT را انتخاب کرده‌ایم؟",
+     "options": ["QAT در یک آموزش کوتاه، گردکردن را شبیه‌سازی می‌کند تا شبکه با آن کنار بیاید و دقت بهتر حفظ شود", "QAT مدل را بدون هیچ آموزشی گرد می‌کند و PTQ با آموزش کامل از صفر", "فرقی ندارند؛ فقط اسم‌شان فرق دارد"],
+     "answer": 0,
+     "explain": "PTQ بعد از آموزش یک‌جا گرد می‌کند: سریع است ولی گاهی دقت کمی افت می‌کند. در QAT شبکه هنگام آموزشِ کوتاهِ دوباره، گردکردنِ شبیه‌سازی‌شده را می‌بیند و خودش را با آن تنظیم می‌کند؛ چون می‌خواهیم نتیجهٔ رکوردشکن‌مان بعد از کوچک‌شدن هم خوب بماند، برنامهٔ ما QAT است."}
+  ]
+  </script>
+
+  <div class="lesson-nav">
+    <a href="08-munas-constraints.html"><div class="dir">→ قبلی</div><div>درس ۰۸ — µNAS</div></a>
+    <a href="10-stm32.html"><div class="dir">بعدی ←</div><div>درس ۱۰ — STM32</div></a>
+  </div>
+  <footer class="site">LC-Intention-NAS · ELIOS Lab</footer>
+</main>
+</body>
+</html>

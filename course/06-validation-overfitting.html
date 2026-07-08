@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>درس ۰۶ — Validation و Overfitting | LC-Intention-NAS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/course.css">
+<script src="assets/course.js" defer></script>
+</head>
+<body>
+<div class="topbar">
+  <a class="home" href="index.html">↪ فهرست دوره</a>
+  <div class="spacer"></div>
+  <button class="theme-toggle" onclick="toggleTheme()">🌗 روشن/تاریک</button>
+</div>
+<main>
+  <p class="kicker">درس ۰۶</p>
+  <h1><span class="en">Validation</span> و <span class="en">Overfitting</span>: چرا به شبکه نباید جواب امتحان را داد 🕵️</h1>
+  <p class="lede">اگر شاگردی سؤال‌های امتحان را از قبل دیده باشد، نمرهٔ ۲۰ او هیچ معنایی ندارد — برای شبکهٔ عصبی هم دقیقاً همین‌طور است.</p>
+
+  <div class="card callout story">
+    <p class="card-title">قصه 📖</p>
+    <p>دو شاگرد را تصور کن. شاگرد اول کتاب حل‌المسائل را کلمه‌به‌کلمه حفظ کرده است؛
+    در تمرین‌های کلاس همیشه نمرهٔ کامل می‌گیرد. اما روز امتحان، معلم یک سؤال <b>تازه</b> طرح می‌کند
+    و شاگرد اول خشکش می‌زند — چون او جواب‌ها را حفظ کرده بود، نه راه‌حل را.
+    شاگرد دوم کمتر حفظ کرده، ولی <b>قاعده</b> را فهمیده؛ سؤال تازه برایش ترسناک نیست.</p>
+    <p>شبکهٔ عصبی هم می‌تواند مثل شاگرد اول شود: به‌جای یاد گرفتنِ الگوی واقعی، جزئیات بی‌ربط
+    داده‌های آموزش را حفظ می‌کند. به این اتفاق <span class="en">overfitting</span> می‌گویند.
+    تنها راه فهمیدن اینکه مدل «فهمیده» یا «حفظ کرده»، این است که
+    <b>سؤال‌های امتحان را موقع درس دادن نشانش ندهیم</b>.</p>
+  </div>
+
+  <h2>دقیق‌تر 🔬</h2>
+  <p>برای همین، داده‌ها را به سه مجموعهٔ جدا تقسیم می‌کنیم — و در پروژهٔ ما این تقسیم
+  <b>بر اساس راننده</b> است، نه بر اساس تک‌تک پنجره‌ها:</p>
+
+  <table>
+    <thead><tr><th>مجموعه</th><th>نقش</th><th class="num">راننده‌ها</th></tr></thead>
+    <tbody>
+      <tr><td><span class="en">train</span></td><td>درس و تمرین — مدل فقط از این‌ها یاد می‌گیرد</td><td class="num">36</td></tr>
+      <tr><td><span class="en">validation</span></td><td>آزمون آزمایشی — برای تصمیم‌گیری وسط آموزش (مثل <span class="en">early stopping</span>)</td><td class="num">7</td></tr>
+      <tr><td><span class="en">test</span></td><td>امتحان نهایی — فقط یک بار در آخر، فقط برای گزارش نتیجه</td><td class="num">7</td></tr>
+    </tbody>
+  </table>
+
+  <p>حالا <span class="en">overfitting</span> را می‌شود با چشم دید: خطای مدل روی داده‌های آموزش
+  (<span class="en">train loss</span>) مدام پایین می‌رود، چون حفظ کردن هیچ‌وقت متوقف نمی‌شود.
+  اما خطای مدل روی داده‌هایی که ندیده (<span class="en">validation loss</span>) اول پایین می‌آید و
+  از یک جایی به بعد <b>دوباره بالا می‌رود</b> — دقیقاً همان لحظه‌ای که «فهمیدن» تمام شده و «حفظ کردن» شروع شده است:</p>
+
+  <figure class="viz">
+    <div class="legend">
+      <span class="key"><span class="swatch" style="background:var(--series-1)"></span> خطای <span class="en">train</span></span>
+      <span class="key"><span class="swatch" style="background:var(--series-2)"></span> خطای <span class="en">validation</span></span>
+    </div>
+    <svg viewBox="0 0 720 300" role="img" aria-label="نمودار overfitting: خطای train مدام پایین می‌رود اما خطای validation بعد از یک نقطه دوباره بالا می‌رود؛ خط‌چین عمودی نقطهٔ توقف early stopping را نشان می‌دهد">
+      <!-- grid -->
+      <line x1="60" y1="105" x2="690" y2="105" stroke="var(--grid)" stroke-width="1"/>
+      <line x1="60" y1="182" x2="690" y2="182" stroke="var(--grid)" stroke-width="1"/>
+      <!-- axes -->
+      <line x1="60" y1="260" x2="690" y2="260" stroke="var(--baseline)" stroke-width="1.5"/>
+      <line x1="60" y1="42" x2="60" y2="260" stroke="var(--baseline)" stroke-width="1.5"/>
+      <text x="375" y="290" text-anchor="middle" fill="var(--muted)" font-size="12.5">زمان آموزش (epoch)</text>
+      <text x="68" y="58" fill="var(--muted)" font-size="12.5">خطا (loss)</text>
+      <!-- zones -->
+      <text x="205" y="86" text-anchor="middle" fill="var(--ink-2)" font-size="12.5" font-weight="700">فهمیدن</text>
+      <text x="525" y="54" text-anchor="middle" fill="var(--ink-2)" font-size="12.5" font-weight="700">حفظ کردن</text>
+      <text x="525" y="72" text-anchor="middle" fill="var(--muted)" font-size="11.5">overfitting</text>
+      <!-- train loss -->
+      <path d="M75,70 C170,165 280,210 380,225 C480,238 590,244 680,247" fill="none" stroke="var(--series-1)" stroke-width="2.5"/>
+      <!-- validation loss -->
+      <path d="M75,88 C170,175 260,202 345,205 C450,208 570,152 680,90" fill="none" stroke="var(--series-2)" stroke-width="2.5"/>
+      <!-- early stopping marker -->
+      <line x1="360" y1="42" x2="360" y2="260" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="6 5"/>
+      <circle cx="360" cy="206" r="4.5" fill="var(--series-2)"/>
+      <text x="360" y="16" text-anchor="middle" fill="var(--ink)" font-size="13" font-weight="700">این‌جا بایست!</text>
+      <text x="360" y="34" text-anchor="middle" fill="var(--muted)" font-size="11.5">early stopping</text>
+      <!-- direct series labels -->
+      <text x="686" y="238" text-anchor="end" fill="var(--series-1)" font-size="12.5" font-weight="700">train</text>
+      <text x="686" y="82" text-anchor="end" fill="var(--series-2)" font-size="12.5" font-weight="700">validation</text>
+    </svg>
+    <figcaption>شکل ۱ — خطای <span class="en">train</span> همیشه پایین می‌رود، اما خطای <span class="en">validation</span> از یک نقطه به بعد بالا می‌رود. <span class="en">early stopping</span> یعنی درست در همان نقطهٔ کمینه آموزش را متوقف کنیم.</figcaption>
+  </figure>
+
+  <p><b><span class="en">Early stopping</span></b> همان «نگهبان ضد حفظ کردن» است:
+  بعد از هر <span class="en">epoch</span>، خطای مدل را روی مجموعهٔ <span class="en">validation</span> می‌سنجیم.
+  اگر چند <span class="en">epoch</span> پشت سر هم بهتر نشد (در پروژهٔ ما: <span class="en">patience</span> برابر ۱۰)،
+  آموزش را قطع می‌کنیم و به بهترین نسخهٔ ذخیره‌شده برمی‌گردیم.
+  جالب است بدانی مدل پایهٔ ما با اینکه اجازه داشت ۶۰ <span class="en">epoch</span> تمرین کند،
+  بهترین حالتش را در همان <span class="en">epoch</span> سوم پیدا کرد — و کل آموزش فقط ۲۷ ثانیه طول کشید.</p>
+
+  <h2>قصهٔ واقعی ۱: امتحان با راننده‌های ناشناس 🚗</h2>
+  <p>داده‌های ما از ۵۰ رانندهٔ انسانی در شبیه‌ساز <span class="en">CARLA</span> جمع شده است.
+  هر راننده عادت‌های خاص خودش را دارد: یکی فرمان را نرم می‌چرخاند، یکی تند سبقت می‌گیرد.
+  اگر پنجره‌های <b>همان یک راننده</b> هم در آموزش باشد و هم در امتحان، مدل می‌تواند
+  به‌جای فهمیدنِ «نیت تغییر خط»، <b>سبک آن راننده</b> را به خاطر بسپارد — و امتحان بی‌اعتبار می‌شود.</p>
+  <p>راه‌حل: تقسیم بر اساس راننده. کاربران <span class="en">5, 8, 10, 12, 16, 19, 27</span> فقط در
+  <span class="en">validation</span>، کاربران <span class="en">2, 7, 13, 18, 25, 31, 36</span> فقط در
+  <span class="en">test</span>، و ۳۶ رانندهٔ باقی‌مانده فقط در <span class="en">train</span>:</p>
+
+  <figure class="viz">
+    <svg viewBox="0 0 720 290" role="img" aria-label="پنجاه راننده به سه گروه کاملاً جدا تقسیم شده‌اند: ۳۶ راننده برای آموزش، ۷ راننده برای اعتبارسنجی و ۷ راننده برای امتحان نهایی؛ هیچ راننده‌ای در دو گروه نیست">
+      <defs>
+        <g id="drv">
+          <circle cx="0" cy="-5" r="3.4"/>
+          <path d="M-5.5,7 a5.5,5.5 0 0 1 11,0 z"/>
+        </g>
+      </defs>
+      <!-- train box (right) -->
+      <text x="500" y="22" text-anchor="middle" fill="var(--ink)" font-size="14" font-weight="700">آموزش</text>
+      <text x="500" y="40" text-anchor="middle" fill="var(--ink-2)" font-size="12">train · 36</text>
+      <rect x="300" y="52" width="400" height="175" rx="12" fill="none" stroke="var(--series-1)" stroke-width="2"/>
+      <g fill="var(--series-1)">
+        <use href="#drv" x="330" y="86"/><use href="#drv" x="370" y="86"/><use href="#drv" x="410" y="86"/><use href="#drv" x="450" y="86"/><use href="#drv" x="490" y="86"/><use href="#drv" x="530" y="86"/><use href="#drv" x="570" y="86"/><use href="#drv" x="610" y="86"/><use href="#drv" x="650" y="86"/>
+        <use href="#drv" x="330" y="122"/><use href="#drv" x="370" y="122"/><use href="#drv" x="410" y="122"/><use href="#drv" x="450" y="122"/><use href="#drv" x="490" y="122"/><use href="#drv" x="530" y="122"/><use href="#drv" x="570" y="122"/><use href="#drv" x="610" y="122"/><use href="#drv" x="650" y="122"/>
+        <use href="#drv" x="330" y="158"/><use href="#drv" x="370" y="158"/><use href="#drv" x="410" y="158"/><use href="#drv" x="450" y="158"/><use href="#drv" x="490" y="158"/><use href="#drv" x="530" y="158"/><use href="#drv" x="570" y="158"/><use href="#drv" x="610" y="158"/><use href="#drv" x="650" y="158"/>
+        <use href="#drv" x="330" y="194"/><use href="#drv" x="370" y="194"/><use href="#drv" x="410" y="194"/><use href="#drv" x="450" y="194"/><use href="#drv" x="490" y="194"/><use href="#drv" x="530" y="194"/><use href="#drv" x="570" y="194"/><use href="#drv" x="610" y="194"/><use href="#drv" x="650" y="194"/>
+      </g>
+      <!-- validation box (middle) -->
+      <text x="220" y="22" text-anchor="middle" fill="var(--ink)" font-size="14" font-weight="700">اعتبارسنجی</text>
+      <text x="220" y="40" text-anchor="middle" fill="var(--ink-2)" font-size="12">validation · 7</text>
+      <rect x="160" y="52" width="120" height="175" rx="12" fill="none" stroke="var(--series-2)" stroke-width="2"/>
+      <g fill="var(--series-2)">
+        <use href="#drv" x="195" y="86"/><use href="#drv" x="245" y="86"/>
+        <use href="#drv" x="195" y="122"/><use href="#drv" x="245" y="122"/>
+        <use href="#drv" x="195" y="158"/><use href="#drv" x="245" y="158"/>
+        <use href="#drv" x="220" y="194"/>
+      </g>
+      <!-- test box (left) -->
+      <text x="80" y="22" text-anchor="middle" fill="var(--ink)" font-size="14" font-weight="700">امتحان نهایی</text>
+      <text x="80" y="40" text-anchor="middle" fill="var(--ink-2)" font-size="12">test · 7</text>
+      <rect x="20" y="52" width="120" height="175" rx="12" fill="none" stroke="var(--muted)" stroke-width="2"/>
+      <g fill="var(--muted)">
+        <use href="#drv" x="55" y="86"/><use href="#drv" x="105" y="86"/>
+        <use href="#drv" x="55" y="122"/><use href="#drv" x="105" y="122"/>
+        <use href="#drv" x="55" y="158"/><use href="#drv" x="105" y="158"/>
+        <use href="#drv" x="80" y="194"/>
+      </g>
+      <text x="360" y="266" text-anchor="middle" fill="var(--ink)" font-size="14" font-weight="700">✋ هیچ راننده‌ای در دو جعبه نیست</text>
+    </svg>
+    <figcaption>شکل ۲ — تقسیم ۵۰ راننده به سه گروه کاملاً جدا: ۳۶ برای آموزش، ۷ برای اعتبارسنجی، ۷ برای امتحان نهایی. مدل، راننده‌های امتحان را هرگز در آموزش نمی‌بیند.</figcaption>
+  </figure>
+
+  <p>و چون در علم «اعتماد کن» کافی نیست، این را <b>ثابت</b> کردیم: پنجره‌های خامِ جلسه‌های هر راننده را
+  با پنجره‌های آمادهٔ آموزش، یکی‌یکی با ضریب همبستگی (<span class="en">correlation</span>) تطبیق دادیم —
+  با تطابق <span class="en">r &gt; 0.9999</span> — و دیدیم راننده‌های <span class="en">test</span>
+  فقط و فقط در <span class="en">test</span> ظاهر می‌شوند. امتحان ما واقعاً امتحان است.</p>
+
+  <h2>قصهٔ واقعی ۲: تقلب با چراغ راهنما 💡</h2>
+  <p>حالا یک جور تقلب زیرکانه‌تر: تصور کن روی برگهٔ امتحان، گوشهٔ هر سؤال، جوابش هم نوشته شده باشد!
+  در داده‌های ما دو کانال از ۳۱ کانال، وضعیت <b>چراغ راهنما</b> (<span class="en">turn indicator / blinker</span>) هستند.
+  راننده‌ها معمولاً قبل از تغییر خط راهنما می‌زنند — یعنی این کانال‌ها تقریباً «جوابِ اعلام‌شده» را لو می‌دهند.
+  به این مشکل <span class="en">label leak</span> می‌گویند. خودمان آزمایشش کردیم:</p>
+
+  <div class="tiles">
+    <div class="tile"><div class="value">81.5%</div><div class="label">دقت فقط با کانال‌های <span class="en">blinker</span> — بدون هیچ سیگنال دیگری!</div></div>
+    <div class="tile"><div class="value">91.5%</div><div class="label">دقت مدل کامل ما با همهٔ ۳۱ کانال</div></div>
+    <div class="tile"><div class="value">6.5%</div><div class="label">راهنمای روشن در پنجره‌های «بدون قصد»</div></div>
+  </div>
+
+  <figure class="viz">
+    <div class="hbar">
+      <div class="name">پنجره‌های <span class="en">LCR</span></div><div class="track"><div class="fill" style="width:92%"></div></div><div class="val">92%</div>
+      <div class="name">پنجره‌های <span class="en">LCL</span></div><div class="track"><div class="fill" style="width:71%"></div></div><div class="val">71%</div>
+      <div class="name">پنجره‌های بدون قصد</div><div class="track"><div class="fill" style="width:6.5%"></div></div><div class="val">6.5%</div>
+    </div>
+    <figcaption>شکل ۳ — در چند درصد از پنجره‌های هر کلاس، چراغ راهنما روشن است؟ راهنما تقریباً همیشه با تغییر خط همراه است و به‌تنهایی ۸۱٫۵٪ دقت <span class="en">classification</span> می‌دهد.</figcaption>
+  </figure>
+
+  <p>یعنی یک «مدل» که فقط راهنما را بخواند، بدون ذره‌ای هوش، در امتحان <span class="en">classification</span>
+  نمرهٔ خوبی می‌گیرد — اما این <b>پیش‌بینی نیت</b> نیست؛ خواندنِ جوابی است که راننده خودش اعلام کرده.</p>
+  <p>خبر خوب: مسئلهٔ <span class="en">regression</span> (چند ثانیه تا تغییر خط؟) تمیز است.
+  راهنما فقط می‌گوید «تغییر خط در راه است»، اما نمی‌گوید <b>کِی</b>. مقایسه کن:</p>
+
+  <table>
+    <thead><tr><th>مسئله</th><th class="num">فقط راهنما — MAE</th><th class="num">مدل ما — MAE</th><th class="num">مدل ما — RMSE</th></tr></thead>
+    <tbody>
+      <tr><td><span class="en">Regression LCR</span></td><td class="num">0.72 s</td><td class="num">0.318 s</td><td class="num">0.439 s</td></tr>
+      <tr><td><span class="en">Regression LCL</span></td><td class="num">0.90 s</td><td class="num">0.333 s</td><td class="num">0.459 s</td></tr>
+    </tbody>
+  </table>
+
+  <p>راه‌حل ما دو چیز است: اول، مقالهٔ ما با <span class="en">regression</span> و اجرای واقعی روی سخت‌افزار
+  جلو می‌رود، چون آنجا تقلبی در کار نیست. دوم، برای <span class="en">classification</span> یک
+  <span class="en">ablation</span> گزارش می‌کنیم: یک بار با کانال‌های راهنما، یک بار بدون آن‌ها —
+  تا خواننده دقیقاً ببیند چقدر از دقت، «هوش» است و چقدر «خواندن جواب».
+  این همان <b>صداقت علمی</b> است: عیب داده را قایم نمی‌کنیم، اندازه‌اش می‌گیریم و شفاف می‌نویسیم.</p>
+
+  <h2>در پروژهٔ ما 🧰</h2>
+  <div class="card">
+    <p>• تقسیم بر اساس راننده: <span class="en">36 / 7 / 7</span> کاربر برای <span class="en">train / validation / test</span>؛
+    درستیِ آن را با تطبیق پنجره‌ها (<span class="en">r &gt; 0.9999</span>) ثابت کردیم.<br>
+    • <span class="en">early stopping</span> با <span class="en">patience</span> = ۱۰؛ مدل پایهٔ ما بهترین حالتش را در <span class="en">epoch</span> سوم (از سقف ۶۰) پیدا کرد.<br>
+    • هیچ عددی را بدون بازبینی قبول نمی‌کنیم: هر مدل ذخیره‌شده را خودمان با <span class="en">verify_models.py</span> دوباره روی مجموعهٔ <span class="en">test</span> می‌سنجیم.<br>
+    • نشتی راهنما (<span class="en">label leak</span>) در <span class="en">paper</span> پنهان نمی‌شود: نتیجهٔ <span class="en">classification</span> با و بدون <span class="en">blinker</span> هر دو گزارش می‌شوند.</p>
+  </div>
+
+  <div id="quiz" class="quiz"></div>
+  <script type="application/json" id="quiz-data">
+  [
+    {"stem": "Overfitting یعنی چه؟",
+     "options": ["مدل آن‌قدر ساده است که هیچ‌چیز یاد نمی‌گیرد", "مدل داده‌های آموزش را حفظ می‌کند و روی داده‌های تازه ضعیف عمل می‌کند", "مدل خیلی کند آموزش می‌بیند"],
+     "answer": 1,
+     "explain": "overfitting یعنی حفظ کردن جواب تمرین‌ها به‌جای فهمیدن قاعده. نشانه‌اش این است که خطای train مدام پایین می‌رود اما خطای validation از یک نقطه به بعد دوباره بالا می‌رود."},
+    {"stem": "چرا داده‌ها را بر اساس راننده تقسیم می‌کنیم، نه به‌صورت تصادفی بین پنجره‌ها؟",
+     "options": ["چون این‌طوری آموزش سریع‌تر می‌شود", "چون اگر پنجره‌های یک راننده هم در train و هم در test باشند، مدل می‌تواند سبک همان راننده را حفظ کند و نمرهٔ امتحان بی‌اعتبار شود", "چون تعداد راننده‌ها از تعداد پنجره‌ها بیشتر است"],
+     "answer": 1,
+     "explain": "امتحان واقعی یعنی راننده‌های کاملاً ناشناس. برای همین ۷ رانندهٔ test هرگز در آموزش دیده نمی‌شوند — و ما با تطبیق پنجره‌ها (r > 0.9999) ثابت کردیم داده‌های ما واقعاً این قانون را رعایت می‌کنند."},
+    {"stem": "Early stopping چه زمانی آموزش را متوقف می‌کند؟",
+     "options": ["وقتی خطای train به صفر برسد", "دقیقاً بعد از ۶۰ epoch، نه زودتر و نه دیرتر", "وقتی خطای validation چند epoch پشت سر هم بهتر نشود"],
+     "answer": 2,
+     "explain": "بعد از هر epoch خطای validation را می‌سنجیم؛ اگر به اندازهٔ patience (در پروژهٔ ما ۱۰ epoch) بهتر نشد، می‌ایستیم و به بهترین نسخه برمی‌گردیم. مدل پایهٔ ما بهترین حالتش را همان epoch سوم پیدا کرد."},
+    {"stem": "چرا دقت 81.5% فقط با کانال‌های چراغ راهنما یک زنگ خطر است؟",
+     "options": ["چون نشان می‌دهد مدل ما خراب است و باید دور انداخته شود", "چون نشان می‌دهد بخش بزرگی از دقت classification از خواندن جوابِ اعلام‌شده (label leak) می‌آید، نه از پیش‌بینی واقعی نیت", "چون چراغ راهنما در شبیه‌ساز کار نمی‌کند"],
+     "answer": 1,
+     "explain": "راهنما در ۹۲٪ پنجره‌های LCR و ۷۱٪ LCL روشن است اما فقط در ۶٫۵٪ پنجره‌های بدون قصد — یعنی تقریباً خودِ جواب است. راه درست: گزارش صادقانهٔ ablation بدون این کانال‌ها. خوشبختانه regression تمیز است: فقط-راهنما به MAE 0.72/0.90 می‌رسد که از مدل ما خیلی بدتر است."}
+  ]
+  </script>
+
+  <div class="lesson-nav">
+    <a href="05-training.html"><div class="dir">→ قبلی</div><div>درس ۰۵ — Training</div></a>
+    <a href="07-nas.html"><div class="dir">بعدی ←</div><div>درس ۰۷ — NAS</div></a>
+  </div>
+  <footer class="site">LC-Intention-NAS · ELIOS Lab</footer>
+</main>
+</body>
+</html>

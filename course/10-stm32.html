@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>درس ۱۰ — STM32: اجرای مدل روی سخت‌افزار واقعی | LC-Intention-NAS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/course.css">
+<script src="assets/course.js" defer></script>
+</head>
+<body>
+<div class="topbar">
+  <a class="home" href="index.html">↪ فهرست دوره</a>
+  <div class="spacer"></div>
+  <button class="theme-toggle" onclick="toggleTheme()">🌗 روشن/تاریک</button>
+</div>
+<main>
+  <p class="kicker">درس ۱۰</p>
+  <h1><span class="en">STM32</span>: اجرای مدل روی سخت‌افزار واقعی 🧩</h1>
+  <p class="lede">لحظهٔ حقیقت: مدلی که ماه‌ها روی کامپیوتر بزرگ ساختیم، باید داخل تراشه‌ای به اندازهٔ یک ناخن زندگی کند.</p>
+
+  <div class="card callout story">
+    <p class="card-title">قصه 📖</p>
+    <p>تا حالا مدل ما روی یک کامپیوتر قوی با کارت گرافیک زندگی کرده. اما خانهٔ واقعی‌اش
+    جای دیگری است: یک <b><span class="en">microcontroller</span></b> — یعنی یک کامپیوترِ
+    کامل روی یک تراشهٔ چندیورویی. همه‌چیز همان‌جاست: پردازنده، حافظهٔ
+    <span class="en">RAM</span>، و حافظهٔ دائمی <span class="en">Flash</span>؛ بدون
+    سیستم‌عامل سنگین، بدون فن، بدون صفحه‌نمایش. روشنش می‌کنی و در کسری از ثانیه فقط
+    برنامهٔ خودش را اجرا می‌کند.</p>
+    <p>چرا ماشین‌ها پر از این تراشه‌ها هستند؟ چون <b>ارزان‌اند</b>، <b>خیلی کم برق
+    می‌خورند</b>، و <b>بلادرنگ</b> کار می‌کنند — یعنی همیشه در زمانِ قابل پیش‌بینی جواب
+    می‌دهند؛ برای ترمز و فرمان و ایربگ همین قابل اطمینان بودن از هر چیزی مهم‌تر است.
+    بهای این سادگی؟ حافظه و سرعتی هزاران برابر کمتر از یک لپ‌تاپ. مدل ما باید در همین
+    خانهٔ کوچک جا شود.</p>
+  </div>
+
+  <h2>دقیق‌تر 🔬</h2>
+  <p>بورد هدف ما <span class="en">STM32H7B3I-DK</span> است: یک پردازندهٔ
+  <span class="en">Arm Cortex-M7</span> با این مشخصات:</p>
+
+  <div class="tiles">
+    <div class="tile">
+      <div class="value">280 MHz</div>
+      <div class="label">سرعت پردازنده (<span class="en">Cortex-M7</span>)</div>
+    </div>
+    <div class="tile">
+      <div class="value">1.4 MB</div>
+      <div class="label">حافظهٔ <span class="en">SRAM</span> (حافظهٔ کاری)</div>
+    </div>
+    <div class="tile">
+      <div class="value">2 MB</div>
+      <div class="label">حافظهٔ <span class="en">Flash</span> (برنامه و وزن‌ها)</div>
+    </div>
+  </div>
+
+  <p>برای اینکه حس بگیری این اعداد یعنی چه: لپ‌تاپی با
+  <span class="en">16 GB RAM</span> حدود <b>ده‌هزار برابرِ</b> این بورد حافظهٔ کاری دارد!
+  به همین دلیل این دو را روی یک نمودار نمی‌کشیم — ستون بورد اصلاً دیده نمی‌شد. 😅
+  همین اختلاف است که کل پروژهٔ ما (مدل کوچک، <span class="en">NAS</span> با سقف حافظه،
+  <span class="en">quantization</span>) را معنا می‌دهد.</p>
+
+  <h3>از فایل مدل تا تراشه: زنجیرهٔ ابزارها 🔗</h3>
+  <p>خروجی درس قبل یک فایل <span class="en">INT8 TFLite</span> بود — مدل فشرده با وزن‌های
+  ۸ بیتی. این فایل را به ابزار رسمی <span class="en">ST</span> می‌دهیم:
+  <b><span class="en">ST Edge AI</span></b> (دستور خط فرمانش
+  <span class="en">stedgeai</span> نام دارد). این ابزار سه کار برای ما می‌کند:</p>
+
+  <div class="card">
+    <p>• <b><span class="en">analyze</span></b>: بدون هیچ سخت‌افزاری، گزارش می‌دهد که مدل
+    چقدر <span class="en">flash</span> می‌گیرد، چقدر <span class="en">RAM</span> لازم دارد
+    و چند <span class="en">MACC</span> (عمل ضرب-جمع) اجرا می‌کند. یعنی قبل از دست زدن به
+    بورد می‌فهمیم مدل جا می‌شود یا نه!<br>
+    • <b><span class="en">validate</span></b>: صحت عددی را چک می‌کند — آیا مدلِ تبدیل‌شده
+    همان جواب‌های مدل مرجع را می‌دهد؟<br>
+    • <b><span class="en">ST Edge AI Developer Cloud</span></b>: یک «مزرعهٔ بورد» رایگان و
+    از راه دور — مدل را روی بوردهای واقعی اجرا می‌کند و <span class="en">latency</span>
+    واقعی (زمان هر پیش‌بینی) را اندازه می‌گیرد، بدون اینکه بوردی روی میز ما باشد.</p>
+  </div>
+
+  <figure class="viz">
+    <svg viewBox="0 0 720 230" role="img" aria-label="خط لولهٔ استقرار: مدل آموزش‌دیده به فایل INT8 TFLite تبدیل می‌شود، stedgeai analyze بدون سخت‌افزار گزارش flash و RAM و MACC می‌دهد، سپس مدل روی بورد STM32 اجرا می‌شود و latency واقعی به میلی‌ثانیه اندازه‌گیری می‌شود">
+      <defs>
+        <marker id="arr-p" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="var(--muted)"/>
+        </marker>
+      </defs>
+      <!-- A: trained model -->
+      <rect x="612" y="85" width="98" height="70" rx="12" fill="none" stroke="var(--series-2)" stroke-width="2"/>
+      <text x="661" y="113" text-anchor="middle" fill="var(--ink)" font-size="13" font-weight="700">مدل آموزش‌دیده</text>
+      <text x="661" y="137" text-anchor="middle" fill="var(--ink-2)" font-size="11.5" direction="ltr" font-family="ui-monospace, Consolas, monospace">float32</text>
+      <line x1="612" y1="120" x2="592" y2="120" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr-p)"/>
+      <!-- B: INT8 TFLite -->
+      <rect x="487" y="85" width="105" height="70" rx="12" fill="none" stroke="var(--series-1)" stroke-width="2"/>
+      <text x="539" y="113" text-anchor="middle" fill="var(--ink)" font-size="12.5" font-weight="700" direction="ltr" font-family="ui-monospace, Consolas, monospace">INT8 TFLite</text>
+      <text x="539" y="137" text-anchor="middle" fill="var(--ink-2)" font-size="11">حدود ۴ برابر کوچک‌تر</text>
+      <text x="539" y="174" text-anchor="middle" fill="var(--muted)" font-size="11">خروجی درس ۰۹</text>
+      <line x1="487" y1="120" x2="467" y2="120" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr-p)"/>
+      <!-- C: stedgeai analyze + report icon -->
+      <rect x="307" y="70" width="160" height="100" rx="12" fill="none" stroke="var(--baseline)" stroke-width="2"/>
+      <text x="387" y="93" text-anchor="middle" fill="var(--ink)" font-size="12.5" font-weight="700" direction="ltr" font-family="ui-monospace, Consolas, monospace">stedgeai analyze</text>
+      <rect x="322" y="103" width="36" height="52" rx="4" fill="none" stroke="var(--muted)" stroke-width="1.5"/>
+      <line x1="328" y1="116" x2="352" y2="116" stroke="var(--grid)" stroke-width="2"/>
+      <line x1="328" y1="129" x2="352" y2="129" stroke="var(--grid)" stroke-width="2"/>
+      <line x1="328" y1="142" x2="352" y2="142" stroke="var(--grid)" stroke-width="2"/>
+      <text x="452" y="119" text-anchor="end" fill="var(--ink-2)" font-size="11" direction="ltr" font-family="ui-monospace, Consolas, monospace">flash: KB</text>
+      <text x="452" y="135" text-anchor="end" fill="var(--ink-2)" font-size="11" direction="ltr" font-family="ui-monospace, Consolas, monospace">RAM: KB</text>
+      <text x="452" y="151" text-anchor="end" fill="var(--ink-2)" font-size="11" direction="ltr" font-family="ui-monospace, Consolas, monospace">MACC</text>
+      <text x="387" y="190" text-anchor="middle" fill="var(--muted)" font-size="11">گزارش کامل، بدون سخت‌افزار!</text>
+      <line x1="307" y1="120" x2="287" y2="120" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr-p)"/>
+      <!-- D: STM32 chip -->
+      <g stroke="var(--muted)" stroke-width="2">
+        <line x1="190" y1="70" x2="190" y2="78"/>
+        <line x1="210" y1="70" x2="210" y2="78"/>
+        <line x1="230" y1="70" x2="230" y2="78"/>
+        <line x1="250" y1="70" x2="250" y2="78"/>
+        <line x1="270" y1="70" x2="270" y2="78"/>
+        <line x1="190" y1="162" x2="190" y2="170"/>
+        <line x1="210" y1="162" x2="210" y2="170"/>
+        <line x1="230" y1="162" x2="230" y2="170"/>
+        <line x1="250" y1="162" x2="250" y2="170"/>
+        <line x1="270" y1="162" x2="270" y2="170"/>
+      </g>
+      <rect x="172" y="78" width="115" height="84" rx="10" fill="none" stroke="var(--series-1)" stroke-width="2.5"/>
+      <rect x="204" y="100" width="52" height="40" rx="4" fill="var(--series-1)" fill-opacity="0.12" stroke="var(--series-1)" stroke-width="1.5"/>
+      <text x="230" y="125" text-anchor="middle" fill="var(--ink)" font-size="11" font-weight="700" direction="ltr" font-family="ui-monospace, Consolas, monospace">STM32</text>
+      <text x="229" y="190" text-anchor="middle" fill="var(--ink-2)" font-size="11">بورد واقعی (Developer Cloud)</text>
+      <line x1="172" y1="120" x2="152" y2="120" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr-p)"/>
+      <!-- E: latency -->
+      <text x="145" y="114" text-anchor="end" fill="var(--ink)" font-size="13" font-weight="700" direction="ltr" font-family="ui-monospace, Consolas, monospace">latency</text>
+      <text x="145" y="136" text-anchor="end" fill="var(--ink-2)" font-size="11.5">زمان اجرا (ms)</text>
+    </svg>
+    <figcaption>شکل ۱ — خط لولهٔ استقرار: مدل آموزش‌دیده ← فایل <span class="en">INT8 TFLite</span> ← گزارش <span class="en">stedgeai analyze</span> (بدون سخت‌افزار) ← اجرا روی بورد <span class="en">STM32</span> و اندازه‌گیری <span class="en">latency</span> واقعی.</figcaption>
+  </figure>
+
+  <p>مقاله‌های این حوزه معمولاً چهار عدد را کنار دقت گزارش می‌کنند — و ما هم همین کار
+  را خواهیم کرد:</p>
+
+  <table>
+    <thead><tr><th>معیار</th><th>یعنی چه؟</th></tr></thead>
+    <tbody>
+      <tr><td><span class="en">flash (KB)</span></td><td>حجم مدل و برنامه روی حافظهٔ دائمی — باید در <span class="en">Flash</span> بورد جا شود.</td></tr>
+      <tr><td><span class="en">peak RAM (KB)</span></td><td>بیشترین حافظهٔ موقتی که وسط اجرا لازم می‌شود — باید از <span class="en">SRAM</span> کمتر باشد.</td></tr>
+      <tr><td><span class="en">latency (ms)</span></td><td>یک پیش‌بینی چند میلی‌ثانیه طول می‌کشد؟ — روی بورد واقعی اندازه‌گیری می‌شود.</td></tr>
+      <tr><td><span class="en">MACs</span></td><td>تعداد عمل‌های ضرب-جمع؛ بدون سخت‌افزار محاسبه می‌شود و پیش‌بینی‌کنندهٔ خیلی خوبی برای <span class="en">latency</span> است (در اندازه‌گیری‌های <span class="en">STM32</span>، همبستگی <span class="en">r&#178; = 0.975</span> با زمان واقعی).</td></tr>
+    </tbody>
+  </table>
+
+  <h3>یک مقایسهٔ واقعی 📏</h3>
+  <p>مقالهٔ منتشرشدهٔ همین آزمایشگاه (<span class="en">IEEE SPL 2026</span>) مدل‌هایش را
+  بدون <span class="en">quantization</span> (با همان <span class="en">float32</span>)
+  مستقر کرد. روی بورد اصلی مشکلی نبود؛ اما روی بورد ارزان‌ترِ
+  <span class="en">STM32F401</span> (فقط <span class="en">84 MHz</span> و
+  <span class="en">96 KB RAM</span> و <span class="en">512 KB flash</span>) داستان
+  جالب شد:</p>
+
+  <table>
+    <thead><tr><th>مدل (از مقالهٔ منتشرشده)</th><th>روی <span class="en">STM32F401</span></th><th class="num">latency</th></tr></thead>
+    <tbody>
+      <tr><td><span class="en">Transformer</span> (حدود ۵۴ هزار پارامتر)</td><td>در <span class="en">RAM</span> جا نشد! ❌</td><td class="num">—</td></tr>
+      <tr><td><span class="en">1DCNN</span></td><td>اجرا شد ✅</td><td class="num">40.8 ms</td></tr>
+      <tr><td><span class="en">XGBoost</span></td><td>اجرا شد ✅</td><td class="num">1.15 ms</td></tr>
+    </tbody>
+  </table>
+
+  <figure class="viz">
+    <div class="hbar">
+      <div class="name">‏1DCNN — مقالهٔ منتشرشده</div>
+      <div class="track"><div class="fill alt" style="width:90.7%"></div></div>
+      <div class="val">40.8 ms</div>
+      <div class="name">‏XGBoost — مقالهٔ منتشرشده</div>
+      <div class="track"><div class="fill alt" style="width:2.6%"></div></div>
+      <div class="val">1.15 ms</div>
+    </div>
+    <figcaption>شکل ۲ — <span class="en">latency</span> اندازه‌گیری‌شده روی <span class="en">STM32F401</span> (مقیاس 0 تا 45 میلی‌ثانیه؛ پایین‌تر بهتر). <span class="en">Transformer</span> ستونی ندارد چون اصلاً در <span class="en">RAM</span> جا نشد.</figcaption>
+  </figure>
+
+  <p>این جدول دقیقاً می‌گوید چرا این درس مهم است: دقتِ خوب کافی نیست. مدلی که در
+  حافظه جا نشود، عملاً وجود ندارد؛ و مدلی که خیلی کند باشد، برای هشدارِ به‌موقعِ تغییر
+  خط دیر می‌جنبد. هدف ما: مدل‌های <span class="en">NAS</span> ما با
+  <span class="en">int8</span> باید <b>هم جا شوند، هم سریع باشند</b> — حتی روی بورد
+  ارزانی مثل <span class="en">F401</span>.</p>
+
+  <h2>در پروژهٔ ما 🧰</h2>
+  <div class="card">
+    <p>• بورد هدف: <span class="en">STM32H7B3I-DK</span>؛ هدفِ جاه‌طلبانه‌تر: همان
+    <span class="en">STM32F401</span> کم‌توان.<br>
+    • سقف‌های جست‌وجوی <span class="en">NAS</span> را از بودجهٔ همین بورد برداشتیم:
+    حداکثر <span class="en">256 KB</span> حافظهٔ اوج (<span class="en">peak RAM</span>)،
+    حداکثر <span class="en">256 KB</span> حجم مدل <span class="en">int8</span>، و حداکثر
+    <span class="en">2,000,000 MACs</span> — پس هر مدلی که از جست‌وجو بیرون بیاید،
+    از قبل برای این تراشه اندازه گرفته شده.<br>
+    • برنامهٔ سنجش: اول <span class="en">stedgeai analyze</span> برای گزارش
+    <span class="en">flash/RAM/MACC</span> بدون سخت‌افزار، بعد
+    <span class="en">ST Edge AI Developer Cloud</span> برای <span class="en">latency</span>
+    واقعی روی بورد.</p>
+  </div>
+
+  <div class="card callout">
+    <p class="card-title">وضعیت این مرحله 🚧</p>
+    <p>استقرار روی بورد <b>هنوز انجام نشده</b> — این مرحله بعد از
+    <span class="en">quantization</span> می‌آید و آن هم منتظرِ تمام شدن جست‌وجوهای کامل
+    <span class="en">NAS</span> است که همین حالا در حال اجرا هستند. به محض اینکه اولین
+    مدل روی بورد اجرا شود، این درس با اعداد واقعی (<span class="en">flash</span>،
+    <span class="en">peak RAM</span>، <span class="en">latency</span>) به‌روز خواهد شد.</p>
+  </div>
+
+  <div id="quiz" class="quiz"></div>
+  <script type="application/json" id="quiz-data">
+  [
+    {"stem": "microcontroller چیست؟",
+     "options": ["یک کارت گرافیک کوچک برای لپ‌تاپ", "یک کامپیوتر کامل روی یک تراشهٔ ارزان: پردازنده + RAM + Flash، بدون سیستم‌عامل سنگین", "یک نوع سنسور که سرعت ماشین را اندازه می‌گیرد"],
+     "answer": 1,
+     "explain": "microcontroller همه‌چیزِ یک کامپیوتر را روی یک تراشهٔ چندیورویی دارد: پردازنده، حافظهٔ کاری (RAM) و حافظهٔ دائمی (Flash). سیستم‌عامل سنگین ندارد و فقط برنامهٔ خودش را اجرا می‌کند — برای همین ارزان، کم‌مصرف و بلادرنگ است و ماشین‌ها پر از آن هستند."},
+    {"stem": "دستور stedgeai analyze چه چیزی به ما می‌دهد؟",
+     "options": ["latency واقعی مدل را روی بورد اندازه می‌گیرد", "بدون نیاز به سخت‌افزار، گزارش می‌دهد مدل چقدر flash و RAM لازم دارد و چند MACC اجرا می‌کند", "دقت مدل را روی دادهٔ تست حساب می‌کند"],
+     "answer": 1,
+     "explain": "analyze کاملاً آفلاین است: قبل از دست زدن به هر بوردی می‌گوید مدل جا می‌شود یا نه و چقدر محاسبه دارد. برای latency واقعی باید مدل را روی بورد واقعی اجرا کرد — کاری که ST Edge AI Developer Cloud برایمان انجام می‌دهد."},
+    {"stem": "چرا Transformer مقالهٔ منتشرشده روی بورد STM32F401 اجرا نشد؟",
+     "options": ["چون دقتش کم بود", "چون فقط با TensorFlow کار می‌کرد", "چون با وزن‌های float32 در RAM کوچک بورد (96 KB) جا نشد"],
+     "answer": 2,
+     "explain": "دقتش خیلی هم خوب بود! اما مدل بدون quantization و با float32 مستقر شده بود و حافظهٔ لازمش از 96 KB RAM بورد بیشتر بود. این دقیقاً درس بزرگ TinyML است: مدلی که در حافظه جا نشود، عملاً وجود ندارد — و دلیل اینکه ما سقف حافظه را از همان اول داخل جست‌وجوی NAS گذاشتیم."},
+    {"stem": "ST Edge AI Developer Cloud چه کمکی می‌کند؟",
+     "options": ["یک مزرعهٔ رایگان از بوردهای واقعی که مدل را از راه دور اجرا می‌کند و latency واقعی را اندازه می‌گیرد", "مدل را به‌جای ما آموزش می‌دهد", "کد C برنامهٔ ماشین را می‌نویسد"],
+     "answer": 0,
+     "explain": "MACs فقط یک تخمین (خیلی خوب) از سرعت است؛ عدد نهایی که در paper گزارش می‌شود باید روی سخت‌افزار واقعی اندازه‌گیری شود. Developer Cloud بدون اینکه بوردی روی میز ما باشد، مدل را روی بوردهای واقعی ST اجرا می‌کند و زمان هر پیش‌بینی را برمی‌گرداند."}
+  ]
+  </script>
+
+  <div class="lesson-nav">
+    <a href="09-quantization.html"><div class="dir">→ قبلی</div><div>درس ۰۹ — Quantization</div></a>
+    <a href="11-paper-writing.html"><div class="dir">بعدی ←</div><div>درس ۱۱ — مقاله‌نویسی</div></a>
+  </div>
+  <footer class="site">LC-Intention-NAS · ELIOS Lab</footer>
+</main>
+</body>
+</html>
