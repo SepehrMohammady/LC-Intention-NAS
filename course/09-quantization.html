@@ -21,9 +21,25 @@
   <p class="lede">وزن‌های مدل را از اعداد ۳۲ بیتی به اعداد ۸ بیتی تبدیل می‌کنیم: تقریباً چهار برابر کوچک‌تر و روی تراشه سریع‌تر — به شرطی که حواس‌مان به گردکردن باشد.</p>
 
   <div class="card callout">
-    <p class="card-title">وضعیت این مرحله 🚦</p>
-    <p>این مرحله در پروژه <b>هنوز اجرا نشده است</b>: اول باید جست‌وجوهای <span class="en">NAS</span> تمام شوند،
-    بعد نوبت <span class="en">quantization</span> می‌رسد. وقتی عددهای واقعی آمدند، این درس به‌روزرسانی خواهد شد.</p>
+    <p class="card-title">وضعیت این مرحله ✅</p>
+    <p>این مرحله انجام شد! و یک درسِ واقعی به ما داد: <span class="en">int8</span>ِ ساده مدل‌های ما را
+    خراب کرد (چون سیگنال‌های ورودی مقیاس‌های خیلی متفاوتی دارند)، ولی روش <span class="en">int16×8</span>
+    (وزن‌ها ۸ بیت، فعال‌سازی‌ها ۱۶ بیت) دقت را تقریباً دست‌نخورده نگه داشت — حتی گاهی کمی بهتر.
+    عددهای واقعی پایین‌تر آمده‌اند.</p>
+  </div>
+
+  <div class="card">
+    <p class="card-title">int8 در برابر int16×8 — نتیجهٔ واقعیِ ما 📊</p>
+    <table>
+      <thead><tr><th>مدل</th><th class="num">float</th><th class="num">int8 ساده</th><th class="num">int16×8</th></tr></thead>
+      <tbody>
+        <tr><td>Classification (دقت)</td><td class="num">92.1%</td><td class="num">86.9% ✗</td><td class="num">92.1% ✓</td></tr>
+        <tr><td>Regression LCR (خطا MAE)</td><td class="num">0.287</td><td class="num">0.449 ✗</td><td class="num">0.286 ✓</td></tr>
+        <tr><td>بدون راهنما (دقت)</td><td class="num">91.1%</td><td class="num">76.1% ✗</td><td class="num">91.1% ✓</td></tr>
+      </tbody>
+    </table>
+    <p>درس: همیشه بعد از <span class="en">quantization</span> دقت را دوباره روی دادهٔ test اندازه بگیر —
+    اگر افت زیاد بود، سراغ <span class="en">int16×8</span> برو.</p>
   </div>
 
   <div class="card callout story">

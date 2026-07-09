@@ -197,12 +197,29 @@
   </div>
 
   <div class="card callout">
-    <p class="card-title">وضعیت این مرحله 🚧</p>
-    <p>استقرار روی بورد <b>هنوز انجام نشده</b> — این مرحله بعد از
-    <span class="en">quantization</span> می‌آید و آن هم منتظرِ تمام شدن جست‌وجوهای کامل
-    <span class="en">NAS</span> است که همین حالا در حال اجرا هستند. به محض اینکه اولین
-    مدل روی بورد اجرا شود، این درس با اعداد واقعی (<span class="en">flash</span>،
-    <span class="en">peak RAM</span>، <span class="en">latency</span>) به‌روز خواهد شد.</p>
+    <p class="card-title">وضعیت این مرحله 🚦</p>
+    <p>مدل‌های آمادهٔ استقرار (فایل‌های <span class="en">int16×8 TFLite</span>) ساخته شده‌اند و
+    اندازه‌شان را حساب کرده‌ایم. تنها چیزی که مانده اندازه‌گیریِ <b>سرعت واقعی روی بورد</b>
+    (<span class="en">latency</span>) است که به حساب کاربریِ <span class="en">ST</span> نیاز دارد
+    (<span class="en">ST Edge AI Developer Cloud</span>). اعداد <span class="en">flash</span> و
+    <span class="en">RAM</span> برآوردیِ زیر با ابزار <span class="en">ST</span> نهایی می‌شوند.</p>
+  </div>
+
+  <div class="card">
+    <p class="card-title">مدل‌های ما چقدر کوچک‌اند؟ (برآورد) 📏</p>
+    <table>
+      <thead><tr><th>مدل</th><th class="num">کیفیت</th><th class="num">MACs</th><th class="num">peak RAM</th><th class="num">flash</th></tr></thead>
+      <tbody>
+        <tr><td>Classification</td><td class="num">92.1%</td><td class="num">152k</td><td class="num">4.5 KB</td><td class="num">118 KB</td></tr>
+        <tr><td>Classification ریز</td><td class="num">91.2%</td><td class="num">30k</td><td class="num">4.4 KB</td><td class="num">19 KB</td></tr>
+        <tr><td>Regression LCR</td><td class="num">MAE 0.286</td><td class="num">852k</td><td class="num">11.3 KB</td><td class="num">161 KB</td></tr>
+        <tr><td>بدون راهنما</td><td class="num">91.1%</td><td class="num">36k</td><td class="num">4.2 KB</td><td class="num">45 KB</td></tr>
+      </tbody>
+    </table>
+    <p>نکتهٔ بزرگ: <b>همهٔ این مدل‌ها حتی در بوردِ ریزِ <span class="en">STM32F401</span></b>
+    (فقط ۹۶ کیلوبایت <span class="en">RAM</span>) جا می‌شوند — همان بوردی که مدل
+    <span class="en">Transformer</span>ِ مقالهٔ رقیب اصلاً در آن جا نمی‌شد! ما هم دقت بالاتر
+    داریم هم مدلِ کوچک‌تر.</p>
   </div>
 
   <div id="quiz" class="quiz"></div>
