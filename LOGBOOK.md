@@ -270,3 +270,26 @@ Recorded in docs/research/nas-results-prelim.md, paper/NOTES.md, and the
 results table in paper/main.tex (marked preliminary). Next: robustly fix the
 OOM (self-healing actor / chunked resume) and re-run all four to completion;
 then QAT -> INT8 TFLite -> ST Edge AI for on-device numbers.
+
+## 2026-07-09 — OOM defeated by chunked resume; all searches completed
+
+Traced the leak: model_saver pops the model before storing (not it); the
+accumulation is TF/XLA internal state clear_session() can't release in a
+long-lived process, and ray's OOM-kill is a SIGKILL the safe-evaluate can't
+catch. Fix that works: **chunked resume** — each search runs in fresh-process
+chunks resuming from the aging-evolution checkpoint (the loop counts
+len(history), which load_state restores, so --rounds TARGET continues toward
+TARGET). Validated on LCR (Loaded 60 → +30 → Search done, no OOM), then
+completed all four to 150 rounds (2 chunks for the classification runs).
+
+Final verified fronts (docs/research/nas-results.md; results doc renamed from
+-prelim; CSVs in results/nas-fronts/): LCR MAE 0.287/RMSE 0.447 @ 115 KB
+(0.290 @ 64 KB) — beats SOTA; LCL 0.325/0.501 @ 83 KB; **classification 92.1%
+@ 82 KB (91.3% @ 7.8 KB) — matches internal ref 92%**; no-indicator 91.1% @
+20 KB (90.2% @ 11 KB). All better than the partial run. Paper table + NOTES +
+PDF updated.
+
+Known caveat: pareto-save + chunked resume can prune a good .h5 from an earlier
+chunk (LCL slightly behind a transient earlier model). For a guaranteed-optimal
+front, re-run with DMIR_SAVE_CRITERIA=all. Next: QAT -> INT8 TFLite -> ST Edge
+AI on the STM32H7B3I-DK for real flash/RAM/latency.

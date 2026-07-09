@@ -118,10 +118,10 @@ logged to the released experiments.jsonl.}
 
 \subsection{Results}
 Table~\ref{tab:results} reports test-set metrics. All searched-model numbers
-are our own test-set evaluation of the saved models. \emph{These are
-preliminary}: each search stopped before its target budget and will be re-run
-to completion. \todo{replace with final full-search numbers; add peak-RAM,
-MACs, and measured on-device latency columns from ST Edge AI.}
+are our own test-set evaluation of the saved models, from searches run to their
+full 150-round budget. \todo{add peak-RAM, MACs, and measured on-device latency
+columns from ST Edge AI; consider re-running with an all-models save policy for
+a guaranteed-optimal front (see notes).}
 
 \begin{table}[t]
 \caption{Test-set comparison. The published baseline \cite{lcintention2026}
@@ -139,18 +139,19 @@ Published Transformer \cite{lcintention2026} & $\sim$216 & --- & \multicolumn{2}
 Internal reference (unpub.)          & ---   & 92.0 & \multicolumn{2}{c}{RMSE 0.42/0.44} \\
 Our DSCNN baseline                   & $\sim$10 & 91.5 & 0.318 & 0.333 \\
 \midrule
-Ours (searched, best)                & 216 & 91.6 & 0.290 & 0.320 \\
-Ours (searched, compact)             & 21  & 91.5 & 0.294 & 0.321 \\
-Ours, no turn-signal (ablation)      & 5.2 & 90.1 & --- & --- \\
+Ours (searched, best)                & 82 & 92.1 & 0.287 & 0.325 \\
+Ours (searched, compact)             & 8  & 91.3 & 0.290 & 0.331 \\
+Ours, no turn-signal (ablation)      & 20 & 91.1 & --- & --- \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-The searched models improve on the published SOTA MAE (0.290 vs 0.298 for LCR)
-at a wide range of footprints, down to a few tens of kilobytes. Removing the
-turn-signal channels (the leaky feature) drops three-class accuracy by under
-one point (91.6\% to 90.8\%), and a 5.2~KB model without them still reaches
-90.1\%---evidence that the model anticipates from vehicle dynamics and
+The searched models improve on the published SOTA MAE (0.287 vs 0.298 for LCR)
+at a wide range of footprints, down to a few tens of kilobytes, and reach
+92.1\% three-class accuracy at 82~KB against the baseline's $\sim$216~KB FP32
+model. Removing the turn-signal channels (the leaky feature) drops accuracy by
+about one point (92.1\% to 91.1\%), and a no-indicator model still reaches
+91.1\% at 20~KB---evidence that the model anticipates from vehicle dynamics and
 surrounding traffic rather than reading a declared signal.
 \todo{RMSE columns and the internal-reference RMSE (0.42/0.44) are not yet
 matched because the search optimizes MAE; decide RMSE-aware objective vs

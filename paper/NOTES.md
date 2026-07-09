@@ -18,14 +18,16 @@ internal reference only after confirming provenance (model? split?).
 
 Our first untuned DSCNN (logged 2026-07-07): 91.5% / 0.439 / 0.459.
 
-**NAS preliminary results (2026-07-08, verified — docs/research/nas-results-prelim.md):**
-searched 1D CNNs beat the published SOTA MAE (LCR 0.290 vs 0.298) at 216 KB and
-still (0.294) at 109 KB; LCL best MAE 0.320 / RMSE 0.484 at 34 KB; classification
-91.6% (216 KB) / 91.5% (21 KB). **Ablation headline:** without the turn-signal
-channels, classification is still 90.8% (down <1%), and a 5.2 KB model reaches
-90.1% — the model anticipates, it does not just read the blinker. Caveats:
-partial searches (crashed on OOM, being re-run); internal-ref RMSE 0.42/0.44 not
-yet beaten (search optimizes MAE); on-device numbers pending ST Edge AI.
+**NAS results (2026-07-09, completed searches, verified — docs/research/nas-results.md):**
+searched 1D CNNs beat the published SOTA MAE (LCR 0.287 vs 0.298) at 115 KB and
+still (0.290) at 64 KB; LCL best MAE 0.325 / RMSE 0.501 at 83 KB; classification
+**92.1%** (82 KB) — matches internal ref 92% at ~1/3 the Transformer's size —
+and 91.3% at just 7.8 KB. **Ablation headline:** without the turn-signal
+channels, classification is still 91.1% (down ~1 point), 90.2% at 11 KB — the
+model anticipates, it does not just read the blinker (blinker-alone = 81.5%).
+Caveats: internal-ref RMSE 0.42/0.44 not beaten (search optimizes MAE); chunked
+resume + pareto-save may prune a few models (re-run with save_criteria=all for a
+guaranteed-optimal front); on-device numbers pending ST Edge AI.
 
 ✅ Comparability verified (2026-07-07): the pickles follow the official
 driver-wise split (val users {5,8,10,12,16,19,27}, test {2,7,13,18,25,31,36})
