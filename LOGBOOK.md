@@ -293,3 +293,25 @@ Known caveat: pareto-save + chunked resume can prune a good .h5 from an earlier
 chunk (LCL slightly behind a transient earlier model). For a guaranteed-optimal
 front, re-run with DMIR_SAVE_CRITERIA=all. Next: QAT -> INT8 TFLite -> ST Edge
 AI on the STM32H7B3I-DK for real flash/RAM/latency.
+
+## 2026-07-09 — Quantization + deployment footprints (int16x8; no QAT needed)
+
+Quantized the best models to TFLite. **Full int8 PTQ degrades badly** on the
+DMIR inputs (wide per-channel dynamic range): LCR MAE 0.287->0.449, cls
+92.1%->86.9%, cls-noind 91.1%->76.1%. **int16x8** (int8 weights, int16
+activations) preserves or slightly improves accuracy (cls 92.15%, LCR MAE
+0.286, cls-noind 91.08%) — so no QAT, avoiding the Keras-3/tfmot incompat.
+Deployment .tflite in results/tflite/; quantize_eval.py / quantize_compare.py.
+
+Footprints (compute_footprint.py; flash = tflite size, MACs + peak RAM from the
+arch): classification 92.15% @ 118 KB flash / 4.5 KB RAM / 152 k MACs (91.2% @
+19 KB / 4.4 KB / 30 k); LCR MAE 0.286 @ 161 KB / 11.3 KB / 852 k; cls-noind
+91.1% @ 45 KB / 4.2 KB / 36 k. **Every model fits even the STM32F401 (96 KB
+RAM), where the baseline Transformer did not fit** — SOTA-beating accuracy at a
+fraction of the size. docs/research/deployment.md; paper deployment section +
+course lessons 09/10 updated.
+
+Blocked on user: measured on-device latency needs a myST account (ST Edge AI
+Developer Cloud) — X-CUBE-AI 10.2 pack is installed but the stedgeai CLI
+binaries are not extracted locally. Handoff steps in deployment.md. Everything
+else (accuracy, flash, RAM, MACs) is done and verified.
