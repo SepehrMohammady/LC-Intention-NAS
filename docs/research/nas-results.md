@@ -58,6 +58,28 @@ vehicle dynamics and surrounding traffic, not a declared turn signal. An 11 KB
 no-indicator model reaches 90.2% and a 20 KB one 91.1% — both fit the tiny
 STM32F401 (96 KB RAM). This is the honest, defensible headline for the paper.
 
+## Quantization (int16x8 preserves accuracy; full-int8 does not)
+
+`unas/quantize_eval.py` / `quantize_compare.py`. The DMIR inputs have very
+different per-channel scales, so **full-int8 PTQ degrades badly** (LCR MAE
+0.287→0.449, cls 92.1%→86.9%, cls-noind 91.1%→76.1%). **int16x8**
+(int8 weights + int16 activations) essentially preserves — sometimes marginally
+improves — accuracy, with no QAT needed:
+
+| Deployment model | int16x8 TFLite | metric (float → int16x8) |
+|---|--:|---|
+| LCR aaaaan | 160.7 KB | MAE 0.2865 → **0.2860** |
+| LCR aaaaav (compact) | 108.8 KB | MAE 0.290 → 0.288 |
+| LCL aaaaas | 123.0 KB | MAE 0.3249 → **0.3214** |
+| cls aaaabl | 117.9 KB | acc 92.08 → **92.15**% |
+| cls aaaaat (tiny) | 19.0 KB | acc 91.30 → 91.16% |
+| cls-noind aaaaah | 44.6 KB | acc 91.09 → 91.08% |
+| cls-noind aaaaaw (tiny) | 36.3 KB | acc 90.16 → 90.15% |
+
+int8 weights keep the flash small; int16 activations cost ~2× activation RAM
+(ST Edge AI will report the exact peak). Deployment `.tflite` files:
+`results/tflite/`. This also sidesteps the Keras-3/tfmot QAT incompatibility.
+
 ## Caveats / TODO
 
 - [ ] **Save policy**: searches used `save_criteria="pareto"`, and chunked
