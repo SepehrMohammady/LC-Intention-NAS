@@ -124,35 +124,38 @@ columns from ST Edge AI; consider re-running with an all-models save policy for
 a guaranteed-optimal front (see notes).}
 
 \begin{table}[t]
-\caption{Test-set comparison. The published baseline \cite{lcintention2026}
-reports a single time-to-lane-change regression (Transformer, $\sim$54\,k
-parameters, FP32); the internal-reference row is unpublished results on the
-same prepared data. Model size is the int8 weight footprint.}
+\caption{Test-set comparison. The internal reference models (unpublished) were
+evaluated on the same test set; classification accuracy is our own evaluation,
+the Transformer RMSE values are as reported. Size is the parameter count.}
 \label{tab:results}
 \centering
 \begin{tabular}{lcccc}
 \toprule
-Model & Size & Acc.\ (\%) & MAE LCR & MAE LCL \\
-      & (KB) &            & (s)     & (s) \\
+Model & Params & Acc.\ (\%) & LCR & LCL \\
 \midrule
-Published Transformer \cite{lcintention2026} & $\sim$216 & --- & \multicolumn{2}{c}{0.298 (single TTLC)} \\
-Internal reference (unpub.)          & ---   & 92.0 & \multicolumn{2}{c}{RMSE 0.42/0.44} \\
-Our DSCNN baseline                   & $\sim$10 & 91.5 & 0.318 & 0.333 \\
+Reference CNN (cls) & 441\,k & 91.5 & --- & --- \\
+Reference Transf.\ (reg, RMSE) & 333/49\,k & --- & 0.42 & 0.44 \\
+Our DSCNN baseline & 10\,k & 91.5 & 0.32$^\dagger$ & 0.33$^\dagger$ \\
 \midrule
-Ours (searched, best)                & 82 & 92.1 & 0.287 & 0.325 \\
-Ours (searched, compact)             & 8  & 91.3 & 0.290 & 0.331 \\
-Ours, no turn-signal (ablation)      & 20 & 91.1 & --- & --- \\
+Ours searched (cls / reg MAE) & 84\,k & \textbf{92.1} & 0.29$^\dagger$ & 0.33$^\dagger$ \\
+Ours compact & 8\,k & 91.3 & --- & --- \\
+Ours, no turn-signal & 21\,k & 91.1 & --- & --- \\
 \bottomrule
 \end{tabular}
+\\[2pt]
+\footnotesize $^\dagger$MAE (our search optimizes MAE); reference regression is
+reported as RMSE. Our LCR RMSE is 0.45 and LCL 0.50.
 \end{table}
 
-The searched models improve on the published SOTA MAE (0.287 vs 0.298 for LCR)
-at a wide range of footprints, down to a few tens of kilobytes, and reach
-92.1\% three-class accuracy at 82~KB against the baseline's $\sim$216~KB FP32
-model. Removing the turn-signal channels (the leaky feature) drops accuracy by
-about one point (92.1\% to 91.1\%), and a no-indicator model still reaches
-91.1\% at 20~KB---evidence that the model anticipates from vehicle dynamics and
-surrounding traffic rather than reading a declared signal.
+For classification the searched model is both smaller and more accurate than the
+441\,k reference CNN (92.1\% at 84\,k parameters; a 8\,k model still reaches
+91.3\%). Regression beats the published single-TTLC SOTA on MAE
+(0.287 vs 0.298 for LCR) \todo{re-run with an RMSE-aware objective before
+comparing to the internal-reference Transformers on RMSE (they are competitive,
+especially LCL)}. Removing the turn-signal channels drops classification
+accuracy by about one point (92.1\% to 91.1\%)---evidence that the model
+anticipates from vehicle dynamics and surrounding traffic rather than reading a
+declared signal.
 \todo{RMSE columns and the internal-reference RMSE (0.42/0.44) are not yet
 matched because the search optimizes MAE; decide RMSE-aware objective vs
 MAE-primary framing.}

@@ -12,9 +12,18 @@ Transformer **RMSE 0.5102 s** (~54k params), 1DCNN 0.5746 (24.4k params);
 FP32 deployment on STM32H7B3 + F401, no quantization. The paper does NOT
 publish 3-class accuracy or per-direction RMSE.
 
-**Internal, unpublished** (colleague's results on our prepared pickles):
-92% accuracy (3-class), 0.42 s RMSE (LCR), 0.44 s RMSE (LCL). Cite as
-internal reference only after confirming provenance (model? split?).
+**Internal, unpublished** (colleague's models, in Materials/Models/, verified
+2026-07-09 — docs/research/reference-comparison.md): `cnn_multi` (441k params)
+= 91.5% test acc (the "92%"); `transformer_lcr` (333k) RMSE 0.42;
+`transformer_lcl` (49k) RMSE 0.44 (Transformers couldn't be re-run — custom
+TransformerEncoder not in the public repo; RMSE as reported).
+
+⚠ Honest head-to-head: classification is a clear WIN (ours 92.1% @ 84k vs
+441k @ 91.5%; 8k model matches at 55× smaller). Regression is NOT a clean win
+vs the internal Transformers on RMSE — esp. LCL: their 49k Transformer
+(RMSE 0.44) beats our 85k (RMSE 0.50). We beat the *published* SOTA (0.51) on
+LCR. Lead with classification + deployment; add RMSE objective before claiming
+regression wins over the internal reference.
 
 Our first untuned DSCNN (logged 2026-07-07): 91.5% / 0.439 / 0.459.
 
