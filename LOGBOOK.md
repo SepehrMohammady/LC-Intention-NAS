@@ -315,3 +315,22 @@ Blocked on user: measured on-device latency needs a myST account (ST Edge AI
 Developer Cloud) — X-CUBE-AI 10.2 pack is installed but the stedgeai CLI
 binaries are not extracted locally. Handoff steps in deployment.md. Everything
 else (accuracy, flash, RAM, MACs) is done and verified.
+
+## 2026-07-10 — Reference models verified; RMSE re-run; honest regression stance
+
+Colleague sent the reference models (Materials/Models/, legacy HDF5).
+Evaluated (unas/eval_reference.py): cnn_multi 441k params = 91.5% test acc (the
+"92%"); transformer_lcr 333k / transformer_lcl 49k (RMSE 0.42/0.44 as reported;
+couldn't re-run — custom TransformerEncoder not in the public repo). Head-to-
+head (docs/research/reference-comparison.md): **classification is a clean win**
+(ours 92.1% @ 84k vs 441k @ 91.5%; 8k matches at 55x smaller); regression NOT a
+win vs the internal transformers on RMSE.
+
+Ran RMSE-objective regression searches (patched model_trainer to MSE loss +
+val_rmse; DMIR_REG_METRIC=rmse, save_criteria=all, 150 rounds each). Result:
+**LCL improved 0.50→0.466** (and MAE 0.325→0.317); **LCR stayed 0.447** (RMSE
+run found smaller 62k @ 0.464 but not lower). Still behind the internal
+transformers (0.42/0.44). Final paper stance: claim beating the PUBLISHED SOTA
+(0.51) at 2-3x fewer params + deployability; do NOT claim regression RMSE win
+over the internal reference. Headlines: classification + deployment + the
+turn-signal ablation. Paper table/NOTES updated honestly; PDF rebuilt.

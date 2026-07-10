@@ -43,3 +43,29 @@ test set with our own metrics (`unas/eval_reference.py`).
 This reframes the paper to lead with **classification + deployment + honesty**,
 and to present regression as competitive-at-smaller-size against the *published*
 SOTA while being transparent about the internal Transformers.
+
+## RMSE-objective re-run (2026-07-10) — gap narrowed, not closed
+
+Re-ran both regressions with an RMSE objective (MSE loss, `val_rmse`,
+`save_criteria=all`, 150 rounds; `DMIR_REG_METRIC=rmse`). Best RMSE across both
+the MAE and RMSE runs, independently verified:
+
+| Task | Ours best RMSE | @ params | Reference Transf.\ | Published SOTA |
+|---|--:|--:|--:|--:|
+| LCR | 0.447 | 117 k | **0.42** @ 333 k | 0.51 |
+| LCL | **0.466** | 103 k | **0.44** @ 49 k | 0.51 |
+
+- LCL improved from 0.50 → **0.466** with the RMSE objective (and its best MAE
+  0.317 also beats the MAE run's 0.325). LCR did not improve — the MAE run's
+  117 k model (RMSE 0.447) stayed best; the RMSE run found smaller models
+  (0.464 @ 62 k) but not lower RMSE.
+- **We still do not beat the internal-reference Transformers on regression RMSE**
+  (0.447 vs 0.42; 0.466 vs 0.44). We beat the *published* SOTA (0.51) on both,
+  at 2–3× fewer parameters, and the LCL reference (49 k @ 0.44) is a genuinely
+  strong small model.
+
+**Final regression stance for the paper:** claim (i) beating the published SOTA
+RMSE at a fraction of the size, (ii) a full accuracy/footprint Pareto front, and
+(iii) deployability (int16x8, fits the F401) — but do **not** claim beating the
+internal-reference Transformers on regression RMSE. The headline wins are
+classification and deployment.

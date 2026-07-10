@@ -149,10 +149,11 @@ reported as RMSE. Our LCR RMSE is 0.45 and LCL 0.50.
 
 For classification the searched model is both smaller and more accurate than the
 441\,k reference CNN (92.1\% at 84\,k parameters; a 8\,k model still reaches
-91.3\%). Regression beats the published single-TTLC SOTA on MAE
-(0.287 vs 0.298 for LCR) \todo{re-run with an RMSE-aware objective before
-comparing to the internal-reference Transformers on RMSE (they are competitive,
-especially LCL)}. Removing the turn-signal channels drops classification
+91.3\%). Regression beats the published single-TTLC SOTA (RMSE 0.51) at 2--3$\times$
+fewer parameters (our RMSE 0.45 LCR, 0.47 LCL). We do not claim to beat the
+internal-reference Transformers on regression RMSE (0.42/0.44), which remain
+competitive small models; an RMSE-aware search narrowed but did not close that
+gap. Removing the turn-signal channels drops classification
 accuracy by about one point (92.1\% to 91.1\%)---evidence that the model
 anticipates from vehicle dynamics and surrounding traffic rather than reading a
 declared signal.

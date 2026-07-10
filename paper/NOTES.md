@@ -25,6 +25,12 @@ vs the internal Transformers on RMSE — esp. LCL: their 49k Transformer
 LCR. Lead with classification + deployment; add RMSE objective before claiming
 regression wins over the internal reference.
 
+RMSE re-run done (2026-07-10): LCL improved 0.50→0.466 (RMSE objective), LCR
+stayed 0.447. Still behind internal-ref transformers (0.42/0.44). Final stance:
+DO NOT claim regression RMSE win over the internal reference; claim beating the
+published SOTA (0.51) at 2-3x fewer params + deployability. Headlines =
+classification win + deployment.
+
 Our first untuned DSCNN (logged 2026-07-07): 91.5% / 0.439 / 0.459.
 
 **NAS results (2026-07-09, completed searches, verified — docs/research/nas-results.md):**
