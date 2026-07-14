@@ -81,6 +81,36 @@ wide-dynamic-range inputs (cls 92.1→86.9, cls_noind 91.1→76.1, LCR MAE
 the *accuracy* one; int16x8 would give both but ST cannot deploy it (cite the
 limitation).
 
+## MEASURED — ST Edge AI Developer Cloud (real board)
+
+Core **4.0.1-20581**, platform STM32 MCU (tool 12.0.1), optimization
+**balanced**, allocate inputs/outputs true. Board **STM32H7B3I-DK**
+(Cortex-M7 @ 280 MHz, 1184 KB internal RAM, 2048 KB internal flash).
+
+| Model | latency (ms) | MACC | flash (B) | RAM (B) |
+|---|--:|--:|--:|--:|
+| REF_cnn_multi_float32 (their reference CNN) | **33.52** | 1,965,360 | 1,769,882 (1.69 MiB; weights 1.68 MiB + ~5 KiB lib) | 39,168 (38.25 KiB activations) |
+
+### Our offline estimates are validated by these measurements
+
+`unas/compute_footprint.py` predicted the reference CNN at flash 1728.6 KB,
+peak RAM 38.4 KB, MACs 1,936,192 — versus ST's measured 1729.4 KB, 38.25 KiB,
+1,965,360. Errors: **0.05% (flash), ~0.4% (RAM), 1.5% (MACC)**. The estimation
+method is therefore sound, which also lends confidence to the estimates for
+models not yet benchmarked.
+
+### Where the reference CNN spends its budget (per-layer, from the DC charts)
+
+- **Flash** is dominated by a single layer: `gemm_14` ≈ 1.64 MB of the 1.73 MB
+  total — the `Flatten(6400) → Dense(64)` head (64×6400 = 409.6 k of its 441 k
+  parameters). It flattens the whole 50×128 feature map instead of pooling it.
+  Our searched models pool before the head, which is the concrete architectural
+  reason we reach higher accuracy at 84 k parameters.
+- **Latency**, by contrast, is dominated by the `eltwise` (BatchNorm mul/add
+  over 50×128 tensors) and the convs; `gemm_14` costs almost no time despite
+  being ~95% of the flash. Flash-bound and time-bound layers are decoupled —
+  worth a sentence in the deployment discussion.
+
 ## Benchmark plan (ST Edge AI Developer Cloud)
 
 Both target boards are in the farm: **STM32H7B3I-DK** and **NUCLEO-F401RE**.
