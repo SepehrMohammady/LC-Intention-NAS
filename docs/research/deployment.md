@@ -137,6 +137,42 @@ Two operating points, both measured on real hardware: *more accurate and 9×
 faster*, or *0.4 points lower and 42× faster in 37 KB with sub-millisecond
 inference*.
 
+### MEASURED — NUCLEO-F401RE (Cortex-M4 @ 84 MHz, 512 KB flash, 96 KB RAM)
+
+`cls_tiny_float32`: **4.376 ms @ 84 MHz** (measured 2026-07-14, Core 4.0.1,
+balanced). Flash/RAM are the platform-level optimize output and unchanged from
+the H7B3 run: 37,954 B flash (**7.2%** of the F401's 512 KB), 9,412 B RAM
+(9.8% of its 96 KB).
+
+**The headline here is categorical, not a ratio: the reference CNN cannot run on
+this board at all.** Its 1,769,882 B of flash is **3.38× the F401's entire
+512 KB**. No optimization setting fixes that. Every searched model fits:
+
+| model | flash | % of F401 flash | fits? |
+|---|--:|--:|---|
+| REF_cnn_multi | 1,769,882 B | 337.6% | **no — 3.38× over** |
+| lcr_best | 474,522 B | 90.5% | yes |
+| lcl_best | 423,494 B | 80.8% | yes |
+| cls_best | 343,254 B | 65.5% | yes |
+| cls_tiny | 37,954 B | **7.2%** | yes, easily |
+
+So the searched models open a board class the reference is locked out of — 91.3%
+accuracy at 4.4 ms on a Cortex-M4 that costs a fraction of the H7B3. This matches
+the baseline paper's own report that their Transformer did not fit the F401.
+
+**Cross-board scaling (same model, same file):**
+
+| board | latency | clock | cycles | cycles/MAC |
+|---|--:|--:|--:|--:|
+| STM32H7B3I-DK (M7) | 0.7931 ms | 280 MHz | 222,068 | 7.0 |
+| NUCLEO-F401RE (M4) | 4.376 ms | 84 MHz | 367,584 | 11.6 |
+
+Wall-clock ratio 5.52× against a clock ratio of only 3.33×, so the M4 is 1.66×
+slower **per clock** — consistent with the M7's dual-issue pipeline and cache.
+Note both figures: **7–11.6 cycles per MAC** on cores with single-cycle MAC
+instructions. Arithmetic is not the bottleneck on either board at this model
+size; per-op overhead and memory traffic are.
+
 ### The int8 operating point, measured (cls_best)
 
 | cls_best | float32 | int8 | ratio |
@@ -239,66 +275,64 @@ Using `out_elems × (taps + 1)` on lcl_best gives 1,658,985 against ST's measure
 1,658,927: **0.0035% (58 ops)**, versus −0.967% for the plain count. The
 estimator is therefore near-exact once the convention is matched.
 
-### Per-layer time tracks kernel path, not MACs (and it is an optimisation lead)
+### Per-layer time does not track MACs on ST's float32 path
 
-MAC count does **not** rank per-layer cost on this target. The evidence is
-strong and comes from two independent models.
+**The robust claim (well supported, safe to publish).** On ST's float32 kernels,
+MAC count does not rank per-layer cost — not approximately, not even ordinally in
+the tail. Evidence across three models and both boards:
 
-**The inversion, at its most extreme (cls_best).** ST's `conv2d_5` — a depthwise
-conv carrying **1,209 MACs, 0.8% of the model** — is the **largest execution-time
-bar in the chart**. `conv2d_15`, with 41,503 MACs (26%), is a small bar. A layer
-with **34× fewer MACs is the slowest one**. (Op indices in the int16x8 chart are
-+1 versus the float32 file, which has no leading QUANTIZE.)
+- *cls_best (M7)*: `conv2d_5`, a depthwise conv carrying **1,209 MACs — 0.8% of
+  the model — is the largest execution-time bar**. `conv2d_15`, with 41,503 MACs
+  (26%), is a small bar. **34× fewer MACs, slowest layer.**
+- *cls_tiny (M4)*: `pool_7` is an average-pool with **zero MACs** and is one of
+  the largest bars; `gemm_13` has 24% of the model's MACs and is a small bar.
+- *Both boards*: **7.0 cycles/MAC (M7) and 11.6 cycles/MAC (M4)** on cores with
+  single-cycle MAC instructions — an order of magnitude of pure overhead.
 
-**The correlate.** In every model, the convs *lacking a fused ReLU* are the top
-time bars:
+The unifying explanation is that at these tensor sizes nothing is
+arithmetic-bound; per-op overhead and memory traffic dominate, so zero-MAC ops
+(pooling) and low-intensity ops (depthwise) cost real time while a dense GEMM
+with most of the MACs is cheap.
 
-| model | convs | no fused ReLU | top time bars |
-|---|--:|---|---|
-| lcl_best | 11 | conv2d_5, conv2d_18, conv2d_30 | conv2d_30, conv2d_5, conv2d_18 — **3/3** |
-| cls_best | 5 | conv2d_5 (op 4 in float32) | conv2d_5 — **1/1** |
+**Scope: float32 only.** The int8 build of cls_best inverts the picture —
+`gemm_25` (43.4% of MACs) becomes the largest bar and time tracks MACs well. The
+anomaly belongs to ST's float32 kernels, not to the board or the architecture;
+plausibly the int8 path uses the optimised CMSIS-NN kernels and the float32 path
+does not.
 
-**4/4 across two models.** Within lcl_best alone, 3-of-11 landing exactly on the
-three no-ReLU convs has p = 1/C(11,3) ≈ 0.6%.
+### ⚠ Downgraded: the "unfused ReLU" explanation is NOT established
 
-**Shape-matched controls in both models** (these are what make it more than a
-correlation with size):
-- *lcl_best*: `conv2d_1` and `conv2d_5` read the **same input tensor**, both 1×1,
-  stride 1, 50 steps. conv2d_1 has **8.3% more MACs** (100,750 vs 93,000) yet is
-  a sliver; conv2d_5 is the second-largest bar. Only the fused ReLU differs.
-- *cls_best*: ops 11 and 12 are **also depthwise convs** with comparable MACs
-  (1,617 and 2,695 vs op 5's 1,209) and both are slivers. Same op type, same
-  scale, only the fusion differs.
+An earlier draft here claimed the correlate was **absence of a fused ReLU**, at
+4/4 across lcl_best (3/3, p ≈ 0.6%) and cls_best (1/1), with shape-matched
+controls. **`cls_tiny` weakens this and it is recorded as a hypothesis only.**
 
-**Inferred mechanism (not confirmed).** These are the linear residual-projection
-convs (Keras `conv → BN` with no activation). After BN folding, ST appears unable
-to use its fused conv+ReLU kernel and falls back to a slower generic path. This
-is *inferred from the 4/4 correspondence*, not read from ST's kernel-selection
-log — state the correlation, do not assert causation.
+cls_tiny has **zero** unfused convs (both its convs carry a fused ReLU; only the
+final 219-MAC output FC is linear) — yet it shows the same strong MAC/time
+inversions anyway (`pool_7`: 0 MACs, large bar; `gemm_13`: 24% of MACs, small
+bar). **So an unfused ReLU is not necessary for the inversion to appear**, which
+is what the earlier framing implied.
 
-**Scope: this is a float32-path effect only.** The int8 build of the same
-cls_best model inverts the picture — `gemm_25` (43.4% of MACs) becomes the
-largest time bar and the no-ReLU `conv2d_5` shrinks to a small one, i.e. in int8
-**time tracks MACs well**. So the anomaly belongs to ST's float32 kernels, not to
-the architecture or the board. Plausibly the int8 path uses the well-optimised
-CMSIS-NN kernels while the float32 path does not. Any claim must be scoped to
-float32 deployment.
+What survives, stated carefully:
+- The observation that lcl_best's three no-ReLU convs are exactly its three top
+  bars is real, and the shape-matched controls are real (lcl_best `conv2d_1` vs
+  `conv2d_5`: same input tensor, both 1×1, conv2d_1 has 8.3% **more** MACs yet is
+  a sliver).
+- But cls_tiny shows the effect does not require unfused convs, and it ran on a
+  **different board**, so it is not a clean refutation either. Two models on one
+  board is thin support for a mechanism.
+- Honest position: **the fusion correlation is one candidate explanation among
+  several (op overhead, memory traffic, kernel selection), not an established
+  one.** Do not put a mechanism in the paper without the ablation.
 
-**Why it matters.** In lcl_best those three layers hold the bulk of the time
-chart while accounting for only ~32% of MACs (529,410 / 1,642,891). If the
-fallback path is the cause, fusing or otherwise activating them could cut a large
-share of the 28.77 ms for free.
-
-**Open items before this goes in the paper:**
-1. Confirm whether the per-layer chart is measured on-board or ST's cost model.
-   If estimated, the claim weakens to "ST's cost model is not MAC-linear".
+**Open items before any of this is publishable:**
+1. Confirm whether the per-layer chart is board-measured or ST cost-model
+   estimated. If estimated, the whole per-layer analysis weakens to a statement
+   about ST's cost model.
 2. Run the ablation: re-export one no-ReLU conv with a ReLU appended, shapes held
-   constant, and see whether its bar collapses. Cheap, decisive, turns a
-   correlation into a finding.
+   constant; see whether its bar collapses. Cheap and decisive.
 
-Note also that pooling is expensive here (`pool_2` is cls_best's second-largest
-time bar despite zero MACs) — consistent with everything on this target being
-memory/overhead-bound at these tensor sizes rather than arithmetic-bound.
+The paper currently states only the robust claim (MACs do not predict per-layer
+time on the float32 path), not the mechanism.
 
 ### Where the reference CNN spends its budget (per-layer, from the DC charts)
 

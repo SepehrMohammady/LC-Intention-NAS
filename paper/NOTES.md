@@ -115,13 +115,17 @@ articles the team shared). Run every draft section against it.
       measured RAM (8,096 B) barely beat float32's (9,456 B) instead of hitting
       the predicted ~3 KB. Re-export cls_best_int8 with `tf.int8` I/O, then one
       ST upload to confirm RAM ≈ 3 KB and the `conversion_0` cast disappears.
-- [ ] **Fusion/kernel-path ablation** (needed before the finding is publishable).
-      Across float32 builds, 4/4 convs lacking a fused ReLU are their model's top
-      time bar, with shape-matched controls (lcl_best conv2d_1 vs conv2d_5;
-      cls_best op11/12 vs op5). Effect vanishes in int8. Two open items:
-      (a) confirm whether ST's per-layer time chart is board-measured or
+- [ ] **Fusion/kernel-path ablation** — DOWNGRADED, do not publish the mechanism.
+      The "unfused ReLU is the correlate" story (4/4 across lcl_best + cls_best)
+      is weakened by cls_tiny, which has **zero** unfused convs yet shows the same
+      MAC/time inversions (pool_7: 0 MACs, large bar). So unfused ReLU is not
+      necessary for the effect. Different board, so not a clean refutation either
+      — but two models on one board is thin support for a mechanism. The paper
+      now states only the robust claim (MACs do not predict per-layer time on the
+      float32 path; 7.0–11.6 cycles/MAC ⇒ overhead-bound). To recover the
+      mechanism: (a) confirm whether ST's per-layer chart is board-measured or
       cost-model estimated; (b) re-export one no-ReLU conv with a ReLU appended,
-      shapes held constant, and check whether its bar collapses. Until then the
-      claim is a scoped correlation, not a mechanism.
-- [ ] Remaining ST benchmarks: `cls_tiny_float32` on **NUCLEO-F401RE** (the
-      low-end story; the baseline's Transformer did not fit the F401).
+      shapes held constant, check whether its bar collapses.
+- [x] `cls_tiny_float32` on **NUCLEO-F401RE**: 4.376 ms @ 84 MHz, 7.2% of flash.
+      **Reference CNN does not fit the F401 at all** (1729 KB vs 512 KB, 3.38×
+      over) — categorical result, now in the paper.

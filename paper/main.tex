@@ -230,6 +230,23 @@ reference CNN while being more accurate; a second operating point on the same
 front gives up 0.4 points of accuracy for a $42\times$ speed-up and a
 $47\times$ smaller model that infers in under a millisecond.
 
+The smaller operating point also changes what hardware is reachable, and here the
+difference is categorical rather than incremental. On a NUCLEO-F401RE
+(Cortex-M4, 84~MHz, 512~KB flash) the tiny classifier runs in 4.376~ms and
+occupies 7.2\% of flash, while the reference CNN does not fit at all---its
+1729~KB of weights exceed the board's entire flash by $3.4\times$, which no
+compiler setting can recover. The searched models therefore open a device class
+the reference is locked out of, consistent with the baseline's own report that
+its Transformer did not fit this board.
+
+One measurement is worth recording for anyone budgeting from operation counts:
+the tiny model costs 7.0 cycles per MAC on the M7 and 11.6 on the M4, on cores
+with single-cycle MAC instructions. At this scale inference is bound by per-op
+overhead and memory traffic, not arithmetic, and per-layer time does not follow
+per-layer MACs---a zero-MAC pooling operator is among the most expensive layers
+in both classifiers. MAC count remains a good predictor of whole-model latency
+across models, but a poor one within a model.
+
 The per-layer breakdown explains why. Both our classifier and the reference spend
 most of their flash in the fully-connected head, so the gain is not from
 avoiding a large head but from what enters it: the reference flattens a
@@ -280,7 +297,6 @@ episode is worth one sentence of method: a toolchain that accepts an unsupported
 scheme and quietly widens it will produce a benchmark that looks like a result.
 \todo{cite ST Edge AI Core 4.0 documentation (quantization / supported ops,
 retrieved 2026-07-14).}
-\todo{cls\_tiny on NUCLEO-F401RE still pending; see docs/research/deployment.md.}
 
 \section{Conclusion}
 \todo{two or three sentences; no new claims.}
