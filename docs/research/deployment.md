@@ -87,9 +87,23 @@ Core **4.0.1-20581**, platform STM32 MCU (tool 12.0.1), optimization
 **balanced**, allocate inputs/outputs true. Board **STM32H7B3I-DK**
 (Cortex-M7 @ 280 MHz, 1184 KB internal RAM, 2048 KB internal flash).
 
-| Model | latency (ms) | MACC | flash (B) | RAM (B) |
-|---|--:|--:|--:|--:|
-| REF_cnn_multi_float32 (their reference CNN) | **33.52** | 1,965,360 | 1,769,882 (1.69 MiB; weights 1.68 MiB + ~5 KiB lib) | 39,168 (38.25 KiB activations) |
+| Model | test acc | latency (ms) | MACC | flash (B) | RAM (B) |
+|---|--:|--:|--:|--:|--:|
+| REF_cnn_multi_float32 (their reference CNN) | 91.69% | **33.52** | 1,965,360 | 1,769,882 (1.69 MiB; weights 1.68 MiB + ~5 KiB lib) | 39,168 (38.25 KiB activations) |
+| cls_best_float32 (ours, 84 k params) | **92.08%** | **3.628** | 158,094 | 343,254 (335 KiB; weights 326.15 KiB + ~9 KiB lib) | 9,456 (8.42 KiB activations + 832 B lib) |
+
+### Headline (same board, same Core version, same settings)
+
+| | Reference | Ours | Advantage |
+|---|--:|--:|---|
+| accuracy | 91.69% | **92.08%** | **higher** |
+| latency | 33.52 ms | **3.628 ms** | **9.2× faster** |
+| flash | 1,769,882 B | 343,254 B | **5.2× smaller** |
+| RAM | 39,168 B | 9,456 B | **4.1× less** |
+| MACC | 1,965,360 | 158,094 | **12.4× fewer** |
+
+Higher accuracy at 9× the speed and 5× less flash — measured on real hardware,
+not estimated.
 
 ### Our offline estimates are validated by these measurements
 
@@ -104,12 +118,16 @@ models not yet benchmarked.
 - **Flash** is dominated by a single layer: `gemm_14` ≈ 1.64 MB of the 1.73 MB
   total — the `Flatten(6400) → Dense(64)` head (64×6400 = 409.6 k of its 441 k
   parameters). It flattens the whole 50×128 feature map instead of pooling it.
-  Our searched models pool before the head, which is the concrete architectural
-  reason we reach higher accuracy at 84 k parameters.
 - **Latency**, by contrast, is dominated by the `eltwise` (BatchNorm mul/add
   over 50×128 tensors) and the convs; `gemm_14` costs almost no time despite
   being ~95% of the flash. Flash-bound and time-bound layers are decoupled —
   worth a sentence in the deployment discussion.
+- **Ours (cls_best) is also dense-dominated in flash** (`gemm_24` ≈ 280 KB of
+  343 KB, ~82%) — so the honest statement is *not* "we avoid a large FC" but:
+  the searched model **pools before the head** (`pool_18`), which shrinks the
+  FC input and makes its dense layer **~5.9× smaller** than the reference's
+  (280 KB vs 1.64 MB). Its runtime is spread across the convs/pools rather than
+  concentrated in one op.
 
 ## Benchmark plan (ST Edge AI Developer Cloud)
 

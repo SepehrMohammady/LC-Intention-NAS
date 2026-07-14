@@ -165,9 +165,34 @@ MAE-primary framing.}
 Target platform: STM32H7B3I-DK discovery kit (Cortex-M7 at 280~MHz, 1.4~MB
 SRAM, 2~MB flash) — the same MCU family used by the baseline framework
 \cite{lcintention2026}, which deployed FP32 models only. We therefore compare in
-FP32, like for like: our classifier is $5.1\times$ smaller than the reference
-CNN (338~KB vs 1729~KB of weights) at higher accuracy (92.1\% vs 91.7\%), and a
-$46\times$ smaller 37~KB model still reaches 91.3\%.
+FP32, like for like, benchmarking both models on the same board through the ST
+Edge AI Developer Cloud (Core 4.0.1, \texttt{balanced} optimization).
+Table~\ref{tab:deploy} reports measured, not estimated, figures.
+
+\begin{table}[t]
+\caption{Measured on-device comparison, STM32H7B3I-DK (Cortex-M7, 280~MHz),
+ST Edge AI Core 4.0.1, FP32.}
+\label{tab:deploy}
+\centering
+\begin{tabular}{lccc}
+\toprule
+ & Reference CNN & Ours & Gain \\
+\midrule
+Accuracy (\%)   & 91.7  & \textbf{92.1} & --- \\
+Latency (ms)    & 33.52 & \textbf{3.63} & $9.2\times$ \\
+Flash (KB)      & 1729  & \textbf{335}  & $5.2\times$ \\
+RAM (KB)        & 38.3  & \textbf{9.2}  & $4.1\times$ \\
+MACC (M)        & 1.97  & \textbf{0.16} & $12.4\times$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The searched model is $9.2\times$ faster and $5.2\times$ smaller than the
+reference CNN while being more accurate. The per-layer breakdown explains why:
+both models spend most of their flash in the fully-connected head, but the
+reference flattens the whole $50\times128$ feature map (its single
+$64\times6400$ layer is 1.64~MB, $\sim$95\% of the model), whereas the searched
+model pools first, shrinking the same head to 280~KB.
 
 On quantization, the ST toolchain accepts only float32/int8/uint8 tensors. Full
 int8 shrinks the classifier to 110~KB but costs accuracy on these
