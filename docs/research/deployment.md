@@ -93,6 +93,7 @@ Core **4.0.1-20581**, platform STM32 MCU (tool 12.0.1), optimization
 | cls_best_float32 (ours, 84 k) | **92.08%** | **3.628** | 158,094 | 343,254 (335 KiB; weights 326.15 KiB + ~9 KiB lib) | 9,456 (8.42 KiB act + 832 B lib) |
 | cls_tiny_float32 (ours, 8 k) | 91.30% | **0.7931** | 31,742 | 37,954 (37 KiB; weights 31.07 KiB + ~6 KiB lib) | 9,412 (8.91 KiB act + 288 B lib) |
 | lcr_best_float32 (ours, 117 k; regression) | MAE 0.2865 / RMSE 0.4466 | 14.06 | 860,407 | 474,522 (463 KiB; weights 453.83 KiB + ~10 KiB lib) | 20,772 (18.91 KiB act + ~1 KiB lib) |
+| lcl_best_float32 (ours, 106 k; regression) | MAE 0.3165 | 28.77 | 1,658,927 | 423,494 (414 KiB; weights 403.61 KiB + ~10 KiB lib) | 28,264 (26.46 KiB act + ~1 KiB lib) |
 
 ### Headline (same board, same Core version, same settings)
 
