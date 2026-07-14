@@ -103,13 +103,45 @@ per-channel training range and leave training data untouched.
 
 \section{Method}
 \subsection{Search space}
-\todo{1D cells: depthwise-separable and standard convolutions, kernel sizes,
-widths, depth, pooling; operator set restricted to what the ST Edge AI
-compiler maps efficiently.}
+The search space is built from one-dimensional convolutional blocks: standard,
+depthwise and $1\times1$ convolutions with kernel sizes in $\{3,5,7\}$ and
+channel counts up to 128, optional stride-2 and pooling, blocks connected
+serially or with residual branches, and a head of one to three
+fully-connected layers. The operator set is restricted to layers the ST Edge AI
+compiler maps efficiently. \todo{state the exact ranges once frozen.}
 
 \subsection{Constraints and search algorithm}
-\todo{peak RAM, flash after int8 quantization, MACs; aging evolution with
-constraint handling; search cost budget.}
+We use aging evolution: a population of architectures is sampled, the fittest of
+a random subset is mutated by a network morphism, its child is trained, and the
+oldest member is retired. Fitness combines four objectives---validation error,
+peak RAM, model size and multiply--accumulate count---by the random
+scalarisation of \cite{liberis2021munas}: each is normalised by a user budget
+and divided by a random weight resampled every round, so a candidate exceeding
+any budget is penalised first. Budgets were set from the STM32H7B3I-DK.
+\todo{state population/sample sizes, rounds, and search cost.}
+
+\subsection{Discovered architecture}
+The search independently arrives at three microcontroller-friendly choices:
+depthwise-separable convolutions, a residual connection, and aggressive early
+downsampling. The classification model reduces the sequence $50 \rightarrow 25
+\rightarrow 13 \rightarrow 7 \rightarrow 4$ before its head:
+
+\begin{center}\small
+\texttt{50$\times$31} $\rightarrow$ MaxPool $\rightarrow$ DWConv(s2)
+$\rightarrow$ Conv$_{1\times1}$(77) $\rightarrow$ DWConv $\rightarrow$
+DWConv(s2) $\rightarrow$ Conv$_{1\times1}$ $\rightarrow$ Add $\rightarrow$
+AvgPool $\rightarrow$ FC(223) $\rightarrow$ FC(23) $\rightarrow$ FC(3)
+\end{center}
+
+This explains the footprint gap quantitatively. Both our model and the reference
+CNN spend most of their flash in the fully-connected head, so the gain does not
+come from avoiding a large head; it comes from what enters it. The reference
+holds full temporal resolution and flattens a $50\times128$ map into 6400
+features, giving a $64\times6400$ layer of 1.64~MB ($\sim$95\% of the model).
+Ours pools first and flattens only $4\times77 = 308$ features, so it affords a
+\emph{wider} head (223 units) in a $\sim$280~KB layer---a $6\times$ reduction.
+The same downsampling cuts the convolutional work, yielding the $12.4\times$
+fewer MACs and the $9.2\times$ measured speed-up of Table~\ref{tab:deploy}.
 
 \section{Experiments}
 \subsection{Setup}
