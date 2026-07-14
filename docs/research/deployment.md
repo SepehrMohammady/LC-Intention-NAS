@@ -89,21 +89,34 @@ Core **4.0.1-20581**, platform STM32 MCU (tool 12.0.1), optimization
 
 | Model | test acc | latency (ms) | MACC | flash (B) | RAM (B) |
 |---|--:|--:|--:|--:|--:|
-| REF_cnn_multi_float32 (their reference CNN) | 91.69% | **33.52** | 1,965,360 | 1,769,882 (1.69 MiB; weights 1.68 MiB + ~5 KiB lib) | 39,168 (38.25 KiB activations) |
-| cls_best_float32 (ours, 84 k params) | **92.08%** | **3.628** | 158,094 | 343,254 (335 KiB; weights 326.15 KiB + ~9 KiB lib) | 9,456 (8.42 KiB activations + 832 B lib) |
+| REF_cnn_multi_float32 (their reference CNN, 441 k) | 91.69% | 33.52 | 1,965,360 | 1,769,882 (1.69 MiB; weights 1.68 MiB + ~5 KiB lib) | 39,168 (38.25 KiB activations) |
+| cls_best_float32 (ours, 84 k) | **92.08%** | **3.628** | 158,094 | 343,254 (335 KiB; weights 326.15 KiB + ~9 KiB lib) | 9,456 (8.42 KiB act + 832 B lib) |
+| cls_tiny_float32 (ours, 8 k) | 91.30% | **0.7931** | 31,742 | 37,954 (37 KiB; weights 31.07 KiB + ~6 KiB lib) | 9,412 (8.91 KiB act + 288 B lib) |
 
 ### Headline (same board, same Core version, same settings)
 
-| | Reference | Ours | Advantage |
-|---|--:|--:|---|
-| accuracy | 91.69% | **92.08%** | **higher** |
-| latency | 33.52 ms | **3.628 ms** | **9.2× faster** |
-| flash | 1,769,882 B | 343,254 B | **5.2× smaller** |
-| RAM | 39,168 B | 9,456 B | **4.1× less** |
-| MACC | 1,965,360 | 158,094 | **12.4× fewer** |
+| vs reference | cls_best | cls_tiny |
+|---|--:|--:|
+| accuracy | **+0.4 pts** (92.08 vs 91.69) | −0.4 pts (91.30) |
+| latency | **9.2× faster** (3.63 vs 33.52 ms) | **42.3× faster** (0.79 ms) |
+| flash | **5.2× smaller** | **46.6× smaller** (37 KB) |
+| RAM | 4.1× less | 4.2× less |
+| MACC | 12.4× fewer | **61.9× fewer** |
 
-Higher accuracy at 9× the speed and 5× less flash — measured on real hardware,
-not estimated.
+Two operating points, both measured on real hardware: *more accurate and 9×
+faster*, or *0.4 points lower and 42× faster in 37 KB with sub-millisecond
+inference*.
+
+### RAM is input-bound, not model-bound (a floor worth reporting)
+
+cls_best (84 k params) and cls_tiny (8 k) both land at ~9.2 KB RAM despite a 9×
+parameter gap. The reason is the input tensor itself: 50×31 float32 = **6.2 KB**,
+which no architecture can go below in FP32. Activations add only ~2–3 KB on top.
+So on this task RAM is dominated by the input buffer, and the only way to move it
+is the input data type — int8 input would cut that floor to 1.55 KB. This is a
+concrete argument for int8 that has nothing to do with model size, and it
+explains why our RAM advantage (~4×) is much smaller than our flash advantage
+(5–47×).
 
 ### Our offline estimates are validated by these measurements
 

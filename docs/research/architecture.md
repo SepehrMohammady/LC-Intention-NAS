@@ -39,6 +39,42 @@ The search independently arrived at three MCU-friendly choices:
 2. a **residual connection** (`Add`);
 3. **aggressive early downsampling** — 50 → 25 → 13 → 7 → 4.
 
+## Ours (`cls_tiny`, 8 k params, 91.30%, 0.79 ms)
+
+Only four real layers:
+
+```
+Input 50×31
+  → Conv1D 1×1 (31→14) + ReLU               → 50×14   ← channel squeeze first
+  → DWConv1D (k=3, stride 2) + ReLU         → 25×14
+  → AvgPool1D                               → 7×14
+  → Flatten                                 → 98
+  → FC(73) + ReLU → FC(3)
+```
+
+Same recipe as `cls_best`, pushed harder: squeeze channels immediately with a
+1×1 conv (31→14), one cheap depthwise conv for temporal structure, aggressive
+pooling (50→25→7), and a small head flattening just 98 features. Its flash is
+again dominated by the first FC (`gemm_13`, 73×98 ≈ 28.6 KB of 37 KB).
+
+## What the search converges to (pattern across models)
+
+Both searched classifiers independently adopt the same four moves:
+1. **1×1 convolutions to re-shape the channel dimension** (squeeze 31→14 in the
+   tiny model; expand 31→77 in the larger one);
+2. **depthwise convolutions** for temporal structure (cheap per-channel filters);
+3. **aggressive early downsampling** (50→25→7, or 50→25→13→7→4);
+4. **a small flattened head** — 98 or 308 features, versus the reference's 6400.
+
+## RAM is input-bound, not model-bound
+
+`cls_best` (84 k) and `cls_tiny` (8 k) both measure ~9.2 KB RAM despite a 9×
+parameter gap: the 50×31 float32 input tensor is 6.2 KB by itself, a floor no
+architecture can beat in FP32; activations add only ~2–3 KB. RAM therefore moves
+with the input data type, not the model — int8 input would cut the floor to
+1.55 KB. This is why the RAM advantage (~4×) is far smaller than the flash
+advantage (5–47×).
+
 ## Why ours is 5.2× smaller and 9.2× faster (quantified)
 
 Both models spend most of their flash in the fully-connected head. The
