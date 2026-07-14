@@ -105,3 +105,23 @@ articles the team shared). Run every draft section against it.
       stretch target.
 - [ ] Venue decision: SPL (4 pages, head-to-head story) vs IoT-J (8 pages,
       IF 8.7) — discuss with supervisor.
+- [x] int16x8 deployability: **settled empirically 2026-07-14**. ST Edge AI
+      4.0.1 silently dequantizes it to float32 (weights 326.15 KiB = identical
+      to float32; the int8 control compresses to 83.28 KiB). Offline accuracy
+      bound only — never quote as deployed. See docs/research/deployment.md.
+- [ ] **int8 I/O interface re-export.** `prepare_deploy.py` leaves
+      `inference_input_type`/`inference_output_type` at float32, so the int8
+      model still allocates a 6,200 B float32 input buffer — which is why its
+      measured RAM (8,096 B) barely beat float32's (9,456 B) instead of hitting
+      the predicted ~3 KB. Re-export cls_best_int8 with `tf.int8` I/O, then one
+      ST upload to confirm RAM ≈ 3 KB and the `conversion_0` cast disappears.
+- [ ] **Fusion/kernel-path ablation** (needed before the finding is publishable).
+      Across float32 builds, 4/4 convs lacking a fused ReLU are their model's top
+      time bar, with shape-matched controls (lcl_best conv2d_1 vs conv2d_5;
+      cls_best op11/12 vs op5). Effect vanishes in int8. Two open items:
+      (a) confirm whether ST's per-layer time chart is board-measured or
+      cost-model estimated; (b) re-export one no-ReLU conv with a ReLU appended,
+      shapes held constant, and check whether its bar collapses. Until then the
+      claim is a scoped correlation, not a mechanism.
+- [ ] Remaining ST benchmarks: `cls_tiny_float32` on **NUCLEO-F401RE** (the
+      low-end story; the baseline's Transformer did not fit the F401).

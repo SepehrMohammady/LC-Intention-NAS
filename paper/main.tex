@@ -230,37 +230,57 @@ reference CNN while being more accurate; a second operating point on the same
 front gives up 0.4 points of accuracy for a $42\times$ speed-up and a
 $47\times$ smaller model that infers in under a millisecond.
 
-The per-layer breakdown explains why. Both our model and the reference spend
+The per-layer breakdown explains why. Both our classifier and the reference spend
 most of their flash in the fully-connected head, so the gain is not from
 avoiding a large head but from what enters it: the reference flattens a
 $50\times128$ map into 6400 features, giving a $64\times6400$ layer of 1.64~MB
-($\sim$95\% of the model), whereas the searched models pool first and flatten
-only 308 (or 98) features.
+(93\% of its weights), whereas the searched models pool first and flatten only
+308 (or 98) features, cutting that layer $5.9\times$.
 
-RAM behaves differently and is worth stating plainly. Both searched classifiers
-measure $\sim$9.2~KB regardless of a $9\times$ parameter gap, because the
-$50\times31$ float32 input tensor alone occupies 6.2~KB and no architecture can
-go below it. The regression model instead measures 20.8~KB: its widest branch
-emits a $25\times116$ tensor of 11.6~KB, so the peak working set is that plus
-the input. Peak RAM is therefore $\max(\text{input tensor},\ \text{widest
-layer's in\,+\,out})$---set by layer width rather than depth or parameter
-count---which is why the RAM advantage ($\sim$4$\times$) is far smaller than the
-flash advantage, and why an int8 input, not a smaller network, is the lever that
-would reduce the floor.
+Across the four searched models this reliance falls monotonically with how much
+of the search space the task exploits. The largest fully-connected layer holds
+93\% of weights in the reference and 90.9\% in our tiny classifier, but 39.6\% in
+the LCR model and only 11.4\% in the LCL model---whose largest layer is a
+convolution. The same ordering appears in topology: both classifiers are
+essentially sequential, whereas the LCR and LCL models fan out into two and three
+parallel branches respectively. The search space permits branches for every task;
+only regression used them. Topology follows the task, discovered rather than
+imposed.
+
+RAM behaves differently and is worth stating plainly, because three distinct
+regimes appear across our models. Both searched classifiers measure
+$\sim$9.2~KB regardless of a $9\times$ parameter gap: the $50\times31$ float32
+input tensor alone occupies 6.2~KB and no architecture can go below it, so they
+are \emph{input-bound}. The LCR model measures 20.8~KB and is \emph{width-bound}:
+its widest branch emits a $25\times116$ tensor of 11.6~KB, and the peak working
+set is that plus the input. The LCL model measures 26.5~KB and is neither---it is
+\emph{liveness-bound}. Its widest activation (13.0~KB) and the next-widest
+(12.0~KB) have disjoint live ranges and are never co-resident, so no
+width-based rule reaches the measurement; instead its three-way merge pins the
+6.2~KB input and two 3.3~KB branch outputs across many operators, giving a
+24.8~KB peak, with the remainder attributable to allocator fragmentation. The
+general statement is therefore that peak RAM is the maximum over the schedule of
+all simultaneously live tensors, which collapses to
+$\max(\text{input},\ \text{widest in\,+\,out})$ only for a chain. This is why the
+RAM advantage ($\sim$4$\times$) is far smaller than the flash advantage.
 
 On quantization, the ST toolchain accepts only float32/int8/uint8 tensors. Full
-int8 shrinks the classifier to 110~KB but costs accuracy on these
-wide-dynamic-range inputs ($92.1\% \rightarrow 86.9\%$; LCR MAE
-$0.287 \rightarrow 0.449$). An int16$\times$8 scheme (int8 weights, int16
-activations) preserves accuracy almost exactly offline
-($92.1\% \rightarrow 92.2\%$; LCR MAE $0.287 \rightarrow 0.286$), but the ST
-toolchain does not support it---its documentation restricts weight and
-activation tensors to float32, int8 and uint8---so we report it as an offline
-bound rather than a deployed configuration.
+int8 shrinks the classifier to 104~KB and 1.885~ms but costs 5.2 accuracy points
+on these wide-dynamic-range inputs ($92.1\% \rightarrow 86.9\%$; LCR MAE
+$0.287 \rightarrow 0.449$), so we report float32 as the headline
+configuration---which also matches the baseline's own FP32 deployment. An
+int16$\times$8 scheme (int8 weights, int16 activations) preserves accuracy almost
+exactly offline ($92.1\% \rightarrow 92.2\%$; LCR MAE
+$0.287 \rightarrow 0.286$), but the toolchain does not deploy it. We verified
+this on hardware rather than trusting the documentation: a 117.9~KB
+int16$\times$8 file returns 326.15~KB of weights, byte-identical to the float32
+build, while a genuinely int8 control compresses to 83.28~KB. The scheme is
+silently dequantized to float32, so we report it as an offline bound only. The
+episode is worth one sentence of method: a toolchain that accepts an unsupported
+scheme and quietly widens it will produce a benchmark that looks like a result.
 \todo{cite ST Edge AI Core 4.0 documentation (quantization / supported ops,
-retrieved 2026-07-14); confirm against the pending int16x8 benchmark.}
-\todo{insert ST Edge AI measured latency / flash / peak SRAM per board
-(STM32H7B3I-DK and NUCLEO-F401RE); see docs/research/deployment.md.}
+retrieved 2026-07-14).}
+\todo{cls\_tiny on NUCLEO-F401RE still pending; see docs/research/deployment.md.}
 
 \section{Conclusion}
 \todo{two or three sentences; no new claims.}

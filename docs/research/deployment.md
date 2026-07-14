@@ -2,10 +2,52 @@
 
 Updated 2026-07-14.
 
-## ⚠ int16x8 is (almost certainly) NOT deployable on ST Edge AI — verify empirically
+## ✔ SETTLED EMPIRICALLY: int16x8 is NOT deployable on ST Edge AI 4.0.1
 
-Our int16x8 quantization (which preserves accuracy — see nas-results.md) appears
-**not deployable** with ST Edge AI Core / X-CUBE-AI / Developer Cloud.
+**Measured 2026-07-14 on ST Edge AI Developer Cloud, Core 4.0.1-20581 — the
+latest version.** `cls_best_int16x8.tflite` (a 117.9 KB file) was uploaded and
+optimized for STM32 MCU. The result is identical to the float32 model to within
+4 bytes:
+
+| | cls_best_**int16x8** | cls_best_float32 | cls_best_**int8** (control) |
+|---|--:|--:|--:|
+| **weights** | **326.15 KiB** | **326.15 KiB** | **83.28 KiB** |
+| flash total | 343,258 B | 343,254 B | 106,738 B |
+| RAM | 9,456 B | 9,456 B | 8,096 B |
+| MACC | 158,094 | 158,094 | 158,336 |
+| latency | 3.605 ms | 3.628 ms | 1.885 ms |
+
+The prediction was: **~118 KB = real int16x8 support; ~338 KB = silently
+dequantized**. The measurement landed on 335 KiB. A 117.9 KB int8-weight file
+came back as a **326.15 KiB weight blob — byte-identical to float32** — while the
+genuinely-int8 control compressed to 83.28 KiB as expected. ST expanded the int8
+weights back to float32 and discarded the int16 activation scheme, exactly as
+`quantization.html` warns ("if an operator is not supported in integer, floating
+point version is used").
+
+⚠ **Do not cite the `STAI_FORMAT_FLOAT` badge as evidence.** An earlier draft did.
+It is wrong: the int8 model shows `STAI_FORMAT_FLOAT` *too*, yet is genuinely
+quantized. The badge describes the **I/O interface** (all three of our files have
+float32 input/output with quantize/dequantize wrappers — verified in the
+flatbuffer), not the internal arithmetic. **The weights figure is the only sound
+discriminator**, which is precisely why the test was specified on flash.
+
+The uploaded file was verified genuine int16x8 first, so the converter is not
+the confound: its graph carries int8 weights, int64 biases, and int16 activation
+tensors (`input_layer:0_int16`, `StatefulPartitionedCall_1:0_int16`) with
+float32 boundary wrappers.
+
+**Consequence: int16x8 is an offline accuracy bound only. Never quote it as a
+deployed configuration.** Benchmarking it naively would have yielded a
+"91.9% at 3.6 ms in int16x8" line that is a float32 model wearing a costume —
+the exact fabrication this check existed to prevent.
+
+This also closes the "is the Sept-2025 evidence stale?" question: it was a fair
+challenge (4.0.1 ships no release note, so docs alone could not disprove it),
+but the empirical answer agrees with the docs.
+
+### Prior documentary evidence (now corroborated by measurement)
+
 Re-checked against the **currently served** docs on 2026-07-14 (not just the old
 forum post):
 
@@ -28,30 +70,11 @@ forum post):
   for 16bits is in the roadmap but is not planned for at least next year"*
   (2025-06-24). No 2026 post contradicts this.
 
-**Known gap:** `versions.json` lists **4.0.1** as latest but no 4.0.1-specific
-release note is published (served docs are 4.0.0-era; 4.0.1 looks like a patch,
-stm32 platform 12.0.0→12.0.1). So 4.0.1 adding int16x8 cannot be *disproven*
-from docs alone — hence the empirical check below.
-
-**Empirical test (do it — one upload, definitive).** Benchmark
-`cls_best_int16x8.tflite` on STM32H7B3I-DK and read the reported flash. ST
-silently dequantizes unsupported schemes (*"if an operator is not supported in
-integer, floating point version is used"*), so a "success" alone proves nothing:
-
-| int16x8 reported flash | Verdict |
-|---|---|
-| ≈ **118 KB** (near the int8 file, 110.3 KB) | int16x8 genuinely supported — int8 weights kept |
-| ≈ **338 KB** (near the float32 file, 337.8 KB) | silently dequantized → float32; not a real int16x8 deployment |
-
-Until that check says otherwise, int16x8 stays an **offline accuracy bound
-only**; never quote it as a deployed configuration.
-
-**Danger:** on Cortex-M targets (our H7B3I-DK) an int16x8 file may be *ingested
-but silently dequantized to float32* (*"if an operator is not supported in
-integer, floating point version is used"*), producing a float model with **no
-int16 benefit**. A benchmark "success" there would be misleading, not a win.
-So: int16x8 stays an **offline accuracy result only**; never quote it as a
-deployed configuration.
+**Documented gap (now moot):** `versions.json` lists **4.0.1** as latest but no
+4.0.1-specific release note is published (served docs are 4.0.0-era; 4.0.1 looks
+like a patch, stm32 platform 12.0.0→12.0.1). So 4.0.1 adding int16x8 could not be
+*disproven* from docs alone — which is why the empirical check above was run. It
+was worth running: the docs were right, but only measurement could establish it.
 
 Accepted: float32 (Keras/.tflite/.onnx), full-integer **int8** TFLite
 (per-channel ss/sa, representative dataset), ONNX QDQ int8, and mixed
@@ -94,6 +117,11 @@ Core **4.0.1-20581**, platform STM32 MCU (tool 12.0.1), optimization
 | cls_tiny_float32 (ours, 8 k) | 91.30% | **0.7931** | 31,742 | 37,954 (37 KiB; weights 31.07 KiB + ~6 KiB lib) | 9,412 (8.91 KiB act + 288 B lib) |
 | lcr_best_float32 (ours, 117 k; regression) | MAE 0.2865 / RMSE 0.4466 | 14.06 | 860,407 | 474,522 (463 KiB; weights 453.83 KiB + ~10 KiB lib) | 20,772 (18.91 KiB act + ~1 KiB lib) |
 | lcl_best_float32 (ours, 106 k; regression) | MAE 0.3165 | 28.77 | 1,658,927 | 423,494 (414 KiB; weights 403.61 KiB + ~10 KiB lib) | 28,264 (26.46 KiB act + ~1 KiB lib) |
+| cls_best_**int8** (ours, 84 k) | 86.86% | **1.885** | 158,336 | 106,738 (104 KiB; weights 83.28 KiB + ~21 KiB lib) | 8,096 (6.05 KiB act + ~2 KiB lib) |
+| cls_best_**int16x8** (ours, 84 k) | — | 3.605 | 158,094 | 343,258 (335 KiB; weights 326.15 KiB + ~9 KiB lib) | 9,456 (8.42 KiB act + 832 B lib) |
+
+The last row is **not a real int16x8 deployment** — ST dequantized it to float32
+(see the section above). It is listed only as the evidence for that finding.
 
 ### Headline (same board, same Core version, same settings)
 
@@ -109,19 +137,89 @@ Two operating points, both measured on real hardware: *more accurate and 9×
 faster*, or *0.4 points lower and 42× faster in 37 KB with sub-millisecond
 inference*.
 
-### RAM is input-bound until a layer is wide enough
+### The int8 operating point, measured (cls_best)
 
-cls_best (84 k params) and cls_tiny (8 k) both land at ~9.2 KB RAM despite a 9×
-parameter gap. The reason is the input tensor itself: 50×31 float32 = **6.2 KB**,
-which no architecture can go below in FP32; activations add only ~2–3 KB on top.
-So for these models RAM is dominated by the input buffer, and the lever is the
-input data type — int8 input would cut that floor to 1.55 KB.
+| cls_best | float32 | int8 | ratio |
+|---|--:|--:|--:|
+| test accuracy | **92.08%** | 86.86% | **−5.2 pts** |
+| latency | 3.628 ms | **1.885 ms** | 1.9× faster |
+| flash | 343,254 B | **106,738 B** | 3.2× smaller |
+| RAM | 9,456 B | 8,096 B | 1.2× (see below) |
 
-`lcr_best` confirms the mechanism from the other side: it measures 20.8 KB
-because its first branch is a **wide 116-channel conv** whose output is
-25×116×4 B = 11.6 KB; peak working set ≈ input 6.2 KB + that 11.6 KB ≈ 17.8 KB,
-matching the 18.91 KiB reported. So RAM = max(input floor, widest layer's
-in+out). Width, not depth or parameter count, is what moves it.
+int8 buys 1.9× speed and 3.2× flash for **5.2 accuracy points** — a poor trade on
+this task's wide-dynamic-range inputs, which is why float32 remains our headline
+configuration (and matches the baseline's own FP32 methodology). Note the flash
+ratio is only 3.2×, not the naive 4×, because the int8 runtime library is larger
+(~21 KiB vs ~9 KiB) — a fixed cost that matters at this model size. RAM barely
+moves, for the interface reason explained below.
+
+### RAM: input floor, then layer width, then branch liveness
+
+Three regimes, each demonstrated by a different model.
+
+**1. Input-bound (the classifiers).** cls_best (84 k params) and cls_tiny (8 k)
+both land at ~9.2 KB RAM despite a 9× parameter gap. The 50×31 float32 input is
+**6.2 KB** by itself and no architecture can go below it in FP32; activations add
+only ~2–3 KB. The lever here is the input data type, not the model.
+
+**Tested, and the prediction failed — instructively.** We predicted int8
+quantization would cut the floor to 1.55 KB and drop RAM to ~3 KB. Measured:
+cls_best_int8 activations are **6.05 KiB (6,195 B)** — barely below float32's
+8.42 KiB, and suspiciously close to the 6,200 B float32 input buffer. That is the
+explanation: **our converter emits a float32 I/O interface** (`inference_input_type`
+left at default, verified in the flatbuffer — all three files take FLOAT32 in and
+out), so ST must still allocate a 6,200 B float32 input buffer and quantize
+internally. The int8 activations themselves are tiny; the arena is essentially
+just that one float32 buffer. The `conversion_0` op doing the float32→int8 input
+cast is visible in the per-layer time chart and is not cheap.
+
+So the input-floor rule is **confirmed, not refuted** — the floor simply never
+moved, because quantizing the *weights* does not quantize the *interface*.
+**Actionable:** setting `inference_input_type=tf.int8` /
+`inference_output_type=tf.int8` in `prepare_deploy.py` should cut the floor to
+1.55 KB and take int8 RAM to ~3 KB, and drop the `conversion_0` cast. Worth one
+re-export and one upload. → TODO in `paper/NOTES.md`.
+
+**2. Width-bound (`lcr_best`, 20.8 KB).** Its wide 116-channel conv emits
+25×116×4 B = 11.6 KB; peak ≈ input 6.2 + 11.6 ≈ 17.8 KB against 18.91 KiB
+reported. Width — not depth or parameter count — moves RAM.
+
+**3. Liveness-bound (`lcl_best`, 26.46 KiB).** Here the chain rule
+`max(input, widest layer in+out)` **fails**, and the reason is not the one that
+first suggests itself. The widest single activation is conv2d_1's 50×65×4 =
+13,000 B, giving a chain bound of 6,200 + 13,000 = 19,200 B — well under the
+measurement. But the obvious explanation ("the big branch tensors are all live
+at once") is **false**: live-range analysis of the TFLite graph shows conv2d_1's
+13,000 B output is live over ops [1,4] and conv2d_5's 12,000 B output over ops
+[5,8] — **disjoint**. conv2d_4 frees the first before conv2d_5 allocates the
+second. They are never co-resident.
+
+The real peak is 24,800 B at op 8, and it is made of *small* tensors pinned for
+a long time by the merge topology:
+
+```
+input        6,200 B  — live across all three branches (conv2d_1, conv2d_5, pool_10 all read it)
+conv2d_5 out 12,000 B — the branch currently executing
+conv2d_4 out  3,300 B — branch A's result, pinned until the Add at op 14
+conv2d_8 out  3,300 B — branch B's result, pinned until the Add at op 15
+             ------
+             24,800 B
+```
+
+So a DAG does cost more RAM than a chain (+5.6 KB here), but through **long-lived
+small tensors awaiting their merge**, not through wide tensors racing. The
+remaining ~1–2 KB up to the reported 26.46 KiB is allocator behaviour
+(offset-assignment fragmentation, alignment); it is **not derivable from the
+graph** and is recorded here as unexplained rather than assigned a mechanism.
+BatchNorm scratch is excluded — BN is folded into the convs.
+
+Revised rule: **peak RAM = max over the schedule of all simultaneously-live
+tensors.** For a chain that collapses to `max(input, widest in+out)`; for a DAG
+it does not.
+
+*Precision note:* do not quote "27,095 B". That is 26.46 × 1024 rounded back, and
+27,095 is not even a multiple of 4 — impossible for a float32 arena. ST's
+4-significant-digit display only constrains the true value to ≈27,090–27,100 B.
 
 This is why our RAM advantage (~4×) is far smaller than our flash advantage
 (5–47×).
@@ -130,25 +228,108 @@ This is why our RAM advantage (~4×) is far smaller than our flash advantage
 
 `unas/compute_footprint.py` predicted the reference CNN at flash 1728.6 KB,
 peak RAM 38.4 KB, MACs 1,936,192 — versus ST's measured 1729.4 KB, 38.25 KiB,
-1,965,360. Errors: **0.05% (flash), ~0.4% (RAM), 1.5% (MACC)**. The estimation
-method is therefore sound, which also lends confidence to the estimates for
-models not yet benchmarked.
+1,965,360. Errors: **0.05% (flash), ~0.4% (RAM), 1.5% (MACC)**. Flash has since
+reproduced to the byte on `lcl_best`: predicted 403.6 KiB vs measured 403.61 KiB
+(**0.00%**), across five models.
+
+**ST's MACC convention (resolves the residual ~1% MAC gap).** Our plain
+`out_elems × taps` count is consistently ~1% low. That gap is *not* BatchNorm or
+eltwise ops, as first assumed — **ST counts the bias accumulate as a MAC**.
+Using `out_elems × (taps + 1)` on lcl_best gives 1,658,985 against ST's measured
+1,658,927: **0.0035% (58 ops)**, versus −0.967% for the plain count. The
+estimator is therefore near-exact once the convention is matched.
+
+### Per-layer time tracks kernel path, not MACs (and it is an optimisation lead)
+
+MAC count does **not** rank per-layer cost on this target. The evidence is
+strong and comes from two independent models.
+
+**The inversion, at its most extreme (cls_best).** ST's `conv2d_5` — a depthwise
+conv carrying **1,209 MACs, 0.8% of the model** — is the **largest execution-time
+bar in the chart**. `conv2d_15`, with 41,503 MACs (26%), is a small bar. A layer
+with **34× fewer MACs is the slowest one**. (Op indices in the int16x8 chart are
++1 versus the float32 file, which has no leading QUANTIZE.)
+
+**The correlate.** In every model, the convs *lacking a fused ReLU* are the top
+time bars:
+
+| model | convs | no fused ReLU | top time bars |
+|---|--:|---|---|
+| lcl_best | 11 | conv2d_5, conv2d_18, conv2d_30 | conv2d_30, conv2d_5, conv2d_18 — **3/3** |
+| cls_best | 5 | conv2d_5 (op 4 in float32) | conv2d_5 — **1/1** |
+
+**4/4 across two models.** Within lcl_best alone, 3-of-11 landing exactly on the
+three no-ReLU convs has p = 1/C(11,3) ≈ 0.6%.
+
+**Shape-matched controls in both models** (these are what make it more than a
+correlation with size):
+- *lcl_best*: `conv2d_1` and `conv2d_5` read the **same input tensor**, both 1×1,
+  stride 1, 50 steps. conv2d_1 has **8.3% more MACs** (100,750 vs 93,000) yet is
+  a sliver; conv2d_5 is the second-largest bar. Only the fused ReLU differs.
+- *cls_best*: ops 11 and 12 are **also depthwise convs** with comparable MACs
+  (1,617 and 2,695 vs op 5's 1,209) and both are slivers. Same op type, same
+  scale, only the fusion differs.
+
+**Inferred mechanism (not confirmed).** These are the linear residual-projection
+convs (Keras `conv → BN` with no activation). After BN folding, ST appears unable
+to use its fused conv+ReLU kernel and falls back to a slower generic path. This
+is *inferred from the 4/4 correspondence*, not read from ST's kernel-selection
+log — state the correlation, do not assert causation.
+
+**Scope: this is a float32-path effect only.** The int8 build of the same
+cls_best model inverts the picture — `gemm_25` (43.4% of MACs) becomes the
+largest time bar and the no-ReLU `conv2d_5` shrinks to a small one, i.e. in int8
+**time tracks MACs well**. So the anomaly belongs to ST's float32 kernels, not to
+the architecture or the board. Plausibly the int8 path uses the well-optimised
+CMSIS-NN kernels while the float32 path does not. Any claim must be scoped to
+float32 deployment.
+
+**Why it matters.** In lcl_best those three layers hold the bulk of the time
+chart while accounting for only ~32% of MACs (529,410 / 1,642,891). If the
+fallback path is the cause, fusing or otherwise activating them could cut a large
+share of the 28.77 ms for free.
+
+**Open items before this goes in the paper:**
+1. Confirm whether the per-layer chart is measured on-board or ST's cost model.
+   If estimated, the claim weakens to "ST's cost model is not MAC-linear".
+2. Run the ablation: re-export one no-ReLU conv with a ReLU appended, shapes held
+   constant, and see whether its bar collapses. Cheap, decisive, turns a
+   correlation into a finding.
+
+Note also that pooling is expensive here (`pool_2` is cls_best's second-largest
+time bar despite zero MACs) — consistent with everything on this target being
+memory/overhead-bound at these tensor sizes rather than arithmetic-bound.
 
 ### Where the reference CNN spends its budget (per-layer, from the DC charts)
 
-- **Flash** is dominated by a single layer: `gemm_14` ≈ 1.64 MB of the 1.73 MB
-  total — the `Flatten(6400) → Dense(64)` head (64×6400 = 409.6 k of its 441 k
-  parameters). It flattens the whole 50×128 feature map instead of pooling it.
+- **Flash** is dominated by a single layer: `gemm_14` = 1,638,656 B of the
+  1,762,316 B of weights — **93.0%**, the `Flatten(6400) → Dense(64)` head
+  (64×6400 = 409.6 k of its 441 k parameters). It flattens the whole 50×128
+  feature map instead of pooling it.
 - **Latency**, by contrast, is dominated by the `eltwise` (BatchNorm mul/add
   over 50×128 tensors) and the convs; `gemm_14` costs almost no time despite
-  being ~95% of the flash. Flash-bound and time-bound layers are decoupled —
-  worth a sentence in the deployment discussion.
-- **Ours (cls_best) is also dense-dominated in flash** (`gemm_24` ≈ 280 KB of
-  343 KB, ~82%) — so the honest statement is *not* "we avoid a large FC" but:
-  the searched model **pools before the head** (`pool_18`), which shrinks the
-  FC input and makes its dense layer **~5.9× smaller** than the reference's
-  (280 KB vs 1.64 MB). Its runtime is spread across the convs/pools rather than
-  concentrated in one op.
+  being 93% of the flash. Flash-bound and time-bound layers are decoupled.
+- **Ours (cls_best) is also dense-dominated in flash** (`gemm_24` = 82.5% of
+  weights) — so the honest statement is *not* "we avoid a large FC" but: the
+  searched model **pools before the head** (`pool_18`), which shrinks the FC
+  input and makes its dense layer **~5.9× smaller** than the reference's
+  (280 KB vs 1.64 MB).
+
+**FC dominance falls as the search space is exploited** (share of weights held by
+the largest FC, all computed from the deployed `.tflite` files):
+
+| model | biggest-FC share | largest layer overall |
+|---|--:|---|
+| REF_cnn_multi | **93.0%** | that FC |
+| cls_tiny | 90.9% | that FC |
+| cls_noind | 90.3% | that FC |
+| cls_best | 82.5% | that FC |
+| lcr_best | 39.6% | that FC |
+| lcl_best | **11.4%** | `conv2d_30`, a **conv** (24.3%) |
+
+lcl_best is the only model whose flash is not FC-dominated at all. (Earlier drafts
+quoted "82–95%" for the classifiers and "~95%" for the reference; both were
+inflated — the true figures are 82.5–90.9% and 93.0%.)
 
 ## Benchmark plan (ST Edge AI Developer Cloud)
 

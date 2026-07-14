@@ -83,9 +83,42 @@ Two observations worth reporting:
 - **Task shapes topology.** The search space permits parallel branches for every
   task, but only regression used them; the classifiers stayed essentially
   sequential. Multi-path structure was discovered where it helped, not imposed.
-- **Flash is spread, not FC-dominated.** `gemm_37` (185 KB), `conv2d_22`
-  (145 KB) and `conv2d_1` (72 KB) together are ~85% of the 474 KB — a different
-  profile from the classifiers, where one FC held 82–95%.
+- **Flash is spread, not FC-dominated.** `gemm_37` (185 KB, 39.6% of weights),
+  `conv2d_22` (145 KB) and `conv2d_1` (72 KB) together are ~85% of the 474 KB —
+  a different profile from the classifiers, where one FC holds 82.5–90.9%.
+
+## Ours (`lcl_best`, 106 k params, MAE 0.317, 28.77 ms) — a three-branch DAG
+
+The most parallel model the search produced: the input fans out to **three**
+paths, merged by a single 3-way `Add` (which TFLite lowers to two binary Adds).
+
+```
+                ┌─ A: Conv1D 1×1 (31→65) + BN + ReLU → 50×65
+                │      → Conv1D(33, k=5, s2) + BN + ReLU → 25×33 ──┐
+                │                                                   │
+Input 50×31 ────┼─ B: Conv1D 1×1 (31→60) + BN  [no ReLU] → 50×60    ├─ Add → 25×33
+                │      → Conv1D(33, k=5, s2) + BN + ReLU → 25×33 ──┤
+                │                                                   │
+                └─ C: MaxPool1D → 25×31                             │
+                       → Conv1D(33, k=5) + BN + ReLU → 25×33 ──────┘
+  → Conv1D(86, k=3, s2) + BN  [no ReLU]  → 13×86
+  → Conv1D 1×1 (86→113) + BN + ReLU      → 13×113
+  → Conv1D 1×1 (113→116) + ReLU          → 13×116
+  → DWConv1D(k=3) + BN + ReLU            → 13×116
+  → Conv1D(72, k=3) + BN  [no ReLU]      → 13×72
+  → Conv1D 1×1 (72→60) + ReLU            → 13×60
+  → MaxPool1D(4) → 4×60 → Flatten(240) → FC(49) + ReLU → FC(1)
+```
+
+Decode verified two ways: our computed weights total **403.6 KiB against ST's
+measured 403.61 KiB (0.00%)**, and TFLite params 103,325 + 2,444 folded BatchNorm
+params (4 × 611 channels) = **105,769 exactly**.
+
+- **Flash is conv-dominated, uniquely.** `conv2d_30` (100,512 B, 24.3%) beats the
+  first FC (47,236 B, 11.4%). Every other model we have is FC-dominated.
+- **RAM is liveness-bound.** See deployment.md — the three-branch merge pins the
+  input plus two small branch outputs across many ops, which the chain rule
+  cannot express.
 
 ## What the search converges to (pattern across models)
 
@@ -94,10 +127,23 @@ All searched models independently adopt the same core moves:
    tiny model, 116→11 in the regression branch; expand 31→77 in cls_best);
 2. **depthwise convolutions** for temporal structure (cheap per-channel filters);
 3. **aggressive early downsampling** (50→25→7, 50→25→13→7→4, or 50→25→7→3→2);
-4. **a small flattened head** — 98, 184 or 308 features, versus the reference's
-   6400.
+4. **a small flattened head** — 98, 184, 240 or 308 features, versus the
+   reference's 6400.
 
-The regression model adds parallel branches on top of this recipe.
+**Task shapes topology.** The search space permits parallel branches for every
+task, yet only the regression models used them — and they used them in
+proportion to difficulty:
+
+| model | task | branches | merges | biggest-FC share of flash |
+|---|---|--:|--:|--:|
+| cls_tiny | 3-class | 1 (chain) | 0 | 90.9% |
+| cls_best | 3-class | 1 (+1 residual) | 1 | 82.5% |
+| lcr_best | TTLC regression | 2 | 1 | 39.6% |
+| lcl_best | TTLC regression | **3** | 2 (one 3-way) | **11.4%** |
+
+The classifiers stayed essentially sequential and FC-dominated; the regression
+models fanned out and shifted their budget into convolutions. Discovered, not
+imposed.
 
 ## RAM = max(input floor, widest layer)
 
