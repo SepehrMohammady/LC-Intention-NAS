@@ -121,9 +121,14 @@ any budget is penalised first. Budgets were set from the STM32H7B3I-DK.
 \todo{state population/sample sizes, rounds, and search cost.}
 
 \subsection{Discovered architecture}
-The search independently arrives at three microcontroller-friendly choices:
-depthwise-separable convolutions, a residual connection, and aggressive early
-downsampling. The classification model reduces the sequence $50 \rightarrow 25
+Across tasks the search independently arrives at the same microcontroller-friendly
+recipe: $1\times1$ convolutions to re-shape the channel dimension, depthwise
+convolutions for temporal structure, aggressive early downsampling, and a small
+flattened head (98--308 features against the reference's 6400). Topology,
+however, follows the task: the classifiers are essentially sequential, whereas
+the regression model uses two parallel branches merged by an addition---the
+search space permits branches everywhere, but only regression exploited them.
+The classification model reduces the sequence $50 \rightarrow 25
 \rightarrow 13 \rightarrow 7 \rightarrow 4$ before its head:
 
 \begin{center}\small
@@ -232,12 +237,16 @@ $50\times128$ map into 6400 features, giving a $64\times6400$ layer of 1.64~MB
 ($\sim$95\% of the model), whereas the searched models pool first and flatten
 only 308 (or 98) features.
 
-RAM behaves differently and is worth stating plainly: both searched models
+RAM behaves differently and is worth stating plainly. Both searched classifiers
 measure $\sim$9.2~KB regardless of a $9\times$ parameter gap, because the
-$50\times31$ float32 input tensor alone occupies 6.2~KB. On this task RAM is
-input-bound rather than model-bound, which is why the RAM advantage
-($\sim$4$\times$) is far smaller than the flash advantage, and why an int8
-input---not a smaller network---is the lever that would reduce it.
+$50\times31$ float32 input tensor alone occupies 6.2~KB and no architecture can
+go below it. The regression model instead measures 20.8~KB: its widest branch
+emits a $25\times116$ tensor of 11.6~KB, so the peak working set is that plus
+the input. Peak RAM is therefore $\max(\text{input tensor},\ \text{widest
+layer's in\,+\,out})$---set by layer width rather than depth or parameter
+count---which is why the RAM advantage ($\sim$4$\times$) is far smaller than the
+flash advantage, and why an int8 input, not a smaller network, is the lever that
+would reduce the floor.
 
 On quantization, the ST toolchain accepts only float32/int8/uint8 tensors. Full
 int8 shrinks the classifier to 110~KB but costs accuracy on these

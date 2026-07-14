@@ -57,23 +57,59 @@ Same recipe as `cls_best`, pushed harder: squeeze channels immediately with a
 pooling (50→25→7), and a small head flattening just 98 features. Its flash is
 again dominated by the first FC (`gemm_13`, 73×98 ≈ 28.6 KB of 37 KB).
 
+## Ours (`lcr_best`, 117 k params, MAE 0.287, 14.06 ms) — a two-branch DAG
+
+Unlike the classifiers, the regression model is **not a chain**: the input feeds
+two parallel branches that merge with `Add`.
+
+```
+                ┌─ Conv1D(116, k=5, s2) + BN + ReLU → 25×116
+                │    → Conv1D 1×1 (116→11) + BN + ReLU → 25×11
+                │    → MaxPool1D → 7×11 ─────────────────────────┐
+Input 50×31 ────┤                                                 ├─ Add → 7×11
+                └─ MaxPool1D → 25×31                              │
+                     → DWConv1D(k=5, s2) + ReLU → 13×31           │
+                     → Conv1D(11, k=5) + BN → 7×11 ───────────────┘
+  → Conv1D(95, k=5) + ReLU        → 7×95
+  → Conv1D(76, k=5) + BN + ReLU   → 7×76
+  → MaxPool1D                     → 3×76
+  → Conv1D 1×1 (92) + BN + ReLU   → 3×92
+  → MaxPool1D                     → 2×92
+  → Flatten(184) → FC(249) + ReLU → FC(1)
+```
+
+Two observations worth reporting:
+
+- **Task shapes topology.** The search space permits parallel branches for every
+  task, but only regression used them; the classifiers stayed essentially
+  sequential. Multi-path structure was discovered where it helped, not imposed.
+- **Flash is spread, not FC-dominated.** `gemm_37` (185 KB), `conv2d_22`
+  (145 KB) and `conv2d_1` (72 KB) together are ~85% of the 474 KB — a different
+  profile from the classifiers, where one FC held 82–95%.
+
 ## What the search converges to (pattern across models)
 
-Both searched classifiers independently adopt the same four moves:
+All searched models independently adopt the same core moves:
 1. **1×1 convolutions to re-shape the channel dimension** (squeeze 31→14 in the
-   tiny model; expand 31→77 in the larger one);
+   tiny model, 116→11 in the regression branch; expand 31→77 in cls_best);
 2. **depthwise convolutions** for temporal structure (cheap per-channel filters);
-3. **aggressive early downsampling** (50→25→7, or 50→25→13→7→4);
-4. **a small flattened head** — 98 or 308 features, versus the reference's 6400.
+3. **aggressive early downsampling** (50→25→7, 50→25→13→7→4, or 50→25→7→3→2);
+4. **a small flattened head** — 98, 184 or 308 features, versus the reference's
+   6400.
 
-## RAM is input-bound, not model-bound
+The regression model adds parallel branches on top of this recipe.
+
+## RAM = max(input floor, widest layer)
 
 `cls_best` (84 k) and `cls_tiny` (8 k) both measure ~9.2 KB RAM despite a 9×
 parameter gap: the 50×31 float32 input tensor is 6.2 KB by itself, a floor no
-architecture can beat in FP32; activations add only ~2–3 KB. RAM therefore moves
-with the input data type, not the model — int8 input would cut the floor to
-1.55 KB. This is why the RAM advantage (~4×) is far smaller than the flash
-advantage (5–47×).
+architecture can beat in FP32; activations add only ~2–3 KB.
+
+`lcr_best` shows the other regime: 20.8 KB, because its 116-channel branch emits
+25×116×4 B = 11.6 KB, so the peak working set ≈ 6.2 + 11.6 ≈ 17.8 KB (measured
+18.91 KiB). So RAM is set by **layer width**, not depth or parameter count, and
+is floored by the input tensor. int8 input would cut the floor to 1.55 KB. This
+is why the RAM advantage (~4×) is far smaller than the flash advantage (5–47×).
 
 ## Why ours is 5.2× smaller and 9.2× faster (quantified)
 

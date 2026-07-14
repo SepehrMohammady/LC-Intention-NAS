@@ -92,6 +92,7 @@ Core **4.0.1-20581**, platform STM32 MCU (tool 12.0.1), optimization
 | REF_cnn_multi_float32 (their reference CNN, 441 k) | 91.69% | 33.52 | 1,965,360 | 1,769,882 (1.69 MiB; weights 1.68 MiB + ~5 KiB lib) | 39,168 (38.25 KiB activations) |
 | cls_best_float32 (ours, 84 k) | **92.08%** | **3.628** | 158,094 | 343,254 (335 KiB; weights 326.15 KiB + ~9 KiB lib) | 9,456 (8.42 KiB act + 832 B lib) |
 | cls_tiny_float32 (ours, 8 k) | 91.30% | **0.7931** | 31,742 | 37,954 (37 KiB; weights 31.07 KiB + ~6 KiB lib) | 9,412 (8.91 KiB act + 288 B lib) |
+| lcr_best_float32 (ours, 117 k; regression) | MAE 0.2865 / RMSE 0.4466 | 14.06 | 860,407 | 474,522 (463 KiB; weights 453.83 KiB + ~10 KiB lib) | 20,772 (18.91 KiB act + ~1 KiB lib) |
 
 ### Headline (same board, same Core version, same settings)
 
@@ -107,15 +108,21 @@ Two operating points, both measured on real hardware: *more accurate and 9×
 faster*, or *0.4 points lower and 42× faster in 37 KB with sub-millisecond
 inference*.
 
-### RAM is input-bound, not model-bound (a floor worth reporting)
+### RAM is input-bound until a layer is wide enough
 
 cls_best (84 k params) and cls_tiny (8 k) both land at ~9.2 KB RAM despite a 9×
 parameter gap. The reason is the input tensor itself: 50×31 float32 = **6.2 KB**,
-which no architecture can go below in FP32. Activations add only ~2–3 KB on top.
-So on this task RAM is dominated by the input buffer, and the only way to move it
-is the input data type — int8 input would cut that floor to 1.55 KB. This is a
-concrete argument for int8 that has nothing to do with model size, and it
-explains why our RAM advantage (~4×) is much smaller than our flash advantage
+which no architecture can go below in FP32; activations add only ~2–3 KB on top.
+So for these models RAM is dominated by the input buffer, and the lever is the
+input data type — int8 input would cut that floor to 1.55 KB.
+
+`lcr_best` confirms the mechanism from the other side: it measures 20.8 KB
+because its first branch is a **wide 116-channel conv** whose output is
+25×116×4 B = 11.6 KB; peak working set ≈ input 6.2 KB + that 11.6 KB ≈ 17.8 KB,
+matching the 18.91 KiB reported. So RAM = max(input floor, widest layer's
+in+out). Width, not depth or parameter count, is what moves it.
+
+This is why our RAM advantage (~4×) is far smaller than our flash advantage
 (5–47×).
 
 ### Our offline estimates are validated by these measurements
