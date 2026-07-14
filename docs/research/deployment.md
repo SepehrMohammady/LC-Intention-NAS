@@ -2,21 +2,49 @@
 
 Updated 2026-07-14.
 
-## ⚠ Correction: int16x8 is NOT deployable on ST Edge AI
+## ⚠ int16x8 is (almost certainly) NOT deployable on ST Edge AI — verify empirically
 
-Our int16x8 quantization (which preserves accuracy — see nas-results.md) **cannot
-be deployed** with ST Edge AI Core / X-CUBE-AI / Developer Cloud. Verified from
-three independent sources:
+Our int16x8 quantization (which preserves accuracy — see nas-results.md) appears
+**not deployable** with ST Edge AI Core / X-CUBE-AI / Developer Cloud.
+Re-checked against the **currently served** docs on 2026-07-14 (not just the old
+forum post):
 
-- `supported_ops_tflite.html` (ST Edge AI Core 4.0), Common constraints:
-  *"data type for the weights/activations tensors must be: float32, int8, uint8"*
-  (bias int32 only).
+- The hosted docs under `stedgeai-dc.st.com/assets/embedded-docs/` return
+  `Last-Modified: Thu, 04 Jun 2026` — i.e. refreshed ~5 weeks ago — and still
+  self-identify as *"ST Edge AI Core Technology 4.0.0"* (`quantization.html`
+  rev r1.5).
 - `quantization.html`: *"ST Edge AI Core supports 8-bit integer-based (int8 or
-  uint8 data type) arithmetic"*; the article *"covers only the 8-bit
-  integer-based quantized model"*. Float16 quantization: not supported.
-- ST moderator (community.st.com, Sept 2025, X-CUBE-AI 10.2.0):
-  *"We do not support 16x8... it is not currently supported by the tool chain.
-  It is in the roadmap, but I would not expect to see it soon."*
+  uint8 data type) arithmetic for quantized tensors"*; TFLite table: activation
+  type `int8` (ss/sa), weight type `int8` (ss/sa); float16 "not supported".
+- `supported_ops_tflite.html`, Common constraints: *"data type for the
+  weights/activations tensors must be: float32, int8, uint8"* (bias int32 only).
+  The 12 `int16` hits are **only** on `SELECT`/`SELECT_V2` (element-wise
+  pass-through) — a red herring, not quantized CONV/FC kernels.
+- Full-text sweep of the **entire release-note history (v1.0.0 → v4.0.0)**:
+  `16x8` = **0 hits**, `int16` = **0 hits**. The only 16-bit entries are QKeras
+  fixed-point for the **ISPU** (sensor) target — unrelated to TFLite 16x8.
+- ST moderator (community.st.com): *"We do not support 16x8... not currently
+  supported by the tool chain"* (Sept 2025, X-CUBE-AI 10.2.0) and *"The support
+  for 16bits is in the roadmap but is not planned for at least next year"*
+  (2025-06-24). No 2026 post contradicts this.
+
+**Known gap:** `versions.json` lists **4.0.1** as latest but no 4.0.1-specific
+release note is published (served docs are 4.0.0-era; 4.0.1 looks like a patch,
+stm32 platform 12.0.0→12.0.1). So 4.0.1 adding int16x8 cannot be *disproven*
+from docs alone — hence the empirical check below.
+
+**Empirical test (do it — one upload, definitive).** Benchmark
+`cls_best_int16x8.tflite` on STM32H7B3I-DK and read the reported flash. ST
+silently dequantizes unsupported schemes (*"if an operator is not supported in
+integer, floating point version is used"*), so a "success" alone proves nothing:
+
+| int16x8 reported flash | Verdict |
+|---|---|
+| ≈ **118 KB** (near the int8 file, 110.3 KB) | int16x8 genuinely supported — int8 weights kept |
+| ≈ **338 KB** (near the float32 file, 337.8 KB) | silently dequantized → float32; not a real int16x8 deployment |
+
+Until that check says otherwise, int16x8 stays an **offline accuracy bound
+only**; never quote it as a deployed configuration.
 
 **Danger:** on Cortex-M targets (our H7B3I-DK) an int16x8 file may be *ingested
 but silently dequantized to float32* (*"if an operator is not supported in
