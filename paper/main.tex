@@ -164,19 +164,21 @@ MAE-primary framing.}
 \subsection{Deployment on STM32}
 Target platform: STM32H7B3I-DK discovery kit (Cortex-M7 at 280~MHz, 1.4~MB
 SRAM, 2~MB flash) — the same MCU family used by the baseline framework
-\cite{lcintention2026}, which deployed FP32 models only. We quantize with
-int16$\times$8 (int8 weights, int16 activations); on these wide-dynamic-range
-inputs full int8 degrades accuracy sharply, whereas int16$\times$8 preserves it
-(e.g.\ classification $92.08\% \rightarrow 92.15\%$, LCR MAE
-$0.287 \rightarrow 0.286$), so no quantization-aware training is needed.
+\cite{lcintention2026}, which deployed FP32 models only. We therefore compare in
+FP32, like for like: our classifier is $5.1\times$ smaller than the reference
+CNN (338~KB vs 1729~KB of weights) at higher accuracy (92.1\% vs 91.7\%), and a
+$46\times$ smaller 37~KB model still reaches 91.3\%.
 
-The resulting models are small: the classification model occupies 118~KB of
-flash with an estimated 4.5~KB peak activation RAM and 152~k MACs; a 19~KB
-variant still reaches 91.2\%. Every candidate fits even the low-end STM32F401
-(96~KB SRAM), on which the baseline's Transformer did not fit
-\cite{lcintention2026}.
-\todo{replace estimates with ST Edge AI's measured flash / peak SRAM / latency
-(Table~III comparison); see docs/research/deployment.md.}
+On quantization, the ST toolchain accepts only float32/int8/uint8 tensors. Full
+int8 shrinks the classifier to 110~KB but costs accuracy on these
+wide-dynamic-range inputs ($92.1\% \rightarrow 86.9\%$; LCR MAE
+$0.287 \rightarrow 0.449$). An int16$\times$8 scheme (int8 weights, int16
+activations) preserves accuracy almost exactly offline
+($92.1\% \rightarrow 92.2\%$; LCR MAE $0.287 \rightarrow 0.286$), but ST Edge AI
+does not support it \todo{cite ST doc/community}, so we report it as an
+offline bound rather than a deployed configuration.
+\todo{insert ST Edge AI measured latency / flash / peak SRAM per board
+(STM32H7B3I-DK and NUCLEO-F401RE); see docs/research/deployment.md.}
 
 \section{Conclusion}
 \todo{two or three sentences; no new claims.}
