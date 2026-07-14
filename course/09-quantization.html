@@ -21,11 +21,13 @@
   <p class="lede">وزن‌های مدل را از اعداد ۳۲ بیتی به اعداد ۸ بیتی تبدیل می‌کنیم: تقریباً چهار برابر کوچک‌تر و روی تراشه سریع‌تر — به شرطی که حواس‌مان به گردکردن باشد.</p>
 
   <div class="card callout">
-    <p class="card-title">وضعیت این مرحله ✅</p>
-    <p>این مرحله انجام شد! و یک درسِ واقعی به ما داد: <span class="en">int8</span>ِ ساده مدل‌های ما را
-    خراب کرد (چون سیگنال‌های ورودی مقیاس‌های خیلی متفاوتی دارند)، ولی روش <span class="en">int16×8</span>
-    (وزن‌ها ۸ بیت، فعال‌سازی‌ها ۱۶ بیت) دقت را تقریباً دست‌نخورده نگه داشت — حتی گاهی کمی بهتر.
-    عددهای واقعی پایین‌تر آمده‌اند.</p>
+    <p class="card-title">وضعیت این مرحله ✅ — با یک پیچِ داستانیِ واقعی</p>
+    <p>این مرحله انجام شد و <b>دو</b> درس واقعی داد. درس اول: <span class="en">int8</span>ِ ساده
+    دقت مدل‌های ما را می‌ریزد (سیگنال‌های ورودی مقیاس‌های خیلی متفاوتی دارند)، ولی
+    <span class="en">int16×8</span> (وزن‌ها ۸ بیت، فعال‌سازی‌ها ۱۶ بیت) دقت را دست‌نخورده نگه
+    می‌دارد. درس دوم — تلخ ولی مهم: وقتی فایل <span class="en">int16×8</span> را واقعاً به ابزار
+    <span class="en">ST</span> دادیم، معلوم شد <b>پشتیبانی نمی‌شود</b> و ابزار آن را
+    <b>بی‌سروصدا</b> به <span class="en">float32</span> برمی‌گرداند! جزئیات پایین‌تر.</p>
   </div>
 
   <div class="card">
@@ -36,10 +38,34 @@
         <tr><td>Classification (دقت)</td><td class="num">92.1%</td><td class="num">86.9% ✗</td><td class="num">92.1% ✓</td></tr>
         <tr><td>Regression LCR (خطا MAE)</td><td class="num">0.287</td><td class="num">0.449 ✗</td><td class="num">0.286 ✓</td></tr>
         <tr><td>بدون راهنما (دقت)</td><td class="num">91.1%</td><td class="num">76.1% ✗</td><td class="num">91.1% ✓</td></tr>
+        <tr><td><b>قابل استقرار با ابزار ST؟</b></td><td class="num">✓</td><td class="num">✓</td><td class="num"><b>✗ — بی‌صدا float32 می‌شود</b></td></tr>
       </tbody>
     </table>
     <p>درس: همیشه بعد از <span class="en">quantization</span> دقت را دوباره روی دادهٔ test اندازه بگیر —
-    اگر افت زیاد بود، سراغ <span class="en">int16×8</span> برو.</p>
+    و قبل از جشن گرفتن، مطمئن شو زنجیرهٔ ابزارِ مقصد واقعاً همان فرمت را اجرا می‌کند.</p>
+  </div>
+
+  <div class="card callout" style="border-right-color: var(--critical);">
+    <p class="card-title">🕵️ داستان کارآگاهی: ابزاری که بی‌صدا مدل را برمی‌گرداند</p>
+    <p>مستندات <span class="en">ST</span> می‌گفت فقط <span class="en">float32/int8/uint8</span>
+    پشتیبانی می‌شود، ولی سندها قدیمی بودند و ارزشش را داشت که با نسخهٔ جدید (<span class="en">4.0.1</span>)
+    عملاً آزمایش کنیم. یک آزمایش با جوابِ ازپیش‌تعریف‌شده طراحی کردیم — فایل
+    <span class="en">int16×8</span> ما <span class="en">118 KB</span> است و نسخهٔ
+    <span class="en">float32</span> همان مدل <span class="en">338 KB</span>؛ پس بعد از آپلود،
+    عددِ وزن‌های گزارش‌شده خودش قاضی است:</p>
+    <p style="direction:ltr;text-align:left"><code>weights &asymp; 118 KB &rarr; int16&times;8 really deployed ✓<br>weights &asymp; 326 KB &rarr; silently converted to float32 ✗</code></p>
+    <p>نتیجهٔ اندازه‌گیری: <b><span class="en">326.15 KiB</span></b> — دقیقاً هم‌اندازهٔ
+    <span class="en">float32</span>. یعنی ابزار فایل را «پذیرفت»، خطایی نداد، ولی وزن‌های ۸ بیتی را
+    دوباره ۳۲ بیتی کرد و طرح <span class="en">int16</span> را دور ریخت. (کنترل سالم: فایل
+    <span class="en">int8</span> واقعی همان‌جا <span class="en">83.28 KiB</span> گزارش شد — پس
+    روش اندازه‌گیری درست بود.) اگر ساده‌لوحانه <span class="en">benchmark</span> می‌گرفتیم، در
+    مقاله می‌نوشتیم «<span class="en">int16×8</span> با فلان سرعت اجرا شد» در حالی که در واقع
+    <span class="en">float32</span> اجرا شده بود — یک عدد جعلی، بدون اینکه دروغ گفته باشیم!</p>
+    <p>💡 درس بزرگ: <b>«خطا نداد» با «کار کرد» فرق دارد.</b> ابزارها گاهی ورودیِ پشتیبانی‌نشده را
+    بی‌صدا به چیز دیگری تبدیل می‌کنند؛ آزمایشِ خوب آزمایشی است که جوابش از قبل دو حالتِ
+    قابل‌تشخیص داشته باشد. پس: <span class="en">int16×8</span> برای ما فقط یک «حدِ دقتِ آفلاین»
+    است و هرگز به‌عنوان پیکربندیِ مستقرشده گزارش نمی‌شود؛ استقرار اصلی مقاله با
+    <span class="en">float32</span> است (همان روش مقالهٔ مرجع — مقایسهٔ منصفانه).</p>
   </div>
 
   <div class="card callout story">
@@ -81,11 +107,11 @@
 
       <!-- ===== float32 line (top) ===== -->
       <text x="60" y="30" text-anchor="start" fill="var(--series-1)" font-size="13" font-weight="700" direction="ltr" font-family="ui-monospace, Consolas, monospace">float32 (32-bit)</text>
-      <text x="660" y="30" text-anchor="end" fill="var(--ink-2)" font-size="12.5">پیوسته — بین هر دو عدد باز هم عدد هست</text>
+      <text x="445" y="30" text-anchor="middle" fill="var(--ink-2)" font-size="12.5">پیوسته — بین هر دو عدد باز هم عدد هست</text>
       <line x1="60" y1="70" x2="660" y2="70" stroke="var(--muted)" stroke-width="12" stroke-dasharray="1 4" opacity="0.5"/>
       <rect x="60" y="68.5" width="600" height="3" fill="url(#f32grad)"/>
-      <text x="60" y="97" text-anchor="start" fill="var(--muted)" font-size="11.5">کوچک‌ترین عدد</text>
-      <text x="660" y="97" text-anchor="end" fill="var(--muted)" font-size="11.5">بزرگ‌ترین عدد</text>
+      <text x="110" y="97" text-anchor="middle" fill="var(--muted)" font-size="11.5">کوچک‌ترین عدد</text>
+      <text x="612" y="97" text-anchor="middle" fill="var(--muted)" font-size="11.5">بزرگ‌ترین عدد</text>
       <!-- real zero on the float line -->
       <circle cx="290" cy="70" r="4.5" fill="var(--ink)"/>
       <text x="290" y="52" text-anchor="middle" fill="var(--ink)" font-size="12.5" font-weight="700" direction="ltr" font-family="ui-monospace, Consolas, monospace">0</text>
@@ -95,11 +121,11 @@
       <!-- ===== mapping arrows ===== -->
       <line x1="290" y1="80" x2="291.5" y2="194" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="4 4" marker-end="url(#arr-q)"/>
       <line x1="470" y1="80" x2="475.5" y2="194" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="4 4" marker-end="url(#arr-q)"/>
-      <text x="575" y="140" text-anchor="middle" fill="var(--ink-2)" font-size="12">هر عدد به نزدیک‌ترین پله گرد می‌شود</text>
+      <text x="555" y="140" text-anchor="middle" fill="var(--ink-2)" font-size="12">هر عدد به نزدیک‌ترین پله گرد می‌شود</text>
 
       <!-- ===== int8 line (bottom) ===== -->
       <text x="60" y="172" text-anchor="start" fill="var(--series-2)" font-size="13" font-weight="700" direction="ltr" font-family="ui-monospace, Consolas, monospace">int8 (8-bit)</text>
-      <text x="660" y="172" text-anchor="end" fill="var(--ink-2)" font-size="12.5">گسسته — فقط ۲۵۶ پله</text>
+      <text x="530" y="172" text-anchor="middle" fill="var(--ink-2)" font-size="12.5">گسسته — فقط ۲۵۶ پله</text>
       <line x1="60" y1="210" x2="660" y2="210" stroke="var(--series-2)" stroke-width="2" opacity="0.45"/>
       <line x1="60" y1="210" x2="661" y2="210" stroke="var(--series-2)" stroke-width="20" stroke-dasharray="3 43"/>
       <text x="61.5" y="243" text-anchor="middle" fill="var(--muted)" font-size="12" direction="ltr" font-family="ui-monospace, Consolas, monospace">-128</text>
@@ -169,8 +195,13 @@
   </table>
   <p>در <span class="en">QAT</span> شبکه انگار از قبل می‌داند که قرار است با خط‌کش درشت
   اندازه‌گیری شود، پس وزن‌هایش را طوری تنظیم می‌کند که بعد از گردکردن هم جواب خوب بماند.
-  چون ما می‌خواهیم نتیجهٔ رکوردشکن‌مان بعد از کوچک‌شدن هم رکوردشکن بماند،
-  برنامهٔ ما <span class="en">QAT</span> است.</p>
+  در عمل، فایل‌های استقرار ما با <span class="en">PTQ</span> ساخته شدند (سریع، با چند صد
+  پنجرهٔ واقعی برای <span class="en">calibration</span>) — و چون حتی
+  <span class="en">int8</span>ِ خوش‌ساخت هم روی این داده دقت را می‌ریزد و
+  <span class="en">int16×8</span> قابل استقرار نیست، پیکربندی اصلی مقاله همان
+  <span class="en">float32</span> ماند. <span class="en">QAT</span> گزینهٔ آینده برای
+  جبرانِ افتِ <span class="en">int8</span> است، اگر روزی نقطهٔ عملیاتی
+  <span class="en">int8</span> را لازم داشته باشیم.</p>
 
   <h2>در پروژهٔ ما 🧰</h2>
   <figure class="viz">
@@ -186,30 +217,33 @@
       <text x="600" y="105" text-anchor="middle" fill="var(--ink-2)" font-size="12" direction="ltr" font-family="ui-monospace, Consolas, monospace">float32</text>
       <!-- arrow -->
       <line x1="520" y1="85" x2="466" y2="85" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr-p)"/>
-      <!-- middle: QAT -->
+      <!-- middle: PTQ -->
       <rect x="278" y="45" width="184" height="80" rx="12" fill="none" stroke="var(--series-2)" stroke-width="2.5"/>
-      <text x="370" y="74" text-anchor="middle" fill="var(--ink)" font-size="15" font-weight="800" direction="ltr" font-family="ui-monospace, Consolas, monospace">QAT</text>
-      <text x="370" y="96" text-anchor="middle" fill="var(--ink-2)" font-size="11.5">آموزش کوتاه با شبیه‌سازی گردکردن</text>
-      <text x="370" y="114" text-anchor="middle" fill="var(--ink-2)" font-size="11.5">تا مدل به int8 عادت کند</text>
+      <text x="370" y="74" text-anchor="middle" fill="var(--ink)" font-size="15" font-weight="800" direction="ltr" font-family="ui-monospace, Consolas, monospace">PTQ</text>
+      <text x="370" y="96" text-anchor="middle" fill="var(--ink-2)" font-size="11.5">گردکردن پس از آموزش، با</text>
+      <text x="370" y="114" text-anchor="middle" fill="var(--ink-2)" font-size="11.5">چند صد پنجرهٔ واقعی (calibration)</text>
       <!-- arrow -->
       <line x1="278" y1="85" x2="224" y2="85" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr-p)"/>
-      <!-- left: INT8 TFLite -->
+      <!-- left: TFLite outputs -->
       <rect x="64" y="45" width="160" height="80" rx="12" fill="none" stroke="var(--series-1)" stroke-width="2.5"/>
-      <text x="144" y="80" text-anchor="middle" fill="var(--ink)" font-size="14" font-weight="800" direction="ltr" font-family="ui-monospace, Consolas, monospace">INT8 TFLite</text>
-      <text x="144" y="105" text-anchor="middle" fill="var(--ink-2)" font-size="11.5">فایل نهایی، آمادهٔ بورد</text>
+      <text x="144" y="74" text-anchor="middle" fill="var(--ink)" font-size="12.5" font-weight="800" direction="ltr" font-family="ui-monospace, Consolas, monospace">float32 + int8</text>
+      <text x="144" y="96" text-anchor="middle" fill="var(--ink)" font-size="12.5" font-weight="800" direction="ltr" font-family="ui-monospace, Consolas, monospace">TFLite</text>
+      <text x="144" y="116" text-anchor="middle" fill="var(--ink-2)" font-size="11">دو فایل نهایی، آمادهٔ بورد</text>
     </svg>
-    <figcaption>شکل ۲ — خط تولید ما: مدل برندهٔ <span class="en">NAS</span> یک <span class="en">QAT fine-tune</span> کوتاه می‌گیرد و خروجی، فایل <span class="en">INT8 TFLite</span> است.</figcaption>
+    <figcaption>شکل ۲ — خط تولید ما: از مدل برندهٔ <span class="en">NAS</span> با <span class="en">PTQ</span> دو خروجی می‌سازیم — <span class="en">float32</span> (پیکربندی اصلی، دقتِ کامل) و <span class="en">int8</span> (نقطهٔ عملیاتیِ کوچک‌وسریع).</figcaption>
   </figure>
 
   <div class="card">
-    <p>• برنامه: هر مدل برندهٔ <span class="en">NAS</span> یک <span class="en">QAT fine-tune</span>
-    کوتاه می‌گیرد و خروجی، یک فایل <span class="en">INT8 TFLite</span> می‌شود.<br>
-    • جالب اینکه <span class="en">µNAS</span> از همین الان اندازهٔ مدل را برحسب بایت‌های
-    <span class="en">int8</span> حساب می‌کند (سقف ما: <span class="en">256 KB</span>) —
-    یعنی جست‌وجو از اول با فرض <span class="en">quantization</span> انجام می‌شود.<br>
-    • برای <span class="en">calibration</span> از چند صد پنجرهٔ واقعی خود دیتاست استفاده می‌کنیم.<br>
-    • فایل <span class="en">TFLite</span> بعداً به ابزار <span class="en">ST Edge AI</span> داده
-    می‌شود تا حافظه و سرعت واقعی روی بورد سنجیده شود — این داستانِ درس بعدی است.</p>
+    <p>• از هر مدل برندهٔ <span class="en">NAS</span> دو فایل <span class="en">TFLite</span>
+    می‌سازیم: <span class="en">float32</span> (پیکربندی اصلی مقاله — همان روش استقرار مقالهٔ مرجع)
+    و <span class="en">int8</span> با <span class="en">PTQ</span> (نقطهٔ عملیاتی کوچک‌تر/سریع‌تر،
+    با افت دقتِ اندازه‌گیری‌شده).<br>
+    • جالب اینکه <span class="en">µNAS</span> از همان اول اندازهٔ مدل را برحسب بایت‌های
+    <span class="en">int8</span> حساب می‌کرد (سقف ما: <span class="en">256 KB</span>) —
+    یعنی جست‌وجو با فرض <span class="en">quantization</span> انجام شد.<br>
+    • برای <span class="en">calibration</span> از چند صد پنجرهٔ واقعی خود دیتاست استفاده کردیم.<br>
+    • فایل‌های <span class="en">TFLite</span> به ابزار <span class="en">ST Edge AI</span> داده شدند
+    و حافظه و سرعت واقعی روی بورد اندازه‌گیری شد — عددهای کامل در درس بعدی!</p>
   </div>
 
   <div class="card callout">
@@ -228,22 +262,22 @@
   <div id="quiz" class="quiz"></div>
   <script type="application/json" id="quiz-data">
   [
-    {"stem": "چرا int8 حجم مدل را تقریباً چهار برابر کوچک می‌کند؟",
-     "options": ["چون تعداد weightها یک‌چهارم می‌شود", "چون هر weight به‌جای ۳۲ بیت فقط ۸ بیت جا می‌گیرد", "چون لایه‌های اضافی مدل حذف می‌شوند"],
+    {"stem": "وزن‌های یک لایه بین −2 و +2 پخش‌اند ولی یک وزنِ تکی برابر 100 است. اگر بازهٔ int8 را [−100, 100] بگیریم چه بلایی سر بقیهٔ وزن‌ها می‌آید؟",
+     "options": ["هیچ اتفاقی؛ الگوریتم نگاشت برای هر وزن جداگانه scale تعیین می‌کند و همه با دقت قبلی ذخیره می‌شوند", "اندازهٔ هر پله حدود 0.78 می‌شود و کل جمعیتِ [−2,+2] فقط در ۵ پله می‌چپد و له می‌شود", "وزن پرت 100 به‌طور خودکار از شبکه حذف می‌شود و بقیهٔ وزن‌ها بازهٔ تمیزِ خودشان را نگه می‌دارند", "کتابخانهٔ تبدیل، وقتی چنین وزن پرتی ببیند، آن لایه را به‌طور خودکار به int16 ارتقا می‌دهد تا دقت حفظ شود"],
      "answer": 1,
-     "explain": "تعداد weightها همان می‌ماند؛ فقط جای هر کدام از ۳۲ بیت به ۸ بیت می‌رسد (۳۲ ÷ ۸ = ۴). یک هدیهٔ دوم هم هست: microcontroller حساب با اعداد صحیح را سریع‌تر از اعشاری انجام می‌دهد."},
-    {"stem": "scale و zero-point در این نگاشت چه‌کاره‌اند؟",
-     "options": ["scale سرعت مدل را تعیین می‌کند و zero-point تعداد لایه‌ها را", "scale اندازهٔ هر پله است و zero-point می‌گوید کدام پله نقش صفر را دارد", "هر دو فقط برای فشرده‌سازی فایل روی دیسک‌اند و در حساب مدل نقشی ندارند"],
-     "answer": 1,
-     "explain": "بازهٔ اعداد واقعی به ۲۵۶ پلهٔ مساوی تقسیم می‌شود: عدد واقعی ≈ scale × (کد int8 − zero-point). scale اندازهٔ یک پله است و zero-point جای صفر — که لزوماً وسط بازه نیست."},
-    {"stem": "چرا برای quantization به چند صد نمونهٔ واقعی نیاز داریم (calibration)؟",
-     "options": ["برای اینکه مدل از صفر دوباره آموزش ببیند", "برای اندازه‌گیری سرعت مدل روی بورد", "برای اینکه بفهمیم اعداد هر لایه واقعاً در چه بازه‌ای می‌افتند تا پله‌ها را درست بچینیم"],
-     "answer": 2,
-     "explain": "خروجی‌های میانی لایه‌ها به ورودی بستگی دارند؛ با عبور دادن چند صد نمونهٔ واقعی، بازهٔ معمولِ هر لایه را می‌بینیم. بازهٔ غلط یعنی یا پله‌های هدررفته یا اعدادی که از خط‌کش بیرون می‌زنند و بریده می‌شوند."},
-    {"stem": "فرق QAT با PTQ چیست و چرا ما QAT را انتخاب کرده‌ایم؟",
-     "options": ["QAT در یک آموزش کوتاه، گردکردن را شبیه‌سازی می‌کند تا شبکه با آن کنار بیاید و دقت بهتر حفظ شود", "QAT مدل را بدون هیچ آموزشی گرد می‌کند و PTQ با آموزش کامل از صفر", "فرقی ندارند؛ فقط اسم‌شان فرق دارد"],
+     "explain": "scale = بازه ÷ ۲۵۶ = 200/256 ≈ 0.78. وقتی پله ۰٫۷۸ باشد، فاصلهٔ −2 تا +2 فقط ۵-۶ پله دارد؛ یعنی صدها وزنِ متفاوت به ۵ مقدار گرد می‌شوند. این دقیقاً دردِ دادهٔ ماست: سیگنال‌هایی با دامنهٔ خیلی متفاوت، بازه را می‌کِشند و دقت int8 می‌ریزد — همان چیزی که در جدول (92.1→86.9) دیدیم."},
+    {"stem": "چرا برای calibration از پنجره‌های واقعی خود دیتاست استفاده می‌کنیم، نه اعداد تصادفی؟",
+     "options": ["چون بازهٔ activationهای هر لایه به توزیع ورودی واقعی بستگی دارد؛ ورودی تصادفی پله‌ها را جای غلط می‌چیند", "چون ابزار تبدیل TFLite ورودی calibration را فقط با ساختار و نوع دادهٔ خود دیتاست (pickle) می‌پذیرد", "برای اینکه وزن‌های مدل حین calibration یک دور تنظیم دقیق (fine-tune) کوتاه هم روی دادهٔ واقعی ببینند", "چون با نمونه‌های واقعی می‌شود دقت مدل کوانتیزه را همان‌جا سنجید و از افت آن پیش از استقرار مطلع شد"],
      "answer": 0,
-     "explain": "PTQ بعد از آموزش یک‌جا گرد می‌کند: سریع است ولی گاهی دقت کمی افت می‌کند. در QAT شبکه هنگام آموزشِ کوتاهِ دوباره، گردکردنِ شبیه‌سازی‌شده را می‌بیند و خودش را با آن تنظیم می‌کند؛ چون می‌خواهیم نتیجهٔ رکوردشکن‌مان بعد از کوچک‌شدن هم خوب بماند، برنامهٔ ما QAT است."}
+     "explain": "calibration یعنی «ببینیم اعداد هر لایه در عمل کجا می‌افتند». اگر به‌جای رانندگیِ واقعی، نویز تصادفی رد کنیم، لایه‌ها فعال‌سازی‌هایی با بازهٔ کاملاً متفاوت تولید می‌کنند و scale/zero-point برای دنیای واقعی غلط تنظیم می‌شود. calibration آموزش نیست — وزن‌ها دست نمی‌خورند."},
+    {"stem": "آزمایش int16×8 روی ابزار ST چگونه طراحی شده بود که جوابش قابل‌جعل نباشد؟",
+     "options": ["ملاک، پیغام خطا بود: اگر ابزار فایل را بدون خطا بپذیرد و مرحلهٔ optimize کامل شود، یعنی پشتیبانی واقعی وجود دارد", "دو حالت ممکن از قبل عدد متفاوتی داشتند: وزن‌ها یا ~118KB (پشتیبانی واقعی) یا ~326KB (تبدیل بی‌صدا) — و 326.15KiB گزارش شد", "دقت مدل را قبل و بعد از آپلود مقایسه کردیم؛ اگر دقت دست‌نخورده می‌ماند، یعنی همان فرمت int16×8 اجرا شده است", "زمان اجرا را اندازه گرفتیم؛ int16×8 طبق تعریف باید دقیقاً نصف زمان float32 می‌شد و هر انحرافی یعنی تبدیل"],
+     "answer": 1,
+     "explain": "کلید طراحی، پیش‌بینیِ دو خروجیِ قابل‌تشخیص قبل از آزمایش بود. «خطا نداد» هیچ‌چیز ثابت نمی‌کند چون ابزار ورودیِ پشتیبانی‌نشده را بی‌صدا تبدیل می‌کند؛ دقتِ خروجی هم تقریباً همان می‌ماند (چون float32 دقیق‌تر است!). فقط حجم وزن‌ها دروغ نمی‌گوید — و فایل int8 به‌عنوان کنترل نشان داد روش اندازه‌گیری سالم است."},
+    {"stem": "با اینکه int16×8 دقت را کامل حفظ می‌کند، پیکربندی نهایی مقاله float32 شد. بهترین توجیه کدام است؟",
+     "options": ["چون پردازنده‌های Cortex-M واحد float سخت‌افزاری دارند و float32 روی آن‌ها همیشه از هر فرمت صحیحی سریع‌تر اجرا می‌شود", "چون فایل float32 پس از فشرده‌سازیِ زنجیرهٔ ابزار، در عمل از فایل int16×8 کوچک‌تر درمی‌آید و در flash جای کمتری می‌گیرد", "ابزار ST نمی‌تواند int16×8 را واقعاً مستقر کند و int8 هم ۵ واحد دقت می‌ریزد؛ float32 دقت کامل و مقایسهٔ منصفانه می‌دهد", "چون سیاست داوری مجله‌های Q1، گزارش نتایج مدل‌های کوانتیزه را بدون تأیید سازندهٔ تراشه مجاز نمی‌داند"],
+     "answer": 2,
+     "explain": "گزینهٔ عملیِ روی میز فقط float32 و int8 است. int8 روی این داده گران تمام می‌شود (92.1→86.9) و int16×8 قابل استقرار نیست — پس دقت‌محورترین انتخابِ واقعاً مستقرشدنی float32 است؛ ضمن اینکه مقالهٔ مرجع هم با float32 مستقر کرده بود، پس مقایسه سیب-با-سیب می‌ماند. int8 را هم به‌عنوان نقطهٔ عملیاتیِ اندازه‌گیری‌شده کنارش گزارش می‌کنیم."}
   ]
   </script>
 

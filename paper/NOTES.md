@@ -129,3 +129,12 @@ articles the team shared). Run every draft section against it.
 - [x] `cls_tiny_float32` on **NUCLEO-F401RE**: 4.376 ms @ 84 MHz, 7.2% of flash.
       **Reference CNN does not fit the F401 at all** (1729 KB vs 512 KB, 3.38×
       over) — categorical result, now in the paper.
+- [ ] Spike provenance: colleague says crash-heavy drivers were kept
+      (users 34/43); DMIR Test Reports.xlsx corroborates User34 (4 collisions +
+      2 accidents) and User1 (5+1), NOT User43 (0/0). Ask whether User1/34 are
+      in the official test split — would settle the test-only-spike hypothesis.
+      Paper keeps neutral "division-by-near-zero" wording until then.
+- [ ] Optional robustness add-on: driver-wise k-fold CV of the **final** models
+      (not the search) to show insensitivity to the specific 7-driver test
+      choice. Cheap (~7 retrainings per task); would preempt a likely reviewer
+      question about the small driver count.

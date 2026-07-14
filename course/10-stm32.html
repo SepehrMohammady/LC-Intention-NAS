@@ -45,8 +45,8 @@
       <div class="label">سرعت پردازنده (<span class="en">Cortex-M7</span>)</div>
     </div>
     <div class="tile">
-      <div class="value">1.4 MB</div>
-      <div class="label">حافظهٔ <span class="en">SRAM</span> (حافظهٔ کاری)</div>
+      <div class="value">1184 KB</div>
+      <div class="label">حافظهٔ <span class="en">SRAM</span> داخلی (حافظهٔ کاری)</div>
     </div>
     <div class="tile">
       <div class="value">2 MB</div>
@@ -86,14 +86,14 @@
         </marker>
       </defs>
       <!-- A: trained model -->
-      <rect x="612" y="85" width="98" height="70" rx="12" fill="none" stroke="var(--series-2)" stroke-width="2"/>
-      <text x="661" y="113" text-anchor="middle" fill="var(--ink)" font-size="13" font-weight="700">مدل آموزش‌دیده</text>
-      <text x="661" y="137" text-anchor="middle" fill="var(--ink-2)" font-size="11.5" direction="ltr" font-family="ui-monospace, Consolas, monospace">float32</text>
-      <line x1="612" y1="120" x2="592" y2="120" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr-p)"/>
-      <!-- B: INT8 TFLite -->
+      <rect x="600" y="85" width="114" height="70" rx="12" fill="none" stroke="var(--series-2)" stroke-width="2"/>
+      <text x="657" y="113" text-anchor="middle" fill="var(--ink)" font-size="12" font-weight="700">مدل آموزش‌دیده</text>
+      <text x="657" y="137" text-anchor="middle" fill="var(--ink-2)" font-size="11.5" direction="ltr" font-family="ui-monospace, Consolas, monospace">float32</text>
+      <line x1="600" y1="120" x2="592" y2="120" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr-p)"/>
+      <!-- B: TFLite files -->
       <rect x="487" y="85" width="105" height="70" rx="12" fill="none" stroke="var(--series-1)" stroke-width="2"/>
-      <text x="539" y="113" text-anchor="middle" fill="var(--ink)" font-size="12.5" font-weight="700" direction="ltr" font-family="ui-monospace, Consolas, monospace">INT8 TFLite</text>
-      <text x="539" y="137" text-anchor="middle" fill="var(--ink-2)" font-size="11">حدود ۴ برابر کوچک‌تر</text>
+      <text x="539" y="110" text-anchor="middle" fill="var(--ink)" font-size="12.5" font-weight="700" direction="ltr" font-family="ui-monospace, Consolas, monospace">TFLite</text>
+      <text x="539" y="132" text-anchor="middle" fill="var(--ink-2)" font-size="10.5" direction="ltr" font-family="ui-monospace, Consolas, monospace">float32 / int8</text>
       <text x="539" y="174" text-anchor="middle" fill="var(--muted)" font-size="11">خروجی درس ۰۹</text>
       <line x1="487" y1="120" x2="467" y2="120" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr-p)"/>
       <!-- C: stedgeai analyze + report icon -->
@@ -127,8 +127,8 @@
       <text x="229" y="190" text-anchor="middle" fill="var(--ink-2)" font-size="11">بورد واقعی (Developer Cloud)</text>
       <line x1="172" y1="120" x2="152" y2="120" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr-p)"/>
       <!-- E: latency -->
-      <text x="145" y="114" text-anchor="end" fill="var(--ink)" font-size="13" font-weight="700" direction="ltr" font-family="ui-monospace, Consolas, monospace">latency</text>
-      <text x="145" y="136" text-anchor="end" fill="var(--ink-2)" font-size="11.5">زمان اجرا (ms)</text>
+      <text x="105" y="114" text-anchor="middle" fill="var(--ink)" font-size="13" font-weight="700" direction="ltr" font-family="ui-monospace, Consolas, monospace">latency</text>
+      <text x="105" y="136" text-anchor="middle" fill="var(--ink-2)" font-size="11.5">زمان اجرا (ms)</text>
     </svg>
     <figcaption>شکل ۱ — خط لولهٔ استقرار: مدل آموزش‌دیده ← فایل <span class="en">INT8 TFLite</span> ← گزارش <span class="en">stedgeai analyze</span> (بدون سخت‌افزار) ← اجرا روی بورد <span class="en">STM32</span> و اندازه‌گیری <span class="en">latency</span> واقعی.</figcaption>
   </figure>
@@ -197,50 +197,68 @@
   </div>
 
   <div class="card callout">
-    <p class="card-title">وضعیت این مرحله 🚦</p>
-    <p>مدل‌های آمادهٔ استقرار (فایل‌های <span class="en">int16×8 TFLite</span>) ساخته شده‌اند و
-    اندازه‌شان را حساب کرده‌ایم. تنها چیزی که مانده اندازه‌گیریِ <b>سرعت واقعی روی بورد</b>
-    (<span class="en">latency</span>) است که به حساب کاربریِ <span class="en">ST</span> نیاز دارد
-    (<span class="en">ST Edge AI Developer Cloud</span>). اعداد <span class="en">flash</span> و
-    <span class="en">RAM</span> برآوردیِ زیر با ابزار <span class="en">ST</span> نهایی می‌شوند.</p>
+    <p class="card-title">وضعیت این مرحله ✅ — همه‌چیز اندازه‌گیری شد!</p>
+    <p>این جدول دیگر برآورد نیست: همهٔ عددها روی بورد واقعی
+    <span class="en">STM32H7B3I-DK</span> از طریق
+    <span class="en">ST Edge AI Developer Cloud</span> (نسخهٔ <span class="en">4.0.1</span>،
+    بهینه‌سازی <span class="en">balanced</span>، فرمت <span class="en">float32</span> —
+    همان روش مقالهٔ مرجع) اندازه‌گیری شده‌اند. مدل مرجعِ ۴۴۱هزار پارامتری تیم را هم با
+    <b>همان تنظیمات</b> سنجیدیم تا مقایسه سیب-با-سیب باشد:</p>
+    <table>
+      <thead><tr><th>مدل (float32)</th><th class="num">کیفیت</th><th class="num">latency</th><th class="num">flash</th><th class="num">RAM</th></tr></thead>
+      <tbody>
+        <tr><td>مدل مرجع (441k)</td><td class="num">91.69%</td><td class="num">33.52 ms</td><td class="num">1729 KB</td><td class="num">38.3 KB</td></tr>
+        <tr><td><b>Classification ما (84k)</b></td><td class="num"><b>92.08%</b></td><td class="num"><b>3.63 ms</b></td><td class="num"><b>335 KB</b></td><td class="num">9.2 KB</td></tr>
+        <tr><td>Classification ریزِ ما (8k)</td><td class="num">91.30%</td><td class="num"><b>0.79 ms</b></td><td class="num"><b>37 KB</b></td><td class="num">9.2 KB</td></tr>
+        <tr><td>Regression LCR ما (117k)</td><td class="num">MAE 0.287</td><td class="num">14.06 ms</td><td class="num">463 KB</td><td class="num">20.3 KB</td></tr>
+        <tr><td>Regression LCL ما (106k)</td><td class="num">MAE 0.317</td><td class="num">28.77 ms</td><td class="num">414 KB</td><td class="num">27.6 KB</td></tr>
+      </tbody>
+    </table>
+    <p>ترجمه‌اش: مدل ما هم‌زمان <b>دقیق‌تر</b> (۹۲٫۰۸ در برابر ۹۱٫۶۹)،
+    <b><span class="en">9.2×</span> سریع‌تر</b> و <b><span class="en">5.2×</span> کوچک‌تر</b> از
+    مدل مرجع است؛ و نسخهٔ ریز با <b>کمتر از یک میلی‌ثانیه</b>، <span class="en">42×</span>
+    سریع‌تر است و فقط ۰٫۴ واحد دقت می‌دهد. نقطهٔ عملیاتی <span class="en">int8</span> هم
+    اندازه‌گیری شد: <span class="en">1.885 ms</span> و <span class="en">104 KB</span> برای
+    <span class="en">classification</span> — ولی با ۵٫۲ واحد افت دقت، که چرا و چگونه‌اش را
+    درس ۰۹ گفت.</p>
   </div>
 
   <div class="card">
-    <p class="card-title">مدل‌های ما چقدر کوچک‌اند؟ (برآورد) 📏</p>
-    <table>
-      <thead><tr><th>مدل</th><th class="num">کیفیت</th><th class="num">MACs</th><th class="num">peak RAM</th><th class="num">flash</th></tr></thead>
-      <tbody>
-        <tr><td>Classification</td><td class="num">92.1%</td><td class="num">152k</td><td class="num">4.5 KB</td><td class="num">118 KB</td></tr>
-        <tr><td>Classification ریز</td><td class="num">91.2%</td><td class="num">30k</td><td class="num">4.4 KB</td><td class="num">19 KB</td></tr>
-        <tr><td>Regression LCR</td><td class="num">MAE 0.286</td><td class="num">852k</td><td class="num">11.3 KB</td><td class="num">161 KB</td></tr>
-        <tr><td>بدون راهنما</td><td class="num">91.1%</td><td class="num">36k</td><td class="num">4.2 KB</td><td class="num">45 KB</td></tr>
-      </tbody>
-    </table>
-    <p>نکتهٔ بزرگ: <b>همهٔ این مدل‌ها حتی در بوردِ ریزِ <span class="en">STM32F401</span></b>
-    (فقط ۹۶ کیلوبایت <span class="en">RAM</span>) جا می‌شوند — همان بوردی که مدل
-    <span class="en">Transformer</span>ِ مقالهٔ رقیب اصلاً در آن جا نمی‌شد! ما هم دقت بالاتر
-    داریم هم مدلِ کوچک‌تر.</p>
+    <p class="card-title">و روی بورد ریزِ F401؟ نتیجهٔ قاطع 🥊</p>
+    <p>مدل ریزِ ما روی <span class="en">NUCLEO-F401RE</span> (همان بورد ارزان ۸۴ مگاهرتزی)
+    در <b><span class="en">4.376 ms</span></b> اجرا شد و فقط <b><span class="en">7.2%</span></b>
+    از <span class="en">flash</span> بورد را گرفت. مدل مرجع؟ <b>اصلاً وارد بورد نمی‌شود</b>:
+    ۱۷۲۹ کیلوبایت وزن در برابر کل ۵۱۲ کیلوبایت <span class="en">flash</span> — یعنی
+    <span class="en">3.4×</span> بزرگ‌تر از کل حافظهٔ بورد، و هیچ تنظیمی نجاتش نمی‌دهد.
+    این دیگر «چند برابر بهتر» نیست؛ <b>بودن یا نبودن</b> است: مدل‌های جست‌وجوشدهٔ ما درِ یک
+    کلاس سخت‌افزاری را باز می‌کنند که مدل مرجع پشت آن می‌ماند.</p>
+    <p>یک عدد جالب برای حس‌گرفتن: همین مدل ریز روی <span class="en">M7</span> حدود ۷ سیکل و روی
+    <span class="en">M4</span> حدود ۱۲ سیکل به‌ازای هر ضرب‌جمع خرج می‌کند — روی پردازنده‌هایی
+    که ضرب‌جمع را در یک سیکل انجام می‌دهند! یعنی در این اندازه‌ها، زمان بیشتر صرف جابه‌جایی
+    داده و سربار هر عمل می‌شود، نه خودِ ریاضی. برای همین <span class="en">MACs</span> برای
+    مقایسهٔ «کل مدل‌ها» عالی است (<span class="en">r²=0.975</span>) ولی برای پیش‌بینی زمانِ
+    «تک‌تک لایه‌ها» قابل اعتماد نیست.</p>
   </div>
 
   <div id="quiz" class="quiz"></div>
   <script type="application/json" id="quiz-data">
   [
-    {"stem": "microcontroller چیست؟",
-     "options": ["یک کارت گرافیک کوچک برای لپ‌تاپ", "یک کامپیوتر کامل روی یک تراشهٔ ارزان: پردازنده + RAM + Flash، بدون سیستم‌عامل سنگین", "یک نوع سنسور که سرعت ماشین را اندازه می‌گیرد"],
-     "answer": 1,
-     "explain": "microcontroller همه‌چیزِ یک کامپیوتر را روی یک تراشهٔ چندیورویی دارد: پردازنده، حافظهٔ کاری (RAM) و حافظهٔ دائمی (Flash). سیستم‌عامل سنگین ندارد و فقط برنامهٔ خودش را اجرا می‌کند — برای همین ارزان، کم‌مصرف و بلادرنگ است و ماشین‌ها پر از آن هستند."},
-    {"stem": "دستور stedgeai analyze چه چیزی به ما می‌دهد؟",
-     "options": ["latency واقعی مدل را روی بورد اندازه می‌گیرد", "بدون نیاز به سخت‌افزار، گزارش می‌دهد مدل چقدر flash و RAM لازم دارد و چند MACC اجرا می‌کند", "دقت مدل را روی دادهٔ تست حساب می‌کند"],
-     "answer": 1,
-     "explain": "analyze کاملاً آفلاین است: قبل از دست زدن به هر بوردی می‌گوید مدل جا می‌شود یا نه و چقدر محاسبه دارد. برای latency واقعی باید مدل را روی بورد واقعی اجرا کرد — کاری که ST Edge AI Developer Cloud برایمان انجام می‌دهد."},
-    {"stem": "چرا Transformer مقالهٔ منتشرشده روی بورد STM32F401 اجرا نشد؟",
-     "options": ["چون دقتش کم بود", "چون فقط با TensorFlow کار می‌کرد", "چون با وزن‌های float32 در RAM کوچک بورد (96 KB) جا نشد"],
+    {"stem": "مدل مرجع ۱۲٫۴ برابر MACC بیشتری از مدل ما دارد ولی ۹٫۲ برابر کندتر است (نه ۱۲٫۴). و درون یک مدل، پرمحاسبه‌ترین لایه گاهی سریع‌ترین است. جمع‌بندی درست کدام است؟",
+     "options": ["MACs شاخص معتبری نیست و باید از معیارهای جست‌وجو حذف شود؛ فقط اندازه‌گیری مستقیم روی بورد قابل اعتماد است", "اختلاف ۱۲٫۴ و ۹٫۲ صرفاً خطای اندازه‌گیری ابزار ST است؛ با میانگین‌گیری از چند اجرا این دو عدد به هم می‌رسند", "MACs برای مقایسهٔ کل مدل‌ها خوب است (r²=0.975) ولی زمان تک‌لایه‌ها را سربار و جابه‌جایی داده تعیین می‌کند", "شمارش MACs فقط برای مدل‌های int8 تعریف شده و به‌کار بردنش برای مدل‌های float32 از اساس بی‌معناست"],
      "answer": 2,
-     "explain": "دقتش خیلی هم خوب بود! اما مدل بدون quantization و با float32 مستقر شده بود و حافظهٔ لازمش از 96 KB RAM بورد بیشتر بود. این دقیقاً درس بزرگ TinyML است: مدلی که در حافظه جا نشود، عملاً وجود ندارد — و دلیل اینکه ما سقف حافظه را از همان اول داخل جست‌وجوی NAS گذاشتیم."},
-    {"stem": "ST Edge AI Developer Cloud چه کمکی می‌کند؟",
-     "options": ["یک مزرعهٔ رایگان از بوردهای واقعی که مدل را از راه دور اجرا می‌کند و latency واقعی را اندازه می‌گیرد", "مدل را به‌جای ما آموزش می‌دهد", "کد C برنامهٔ ماشین را می‌نویسد"],
+     "explain": "هر دو واقعیت هم‌زمان درست‌اند: در سطح کل مدل، MACs با زمان همبستگی عالی دارد و برای جست‌وجوی NAS همین کافی است؛ در سطح لایه، سربارِ هر عمل و ترافیک حافظه غالب می‌شود (۷ تا ۱۲ سیکل به‌ازای هر ضرب‌جمعِ تک‌سیکلی!). شاخص خوب یعنی بدانی کجا قابل اعتماد است — نه بت، نه زباله."},
+    {"stem": "چرا مدل مرجع را هم خودمان دوباره روی همان بورد و همان نسخهٔ ابزار benchmark کردیم، به‌جای اینکه عددهای مقاله‌شان را کپی کنیم؟",
+     "options": ["چون عدد latency به بورد، نسخهٔ ابزار و تنظیمات حساس است؛ مقایسهٔ منصفانه یعنی شرایط یکسان", "چون به عددهای گزارش‌شده در مقاله‌های دیگر به‌طور پیش‌فرض نمی‌شود اعتماد کرد و هر عددی باید از صفر بازتولید شود", "چون مقالهٔ مرجع فقط دقت را گزارش کرده بود و برای مدل‌هایش هیچ عدد سخت‌افزاریِ قابل استنادی وجود نداشت", "چون گواهی benchmark ابزار ST تاریخ انقضا دارد و عددهای قدیمی‌تر از یک سال در ارزیابی پذیرفته نمی‌شوند"],
      "answer": 0,
-     "explain": "MACs فقط یک تخمین (خیلی خوب) از سرعت است؛ عدد نهایی که در paper گزارش می‌شود باید روی سخت‌افزار واقعی اندازه‌گیری شود. Developer Cloud بدون اینکه بوردی روی میز ما باشد، مدل را روی بوردهای واقعی ST اجرا می‌کند و زمان هر پیش‌بینی را برمی‌گرداند."}
+     "explain": "«۳۳٫۵ در برابر ۳٫۶ میلی‌ثانیه» فقط وقتی معنا دارد که همهٔ متغیرهای مزاحم ثابت باشند: همان H7B3I-DK، همان Core 4.0.1، همان balanced، همان float32. عوض شدن هر کدام، عدد را جابه‌جا می‌کند و مقایسه را بی‌اعتبار. این همان اصل «سیب با سیب» است که داورها اول از همه چک می‌کنند."},
+    {"stem": "مدل مرجع روی F401 جا نمی‌شود (۱۷۲۹KB وزن، ۵۱۲KB flash). کدام راه‌حل می‌توانست بدون تغییر معماری، آن را واقعاً وارد این بورد کند؟",
+     "options": ["فعال کردن بهینه‌سازی ram در ابزار ST؛ این گزینه با فشرده‌سازی جدول وزن‌ها، مصرف flash را هم چند برابر کم می‌کند", "اجرای مدل از روی RAM به‌جای flash؛ حافظهٔ کاری سریع‌تر است و محدودیت ۵۱۲ کیلوبایتی فقط مال flash است", "هیچ تنظیمی؛ وزن‌ها از کل flash بزرگ‌ترند — باید وزن‌ها را کوچک کرد (int8 هم به‌زور جا می‌شود) یا معماری را عوض کرد", "بالا بردن فرکانس پردازنده تا 280MHz؛ با پردازش سریع‌تر می‌شود وزن‌ها را تکه‌تکه از حافظهٔ خارجی خواند"],
+     "answer": 2,
+     "explain": "تنظیمات کامپایلر جای وزن‌ها را بهینه می‌کند، نه اندازه‌شان را؛ RAM بورد (۹۶KB) از flash هم کوچک‌تر است و فرکانس فقط سرعت را عوض می‌کند، نه جا را. تنها اهرم واقعی، کوچک کردن خود وزن‌هاست — و حتی int8 (÷۴ = ~۴۳۲KB) به‌زور جا می‌شود. راه پایدار همان است که ما رفتیم: مدلی که از اول برای این بودجه جست‌وجو شده (مدل ریز ما: ۷٪ از flash)."},
+    {"stem": "در گزارش نهایی، کدام عدد «باید» از اجرای روی بورد واقعی بیاید و با گزارش آفلاین (analyze) قابل جایگزینی نیست؟",
+     "options": ["حجم flash موردنیاز مدل به‌همراه کتابخانهٔ اجرا", "تعداد کل عمل‌های ضرب‌جمع (MACC) در یک پیش‌بینی", "latency (زمان هر پیش‌بینی)", "بیشینهٔ حافظهٔ لحظه‌ای (peak RAM) در طول اجرا"],
+     "answer": 2,
+     "explain": "flash و RAM و MACC از ساختار مدل قابل محاسبه‌اند و analyze آن‌ها را بدون سخت‌افزار می‌دهد (و ما دیدیم برآوردهایش با اندازه‌گیری تا کسر درصد می‌خوانَد). ولی زمان واقعی به پردازنده، حافظهٔ cache و کیفیت کدِ تولیدشده بستگی دارد — فقط کرنومترِ روی بورد معتبر است؛ Developer Cloud دقیقاً همین را می‌دهد."}
   ]
   </script>
 

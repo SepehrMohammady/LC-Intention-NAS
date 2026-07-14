@@ -89,7 +89,33 @@ constant `egoLaneWidth`. Full verified channel map for both layouts:
 the turn-indicator label-leak analysis (81.5% classification accuracy from the
 blinker alone).
 
+## Spike provenance lead (2026-07-14, from colleague + test reports)
+
+A colleague reported some drivers **crashed** in the simulator ("many
+accidents", naming users 34 and 43 from memory) and the team deliberately kept
+their data. `Materials/DMIR Test Reports.xlsx` (50 per-driver sheets with
+Collisions/Accidents counts) corroborates part of it:
+
+| user | collisions | accidents |
+|---|--:|--:|
+| User1 | 5 | 1 |
+| User34 | 4 | 2 |
+| User43 | 0 | 0 |
+
+So **User34 confirmed, User43 not** (User1 is actually the other heavy
+crasher). Mechanism is consistent with the test-only 5×10⁶ spikes on the
+curvatureDx pairs: a collision teleports/resets the ego pose, and a numerical
+derivative explodes at the discontinuity. NOT proven — we have no
+window→driver mapping for the prepared pickles, so we cannot check whether the
+spiking windows belong to a crashing driver, nor whether User1/34 are in the
+test split. Status: plausible hypothesis; the paper keeps the neutral
+"division-by-near-zero artefact" wording, and clipping handles it either way.
+
 ## Open questions (for colleague — non-blocking)
 
 - [ ] Provenance of the internal 92%/0.42/0.44 reference results. Colleague:
       92% is a CNN, the others are Transformers — exact configs pending.
+- [ ] Are User1/User34 (the crash-heavy drivers) in the official test split?
+      Would settle the spike-provenance hypothesis above. (Also: colleague
+      named User43, but the xlsx shows 0 collisions/accidents for them —
+      worth double-checking which users she meant.)

@@ -334,3 +334,17 @@ transformers (0.42/0.44). Final paper stance: claim beating the PUBLISHED SOTA
 (0.51) at 2-3x fewer params + deployability; do NOT claim regression RMSE win
 over the internal reference. Headlines: classification + deployment + the
 turn-signal ablation. Paper table/NOTES updated honestly; PDF rebuilt.
+
+## 2026-07-14 23:07 — Course overhaul: figures, quizzes, measured results
+
+User flagged: text overlap/crop in 5 SVG figures; quizzes trivially easy (longest option always correct); missing depth on correlation/ablation; aging-evolution oldest-member ambiguity; no k-fold CV justification; lesson-8 formula unverified; new spike-provenance intel (crash-heavy drivers).
+
+Root cause of ALL 5 figure bugs: dir=rtl flips SVG text-anchor semantics (end extends RIGHT for Farsi) -> labels ran into boxes / off-canvas. Fix: text-anchor=middle for Farsi labels; verified geometrically (0 crops/overlaps).
+
+Facts verified from fork source before writing: fitness = -max_i(min(f_i/bound_i, 10)/lambda_i), lambdas U(0,1) fresh per parent selection; population is a FIFO queue (pop(0), fitness-blind) -> oldest well-defined from round 1 (initial population appended one-by-one). Fixed lesson-07 step-numbering bug (said step 5, is step 6).
+
+Spike provenance: DMIR Test Reports.xlsx corroborates User34 (4 collisions+2 accidents) and User1 (5+1); User43 shows 0/0. Crash -> pose reset -> curvatureDx derivative explosion = plausible, unproven. Recorded in DATA.md + dataset-provenance.md; paper keeps neutral wording.
+
+Lesson 06 expanded (Pearson r explainer, ablation definition, blinker-detection methodology, why-no-k-fold). Lessons 07-11 refreshed with measured results: int16x8 silent-dequantize story, PTQ not QAT as actual path, float32 headline, H7B3 measured table, F401 categorical result, int8 point, 7-11.6 cycles/MAC.
+
+All 49 quiz questions rewritten. First rewrite FAILED its own audit (49/49 still longest-option-correct); second pass -> 33% (chance 25%), gaps within a few chars, indices spread. Agent sweep died on session limit; replaced with deterministic checks (JSON parse, geometric SVG audit, staleness grep).

@@ -36,34 +36,34 @@
   ورودی‌اش سیگنال‌های ماشین در طول زمان است (<span class="en">time series</span>) و سه کار انجام می‌دهد:</p>
 
   <figure class="viz">
-    <svg viewBox="0 0 720 250" role="img" aria-label="نمای کلی سیستم: سیگنال‌های ماشین وارد پنجرهٔ زمانی می‌شوند، مدل روی STM32 اجرا می‌شود و سه خروجی می‌دهد">
+    <svg viewBox="0 0 760 260" role="img" aria-label="نمای کلی سیستم: سیگنال‌های ماشین وارد پنجرهٔ زمانی می‌شوند، مدل روی STM32 اجرا می‌شود و سه خروجی می‌دهد">
       <defs>
         <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
           <path d="M0,0 L10,5 L0,10 z" fill="var(--muted)"/>
         </marker>
       </defs>
       <!-- sensors -->
-      <rect x="590" y="85" width="120" height="80" rx="12" fill="none" stroke="var(--series-2)" stroke-width="2"/>
-      <text x="650" y="115" text-anchor="middle" fill="var(--ink)" font-size="15" font-weight="700">سنسورهای ماشین</text>
-      <text x="650" y="140" text-anchor="middle" fill="var(--ink-2)" font-size="12">سرعت، فرمان، فاصله‌ها…</text>
+      <rect x="615" y="90" width="130" height="80" rx="12" fill="none" stroke="var(--series-2)" stroke-width="2"/>
+      <text x="680" y="120" text-anchor="middle" fill="var(--ink)" font-size="14.5" font-weight="700">سنسورهای ماشین</text>
+      <text x="680" y="145" text-anchor="middle" fill="var(--ink-2)" font-size="11.5">سرعت، فرمان، فاصله‌ها…</text>
       <!-- window -->
-      <line x1="590" y1="125" x2="520" y2="125" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr)"/>
-      <rect x="390" y="85" width="130" height="80" rx="12" fill="none" stroke="var(--baseline)" stroke-width="2"/>
-      <text x="455" y="115" text-anchor="middle" fill="var(--ink)" font-size="15" font-weight="700">پنجرهٔ زمانی</text>
-      <text x="455" y="140" text-anchor="middle" fill="var(--ink-2)" font-size="12" direction="ltr">50 × 31</text>
+      <line x1="615" y1="130" x2="580" y2="130" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr)"/>
+      <rect x="440" y="90" width="140" height="80" rx="12" fill="none" stroke="var(--baseline)" stroke-width="2"/>
+      <text x="510" y="120" text-anchor="middle" fill="var(--ink)" font-size="14.5" font-weight="700">پنجرهٔ زمانی</text>
+      <text x="510" y="145" text-anchor="middle" fill="var(--ink-2)" font-size="12" direction="ltr">50 × 31</text>
       <!-- model on MCU -->
-      <line x1="390" y1="125" x2="320" y2="125" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr)"/>
-      <rect x="180" y="70" width="140" height="110" rx="12" fill="none" stroke="var(--series-1)" stroke-width="2.5"/>
-      <text x="250" y="105" text-anchor="middle" fill="var(--ink)" font-size="15" font-weight="700">Model</text>
-      <text x="250" y="130" text-anchor="middle" fill="var(--ink-2)" font-size="12">شبکهٔ عصبی کوچک</text>
-      <text x="250" y="160" text-anchor="middle" fill="var(--series-1)" font-size="12" font-weight="700">روی STM32 🧩</text>
+      <line x1="440" y1="130" x2="405" y2="130" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr)"/>
+      <rect x="265" y="75" width="140" height="110" rx="12" fill="none" stroke="var(--series-1)" stroke-width="2.5"/>
+      <text x="335" y="108" text-anchor="middle" fill="var(--ink)" font-size="15" font-weight="700" direction="ltr" font-family="ui-monospace, Consolas, monospace">Model</text>
+      <text x="335" y="133" text-anchor="middle" fill="var(--ink-2)" font-size="12">شبکهٔ عصبی کوچک</text>
+      <text x="335" y="163" text-anchor="middle" fill="var(--series-1)" font-size="12" font-weight="700">روی STM32 🧩</text>
       <!-- outputs -->
-      <line x1="180" y1="95" x2="120" y2="45" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr)"/>
-      <line x1="180" y1="125" x2="120" y2="125" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr)"/>
-      <line x1="180" y1="155" x2="120" y2="205" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr)"/>
-      <text x="110" y="40" text-anchor="end" fill="var(--ink)" font-size="13.5" font-weight="700">قصد تغییر خط؟ (۳ کلاس)</text>
-      <text x="110" y="129" text-anchor="end" fill="var(--ink)" font-size="13.5" font-weight="700">چند ثانیه تا چپ؟ (LCL)</text>
-      <text x="110" y="214" text-anchor="end" fill="var(--ink)" font-size="13.5" font-weight="700">چند ثانیه تا راست؟ (LCR)</text>
+      <line x1="265" y1="100" x2="200" y2="50" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr)"/>
+      <line x1="265" y1="130" x2="200" y2="130" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr)"/>
+      <line x1="265" y1="160" x2="200" y2="210" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr)"/>
+      <text x="98" y="47" text-anchor="middle" fill="var(--ink)" font-size="13" font-weight="700">قصد تغییر خط؟ (۳ کلاس)</text>
+      <text x="98" y="134" text-anchor="middle" fill="var(--ink)" font-size="13" font-weight="700">چند ثانیه تا چپ؟ (LCL)</text>
+      <text x="98" y="217" text-anchor="middle" fill="var(--ink)" font-size="13" font-weight="700">چند ثانیه تا راست؟ (LCR)</text>
     </svg>
     <figcaption>شکل ۱ — نمای کلی: سیگنال‌های خودرو در پنجره‌های ۵ ثانیه‌ای وارد مدل می‌شوند و مدل سه پرسش را جواب می‌دهد.</figcaption>
   </figure>
@@ -99,6 +99,18 @@
   <span class="en">STM32H7B3I-DK</span> واقعاً اجرا کنیم، و نتیجه را به‌صورت یک
   <span class="en">paper</span> در یک مجلهٔ معتبر (<span class="en">Q1</span>) منتشر کنیم.</p>
 
+  <div class="card callout">
+    <p class="card-title">وضعیت امروز 🏁 (این کارها انجام شده!)</p>
+    <p>• <span class="en">NAS</span> تمام شد: بهترین مدل ما با ۸۴ هزار پارامتر به دقت
+    <b><span class="en">92.08%</span></b> رسید (هدف: ۹۲٪) و در <span class="en">regression</span>،
+    رکورد منتشرشده (<span class="en">RMSE 0.51</span>) با <span class="en">RMSE 0.447</span> شکسته شد.
+    (هدف‌های داخلیِ <span class="en">0.42/0.44</span> هنوز شکسته نشده‌اند — صادقانه می‌گوییم!)<br>
+    • مدل‌ها روی بورد واقعی <b>اندازه‌گیری</b> شدند: مدل ما <span class="en">9.2×</span> سریع‌تر و
+    <span class="en">5.2×</span> کوچک‌تر از مدل مرجع است — با دقت بیشتر.<br>
+    • روی بورد ارزان <span class="en">F401</span>، مدل مرجع <b>اصلاً جا نمی‌شود</b> ولی مدل ریز ما
+    با <span class="en">4.4 ms</span> اجرا می‌شود. جزئیات در درس‌های ۰۷ تا ۱۰.</p>
+  </div>
+
   <h2>در پروژهٔ ما 🧰</h2>
   <div class="card">
     <p>• کد اصلی: پوشهٔ <span class="en">src/</span> و notebook اصلی <span class="en">notebooks/dmir_pipeline.ipynb</span><br>
@@ -109,18 +121,22 @@
   <div id="quiz" class="quiz"></div>
   <script type="application/json" id="quiz-data">
   [
-    {"stem": "چرا نمی‌توانیم از یک مدل خیلی بزرگ و دقیق استفاده کنیم؟",
-     "options": ["چون مدل بزرگ همیشه دقت کمتری دارد", "چون مدل باید داخل microcontroller با حافظه و سرعت محدود اجرا شود", "چون داده‌ها کم هستند"],
-     "answer": 1,
-     "explain": "دقت مدل بزرگ معمولاً بهتر است، اما جای آن در تراشهٔ کوچک نیست؛ محدودیت RAM و flash و سرعت، مدل را مجبور به کوچک بودن می‌کند."},
-    {"stem": "NAS چه کاری برای ما می‌کند؟",
-     "options": ["داده جمع می‌کند", "به‌جای ما، معماری‌های مختلف شبکه را امتحان و بهترین را پیدا می‌کند", "مدل را روی بورد نصب می‌کند"],
-     "answer": 1,
-     "explain": "NAS یعنی جست‌وجوی خودکار معماری: الگوریتم هزاران طراحی را می‌سازد، می‌سنجد و به سمت بهترین‌ها حرکت می‌کند."},
-    {"stem": "خروجی مسئلهٔ regression در این پروژه چیست؟",
-     "options": ["بله/خیر برای تغییر خط", "تعداد ماشین‌های اطراف", "چند ثانیه تا تغییر خط (عددی بین ۰ تا ۴)"],
+    {"stem": "مدل مرجع با ۴۴۱ هزار پارامتر دقت 91.7% دارد؛ مدل ما با ۸۴ هزار پارامتر به 92.1% رسید. کدام نتیجه‌گیری درست است؟",
+     "options": ["معماریِ مناسب می‌تواند با پارامترِ کمتر دقت بیشتری بدهد", "پارامترِ بیشتر یعنی ظرفیت یادگیری بیشتر؛ پس این اختلاف حتماً از خطای اندازه‌گیری یا تفاوت نسخهٔ دادهٔ آزمون آمده است", "دقت در عمل فقط تابع کیفیت و حجم داده است و معماری شبکه اثر قابل‌اندازه‌گیری روی نتیجهٔ نهایی ندارد", "مدل کوچک فقط به این دلیل برنده شد که روی سخت‌افزار جدیدتر و سریع‌تری ارزیابی شده است"],
+     "answer": 0,
+     "explain": "هر دو مدل روی همان دادهٔ test و همان پروتکل سنجیده شده‌اند. پارامترِ زیاد اگر در جای درست خرج نشود (مثلاً یک لایهٔ متصلِ عظیم روی feature map خام) کمکی نمی‌کند؛ جست‌وجوی معماری همین «جای درست» را پیدا کرد. این دقیقاً پیام اصلی پروژه است."},
+    {"stem": "کدام جمله دربارهٔ نقش NAS در این پروژه دقیق است؟",
+     "options": ["NAS وزن‌های یک شبکهٔ از قبل ثابت را با الگوریتم بهینه‌سازیِ قوی‌تری تنظیم می‌کند تا خطای نهایی پایین‌تر بیاید", "NAS با تولید داده‌های آموزشی مصنوعیِ اضافه، عمومی‌سازی مدل را روی راننده‌های ندیده تقویت می‌کند", "NAS ساختار شبکه را جست‌وجو می‌کند و هر کاندید جداگانه آموزش می‌بیند", "NAS مدل آموزش‌دیده را تحلیل و برای اجرا روی بورد STM32 به کد بهینهٔ C ترجمه می‌کند"],
      "answer": 2,
-     "explain": "دو مسئلهٔ regression داریم (چپ و راست) و هر کدام یک عدد پیوسته بین ۰ تا ۴ ثانیه با گام ۰٫۱ پیش‌بینی می‌کنند."}
+     "explain": "training وزن‌های «یک» معماری ثابت را پیدا می‌کند؛ NAS یک پله بالاتر است و خودِ معماری را جست‌وجو می‌کند. هر کاندید ساخته و آموزش داده می‌شود و نمره‌اش مسیر جست‌وجو را هدایت می‌کند. تولید داده و تبدیل به کد C کارهای دیگری‌اند."},
+    {"stem": "چرا برای هر جهت (چپ و راست) یک مسئلهٔ regression جداگانه تعریف شده؟",
+     "options": ["چون یک شبکهٔ عصبی در خروجی‌اش نمی‌تواند بیش از یک عدد پیوسته تولید کند و ناچار باید مسئله را دو نیمه کرد", "چون برچسبِ «چند ثانیه تا مانور؟» فقط روی پنجره‌های همان جهت معنا دارد؛ هر جهت دادهٔ خودش را دارد", "چون نرخ ثبت دادهٔ شبیه‌ساز برای مانورهای چپ و راست متفاوت تنظیم شده بود و پنجره‌ها هم‌طول درنمی‌آیند", "چون مدل classification سه‌کلاسه خودش زمان مانور را هم تولید می‌کند و فقط تفکیک جهت باقی می‌ماند"],
+     "answer": 1,
+     "explain": "برچسبِ «۲٫۳ ثانیه تا تغییر خطِ چپ» فقط برای پنجره‌ای تعریف می‌شود که واقعاً به تغییر خطِ چپ برسد. پس LCL و LCR مجموعه‌دادهٔ متفاوتی دارند و طبیعی است دو مدل جدا آموزش ببیند. شبکه می‌تواند چند خروجی بدهد (گزینهٔ اول غلط است) — مسئله کمبود خروجی نیست، تعریف برچسب است."},
+    {"stem": "چرا سقف حافظه را از همان اول داخل جست‌وجو می‌گذاریم، به‌جای اینکه اول دقیق‌ترین مدل را پیدا و بعد کوچکش کنیم؟",
+     "options": ["چون کوچک‌کردنِ بعدی (هرس و فشرده‌سازی) روی شبکه‌های کانولوشنی از نظر ریاضی تعریف نشده و عملاً غیرممکن است", "چون ابزار ST در مرحلهٔ استقرار فقط مدل‌هایی را می‌پذیرد که هنگام جست‌وجو گواهی رعایت سقف حافظه گرفته باشند", "چون جست‌وجوی بدون قید بسیار کندتر است و به تعداد GPUهایی نیاز دارد که در آزمایشگاه ما موجود نبود", "چون مدلِ بدون قید معمولاً در تراشه جا نمی‌شود و کوچک‌سازیِ بعدی دقت را قربانی می‌کند"],
+     "answer": 3,
+     "explain": "فشرده‌سازیِ بعدی ممکن است ولی پرهزینه است: مدل بزرگ را باید هرس یا کوچک کرد و دقت می‌ریزد. وقتی قید حافظه از اول در نمره‌دهی جست‌وجوست، هر کاندیدی که بیرون می‌آید از قبل جاشدنی است و دقتش هم در همان فضا بهینه شده — درس ۰۸ فرمول دقیقش را نشان می‌دهد."}
   ]
   </script>
 
