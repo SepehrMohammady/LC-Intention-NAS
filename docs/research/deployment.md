@@ -201,6 +201,13 @@ balanced). Flash/RAM are the platform-level optimize output and unchanged from
 the H7B3 run: 37,954 B flash (**7.2%** of the F401's 512 KB), 9,412 B RAM
 (9.8% of its 96 KB).
 
+`cls_best_qat_int8` also measured on the F401 (2026-07-24): **7.381 ms @ 84 MHz**.
+Flash/RAM unchanged from its H7B3 run (128 KiB flash = **25.6%** of 512 KB;
+8,404 B RAM = 8.8% of 96 KB) — so the *full* classifier, quantized, runs on the
+Cortex-M4 at **89.82%** accuracy. Cross-board it is 7.381 / 1.558 = 4.7× slower
+than the M7 (≈ 3.3× clock × ~1.4× M4-vs-M7 IPC — consistent with the cls_tiny
+scaling below).
+
 **The headline here is categorical, not a ratio: the reference CNN cannot run on
 this board at all.** Its 1,769,882 B of flash is **3.38× the F401's entire
 512 KB**. No optimization setting fixes that. Every searched model fits:
@@ -211,6 +218,7 @@ this board at all.** Its 1,769,882 B of flash is **3.38× the F401's entire
 | lcr_best | 474,522 B | 90.5% | yes |
 | lcl_best | 423,494 B | 80.8% | yes |
 | cls_best | 343,254 B | 65.5% | yes |
+| cls_best int8 QAT | 131,008 B | 25.6% | yes (89.82% @ 7.381 ms) |
 | cls_tiny | 37,954 B | **7.2%** | yes, easily |
 
 So the searched models open a board class the reference is locked out of — 91.3%
