@@ -295,8 +295,11 @@ LCR MAE $0.287 \rightarrow 0.449$), so we report float32 as the headline
 configuration---which also matches the baseline's own FP32 deployment.
 Quantization-aware fine-tuning recovers most of that int8 loss: the classifier
 returns to $89.8\%$ (from $86.9\%$ post-training), closing 57\% of the gap to
-float32 at the same int8 footprint, giving a viable speed/size operating point
-when memory is the binding constraint. An
+float32, and on the board it runs in 1.558~ms---the fastest of the three
+operating points---in 128~KB, still $2.6\times$ below the float32 build. The
+tooling quantizes only 2D operators, so the 1D graph is deployed as width-1 2D
+convolutions; the computation is identical and the accuracy is read through the
+int8 interpreter. An
 int16$\times$8 scheme (int8 weights, int16 activations) preserves accuracy almost
 exactly offline ($92.1\% \rightarrow 92.2\%$; LCR MAE
 $0.287 \rightarrow 0.286$), but the toolchain does not deploy it. We verified

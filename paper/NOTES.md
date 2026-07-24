@@ -115,13 +115,16 @@ articles the team shared). Run every draft section against it.
       measured RAM (8,096 B) barely beat float32's (9,456 B) instead of hitting
       the predicted ~3 KB. Re-export cls_best_int8 with `tf.int8` I/O, then one
       ST upload to confirm RAM ≈ 3 KB and the `conversion_0` cast disappears.
-- [ ] **QAT int8 on-device measure.** QAT recovers cls_best int8 to 89.82%
-      (from 86.86% PTQ, +2.96, 57% of the gap) — DONE and logged
-      (`unas/qat_finetune.py`, `results/qat/cls_best_qat_int8.tflite`, deployment.md).
-      Accuracy is real (TFLite int8 interpreter); **latency/flash not yet measured**.
-      One ST Edge AI upload of the QAT tflite to confirm ≈ int8 PTQ (1.885 ms,
-      104 KB). Note it is a width-1 2D re-expression (Conv2D on device); reshape
-      proven exact (float-2D=0.9208, PTQ-2D=0.8686 anchors).
+- [x] **QAT int8 measured on-device** (2026-07-24, H7B3I-DK): 89.82% @
+      **1.558 ms** / 128 KiB flash / 8.4 KB RAM. Recovers +2.96 over PTQ int8 and
+      is the *fastest* operating point (< float32 3.628 ms and PTQ int8 1.885 ms).
+      Flash is +24 KiB vs PTQ int8 (weights identical 83.28 KiB; the delta is ST
+      library code for the width-1 2D re-expression).
+- [ ] **Optional: native-1D QAT** to drop the +24 KiB library overhead. Custom
+      tfmot QuantizeConfigs for Conv1D/DepthwiseConv1D/pool would keep the exact
+      1D graph (~104 KiB) instead of the 2D workaround, and would also isolate the
+      QAT-vs-PTQ latency (currently confounded with 1D→2D). Only if the flash
+      point matters; the accuracy result already stands.
 - [ ] **Fusion/kernel-path ablation** — DOWNGRADED, do not publish the mechanism.
       The "unfused ReLU is the correlate" story (4/4 across lcl_best + cls_best)
       is weakened by cls_tiny, which has **zero** unfused convs yet shows the same

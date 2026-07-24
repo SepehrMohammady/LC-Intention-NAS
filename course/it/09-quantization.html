@@ -231,7 +231,9 @@
   circa 3 dei 5 punti persi, alla stessa dimensione <span class="en">int8</span>.
   (L&rsquo;esperimento è stato eseguito su una riformulazione 2D con larghezza 1 del modello,
   perché gli strumenti <span class="en">QAT</span> conoscono solo strati 2D; il calcolo è
-  identico. La latenza on-device non è ancora misurata.)</p>
+  identico. Ed è stata misurata anche on-device: <b>1,558 ms</b> — persino un po&rsquo; più
+  veloce della versione <span class="en">int8</span> con <span class="en">PTQ</span>, anche se
+  costa un po&rsquo; più di flash per il codice di libreria 2D.)</p>
 
   <h2>Nel nostro progetto 🧰</h2>
   <figure class="viz">

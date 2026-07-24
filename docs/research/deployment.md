@@ -138,11 +138,27 @@ env (TF 2.21 / tf_keras / tfmot 0.8.1), which required a Keras-3→tf_keras port
 of the saved model (`unas/qat_finetune.py`: rebuild from exported adjacency +
 per-layer weight transfer).
 
-**⏳ NOT yet measured on-device.** Expected latency/flash ≈ the int8 PTQ point
-(1.885 ms, 104 KB) since it is the same int8 core with float32 I/O, but this
-needs an ST Edge AI run on `results/qat/cls_best_qat_int8.tflite` to confirm.
-The deployed graph would be Conv2D (width 1), which ST supports; footprint
-essentially unchanged.
+**✔ MEASURED on-device** (STM32H7B3I-DK, Core 4.0.1-20581, balanced,
+2026-07-24): **1.558 ms**, MACC 161,570, flash 131,008 B (128 KiB; weights
+**83.28 KiB** — byte-identical to the PTQ int8 — + ~43 KiB library), RAM 8,404 B
+(6.05 KiB act). The ST graph confirms a genuine int8 model (int8 filters/weights,
+int32 bias throughout; float32 I/O with a Quantize/Dequantize wrapper).
+
+Two things stand out vs the int8 PTQ point (1.885 ms, 104 KiB):
+- **Faster: 1.558 vs 1.885 ms** (−17%). Both are int8 with identical weights; the
+  difference is the op path — the width-1 **Conv2D** kernels ST emits appear
+  better-optimized than the 1D convs of the PTQ model. Reported as an observation,
+  not a proven mechanism: the QAT-vs-PTQ latency also carries the 1D→2D change, so
+  the speed-up cannot be attributed to QAT alone (a PTQ-2D on-device run would
+  isolate it — not done).
+- **Bigger flash: 128 vs 104 KiB.** Weights are identical (83.28 KiB); the +24 KiB
+  is ST **library** overhead (~43 vs ~21 KiB) — the 2D re-expression pulls in more
+  kernel code (Conv2D + Reshape + extra conversions). This is the honest cost of
+  the tfmot-2D workaround; a native-1D QAT (custom QuantizeConfigs) would keep the
+  ~104 KiB footprint. Still 2.6× smaller than the float32 build (335 KiB).
+
+Net: the QAT int8 point is **89.82% @ 1.558 ms @ 128 KiB** — the fastest of the
+three operating points, at −2.3 accuracy vs float32 and +3.0 vs PTQ int8.
 
 ## MEASURED — ST Edge AI Developer Cloud (real board)
 
@@ -157,7 +173,8 @@ Core **4.0.1-20581**, platform STM32 MCU (tool 12.0.1), optimization
 | cls_tiny_float32 (ours, 8 k) | 91.30% | **0.7931** | 31,742 | 37,954 (37 KiB; weights 31.07 KiB + ~6 KiB lib) | 9,412 (8.91 KiB act + 288 B lib) |
 | lcr_best_float32 (ours, 117 k; regression) | MAE 0.2865 / RMSE 0.4466 | 14.06 | 860,407 | 474,522 (463 KiB; weights 453.83 KiB + ~10 KiB lib) | 20,772 (18.91 KiB act + ~1 KiB lib) |
 | lcl_best_float32 (ours, 106 k; regression) | MAE 0.3165 | 28.77 | 1,658,927 | 423,494 (414 KiB; weights 403.61 KiB + ~10 KiB lib) | 28,264 (26.46 KiB act + ~1 KiB lib) |
-| cls_best_**int8** (ours, 84 k) | 86.86% | **1.885** | 158,336 | 106,738 (104 KiB; weights 83.28 KiB + ~21 KiB lib) | 8,096 (6.05 KiB act + ~2 KiB lib) |
+| cls_best_**int8** (PTQ, 1D, 84 k) | 86.86% | **1.885** | 158,336 | 106,738 (104 KiB; weights 83.28 KiB + ~21 KiB lib) | 8,096 (6.05 KiB act + ~2 KiB lib) |
+| cls_best_**int8 QAT** (2D re-expr, 84 k) | **89.82%** | **1.558** | 161,570 | 131,008 (128 KiB; weights 83.28 KiB + ~43 KiB lib) | 8,404 (6.05 KiB act + ~2 KiB lib) |
 | cls_best_**int16x8** (ours, 84 k) | — | 3.605 | 158,094 | 343,258 (335 KiB; weights 326.15 KiB + ~9 KiB lib) | 9,456 (8.42 KiB act + 832 B lib) |
 
 The last row is **not a real int16x8 deployment** — ST dequantized it to float32
