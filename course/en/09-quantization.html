@@ -213,9 +213,13 @@
   hundred real windows for <span class="en">calibration</span>) — and since even well-made
   <span class="en">int8</span> drops accuracy on this data and
   <span class="en">int16×8</span> cannot be deployed, the paper's primary configuration stayed
-  <span class="en">float32</span>. <span class="en">QAT</span> remains a future option for
-  recovering the <span class="en">int8</span> drop, should we ever need the
-  <span class="en">int8</span> operating point.</p>
+  <span class="en">float32</span>. Then we tried <span class="en">QAT</span> too: a few
+  <span class="en">epochs</span> of <span class="en">fine-tuning</span> with rounding simulated in
+  the forward pass. The result? <span class="en">int8</span> accuracy rose from 86.9% to
+  <b>89.8%</b> — recovering about 3 of the 5 lost points, at the same <span class="en">int8</span>
+  size. (The experiment ran on a width-1 2D re-expression of the model, because the
+  <span class="en">QAT</span> tooling only knows 2D layers; the computation is identical.
+  On-device latency is not measured yet.)</p>
 
   <h2>In our project 🧰</h2>
   <figure class="viz">

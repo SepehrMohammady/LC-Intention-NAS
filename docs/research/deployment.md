@@ -111,6 +111,39 @@ wide-dynamic-range inputs (cls 92.1→86.9, cls_noind 91.1→76.1, LCR MAE
 the *accuracy* one; int16x8 would give both but ST cannot deploy it (cite the
 limitation).
 
+## QAT recovers most of the int8 drop (cls_best, 2026-07-24)
+
+`unas/qat_finetune.py`. Quantization-aware fine-tuning of `cls_best`, INT8:
+
+| operating point | test acc | vs float32 |
+|---|--:|--:|
+| float32 | 92.08% | — |
+| int8 **PTQ** | 86.86% | −5.22 |
+| int8 **QAT** | **89.82%** | −2.27 |
+
+QAT recovers **+2.96 points** over PTQ (57% of the gap closed) at the same int8
+footprint (`cls_best_qat_int8.tflite` = 101,616 B; 22 int8 tensors, float32 I/O
+— identical interface to the measured int8 PTQ). Fake-quant float acc 89.99% →
+int8 89.82% (−0.17), so the INT8 conversion faithfully captured the QAT ranges.
+
+**Honesty scope / how it was done.** tfmot's 8-bit scheme only registers 2D
+layers, so the searched **1D** graph was re-expressed with width-1 kernels
+(Conv1D→Conv2D(k,1), Pool1D→Pool2D(p,1); depthwise strides (s,1)→(s,s), a no-op
+at width 1). The re-expression is **proven numerically exact**: float-2D test
+acc = 0.9208 (= 1D original) and PTQ-2D = 0.8686 (= measured 1D int8), so the
+PTQ-vs-QAT comparison is single-variable. Accuracy is deployment-real (measured
+through the actual TFLite int8 interpreter). Fine-tune: Adam 2e-4, batch 256,
+val-early-stop patience 8 restore-best, 22/40 epochs. Ran in the WSL `dmir_nas`
+env (TF 2.21 / tf_keras / tfmot 0.8.1), which required a Keras-3→tf_keras port
+of the saved model (`unas/qat_finetune.py`: rebuild from exported adjacency +
+per-layer weight transfer).
+
+**⏳ NOT yet measured on-device.** Expected latency/flash ≈ the int8 PTQ point
+(1.885 ms, 104 KB) since it is the same int8 core with float32 I/O, but this
+needs an ST Edge AI run on `results/qat/cls_best_qat_int8.tflite` to confirm.
+The deployed graph would be Conv2D (width 1), which ST supports; footprint
+essentially unchanged.
+
 ## MEASURED — ST Edge AI Developer Cloud (real board)
 
 Core **4.0.1-20581**, platform STM32 MCU (tool 12.0.1), optimization

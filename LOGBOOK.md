@@ -371,3 +371,7 @@ Three deliverables in one session (all workflow-verified):
    engine. Deterministic checks: zero Farsi residue, 49 quiz questions per
    language, longest-option-correct 4%/2%, all links resolve; two editorial
    audit agents passed both languages and unified terminology.
+
+## 2026-07-24 16:36 — QAT recovers the int8 drop: cls_best 86.9% -> 89.8% (same footprint)
+
+User asked to try QAT after the ~5-point int8 PTQ drop (92.08->86.86). Did it, honestly. tfmot 8-bit only registers 2D layers, so searched 1D cls_best re-expressed with width-1 kernels (Conv1D->Conv2D(k,1), Pool1D->Pool2D(p,1), depthwise strides (s,1)->(s,s)=no-op at width 1). Re-expression proven exact: float-2D 0.9208 (=1D orig), PTQ-2D 0.8686 (=measured 1D int8), so PTQ-vs-QAT is single-variable. QAT fine-tune (Adam 2e-4, 22/40 epochs, val early-stop restore-best) -> int8 89.82%, +2.96 pts (57% of gap) at same footprint (101,616 B tflite, float32 I/O). Ran in WSL dmir_nas (TF 2.21/tf_keras/tfmot 0.8.1); needed Keras-3->tf_keras port (rebuild from adjacency + per-layer weight transfer). Code unas/qat_finetune.py; artifact results/qat/cls_best_qat_int8.tflite. NOT yet on-device (expected ~int8 PTQ 1.885 ms / 104 KB). deployment.md, paper, course L09 fa/en/it, experiments.jsonl all updated.

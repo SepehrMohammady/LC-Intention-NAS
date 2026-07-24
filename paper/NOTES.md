@@ -115,6 +115,13 @@ articles the team shared). Run every draft section against it.
       measured RAM (8,096 B) barely beat float32's (9,456 B) instead of hitting
       the predicted ~3 KB. Re-export cls_best_int8 with `tf.int8` I/O, then one
       ST upload to confirm RAM ≈ 3 KB and the `conversion_0` cast disappears.
+- [ ] **QAT int8 on-device measure.** QAT recovers cls_best int8 to 89.82%
+      (from 86.86% PTQ, +2.96, 57% of the gap) — DONE and logged
+      (`unas/qat_finetune.py`, `results/qat/cls_best_qat_int8.tflite`, deployment.md).
+      Accuracy is real (TFLite int8 interpreter); **latency/flash not yet measured**.
+      One ST Edge AI upload of the QAT tflite to confirm ≈ int8 PTQ (1.885 ms,
+      104 KB). Note it is a width-1 2D re-expression (Conv2D on device); reshape
+      proven exact (float-2D=0.9208, PTQ-2D=0.8686 anchors).
 - [ ] **Fusion/kernel-path ablation** — DOWNGRADED, do not publish the mechanism.
       The "unfused ReLU is the correlate" story (4/4 across lcl_best + cls_best)
       is weakened by cls_tiny, which has **zero** unfused convs yet shows the same

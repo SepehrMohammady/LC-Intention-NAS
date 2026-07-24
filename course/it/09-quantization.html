@@ -224,9 +224,14 @@
   <span class="en">calibration</span>) — e poiché su questi dati perfino un
   <span class="en">int8</span> ben fatto fa calare l&rsquo;accuratezza, e
   <span class="en">int16×8</span> non è deployabile, la configurazione principale del paper
-  è rimasta <span class="en">float32</span>. <span class="en">QAT</span> resta l&rsquo;opzione
-  futura per recuperare il calo di <span class="en">int8</span>, se un giorno ci servirà il
-  punto operativo <span class="en">int8</span>.</p>
+  è rimasta <span class="en">float32</span>. Poi abbiamo provato anche <span class="en">QAT</span>:
+  qualche <span class="en">epoch</span> di <span class="en">fine-tuning</span> con
+  l&rsquo;arrotondamento simulato nel forward pass. Il risultato? L&rsquo;accuratezza
+  <span class="en">int8</span> è salita dall&rsquo;86,9% all&rsquo;<b>89,8%</b> — recuperando
+  circa 3 dei 5 punti persi, alla stessa dimensione <span class="en">int8</span>.
+  (L&rsquo;esperimento è stato eseguito su una riformulazione 2D con larghezza 1 del modello,
+  perché gli strumenti <span class="en">QAT</span> conoscono solo strati 2D; il calcolo è
+  identico. La latenza on-device non è ancora misurata.)</p>
 
   <h2>Nel nostro progetto 🧰</h2>
   <figure class="viz">

@@ -289,10 +289,14 @@ $\max(\text{input},\ \text{widest in\,+\,out})$ only for a chain. This is why th
 RAM advantage ($\sim$4$\times$) is far smaller than the flash advantage.
 
 On quantization, the ST toolchain accepts only float32/int8/uint8 tensors. Full
-int8 shrinks the classifier to 104~KB and 1.885~ms but costs 5.2 accuracy points
-on these wide-dynamic-range inputs ($92.1\% \rightarrow 86.9\%$; LCR MAE
-$0.287 \rightarrow 0.449$), so we report float32 as the headline
-configuration---which also matches the baseline's own FP32 deployment. An
+post-training int8 shrinks the classifier to 104~KB and 1.885~ms but costs 5.2
+accuracy points on these wide-dynamic-range inputs ($92.1\% \rightarrow 86.9\%$;
+LCR MAE $0.287 \rightarrow 0.449$), so we report float32 as the headline
+configuration---which also matches the baseline's own FP32 deployment.
+Quantization-aware fine-tuning recovers most of that int8 loss: the classifier
+returns to $89.8\%$ (from $86.9\%$ post-training), closing 57\% of the gap to
+float32 at the same int8 footprint, giving a viable speed/size operating point
+when memory is the binding constraint. An
 int16$\times$8 scheme (int8 weights, int16 activations) preserves accuracy almost
 exactly offline ($92.1\% \rightarrow 92.2\%$; LCR MAE
 $0.287 \rightarrow 0.286$), but the toolchain does not deploy it. We verified

@@ -209,9 +209,13 @@
   پنجرهٔ واقعی برای <span class="en">calibration</span>) — و چون حتی
   <span class="en">int8</span>ِ خوش‌ساخت هم روی این داده دقت را می‌ریزد و
   <span class="en">int16×8</span> قابل استقرار نیست، پیکربندی اصلی مقاله همان
-  <span class="en">float32</span> ماند. <span class="en">QAT</span> گزینهٔ آینده برای
-  جبرانِ افتِ <span class="en">int8</span> است، اگر روزی نقطهٔ عملیاتی
-  <span class="en">int8</span> را لازم داشته باشیم.</p>
+  <span class="en">float32</span> ماند. بعد <span class="en">QAT</span> را هم امتحان کردیم:
+  مدل را چند <span class="en">epoch</span> با شبیه‌سازیِ گردکردن دوباره
+  <span class="en">fine-tune</span> کردیم. نتیجه؟ دقتِ <span class="en">int8</span> از ۸۶.۹٪ به
+  <b>۸۹.۸٪</b> رسید — یعنی حدود ۳ واحد از آن ۵ واحدِ افت را پس گرفت، با همان اندازهٔ
+  <span class="en">int8</span>. (این آزمایش روی نسخهٔ هم‌ارزِ ۲بعدیِ مدل انجام شد، چون ابزارِ
+  <span class="en">QAT</span> فقط لایه‌های ۲بعدی را می‌شناسد؛ محاسبه دقیقاً همان است. زمانِ
+  اجرا روی بورد هنوز اندازه‌گیری نشده.)</p>
 
   <h2>در پروژهٔ ما 🧰</h2>
   <figure class="viz">
