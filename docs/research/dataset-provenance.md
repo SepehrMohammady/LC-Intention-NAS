@@ -48,12 +48,13 @@ CSVs with the raw ~120-column L3Pilot header).
 - 12 surrounding traffic: {car1, car2} × {LatPosition, LatVelocity,
   LongPosition, LongVelocity, YawAngle, YawRate}
 
-The official README counts **30 features** (excludes fileTime); our windows
-have **31** channels — the 31st is most likely fileTime. **If fileTime is in
-the input features, it must be dropped** (no physical meaning, possible split
-leakage). Our test-split spikes on feature pairs (12,13)/(14,15) plausibly
-correspond to `curvatureDx*` (a numerical derivative → division-by-near-zero
-spikes) — pending column-order confirmation.
+The official README counts **30 features** (excludes fileTime); our windows have
+**31** channels. This was investigated and **resolved** (see the checklist
+below): there is **no fileTime channel** in any pickle — the 31st is a real
+feature (`car2Present`), not a timestamp, so nothing needs dropping. The
+test-split spikes on feature pairs (12,13)/(14,15) are confirmed as the
+`curvatureDx` derivative pair (division-by-near-zero) and the lane-line pair,
+handled by `clip_to_train_range`.
 
 ## Labeling
 

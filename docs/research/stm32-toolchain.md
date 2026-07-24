@@ -4,10 +4,12 @@ Researched 2026-07-07.
 
 ## Tooling
 
-- **ST Edge AI Core v2.2.0** — free desktop CLI (`stedgeai`), compiles models
-  to optimized C for STM32. Embedded in **X-CUBE-AI 10.2.0** (CubeMX pack;
-  ships ONNX Runtime 1.18.1, TF 2.18.0). **STM32Cube AI Studio v1.0**
-  (March 2026) is the new standalone GUI replacing X-CUBE-AI.
+- **ST Edge AI Core** — free CLI (`stedgeai`), compiles models to optimized C
+  for STM32. All measured results in `deployment.md` were produced on the
+  **Developer Cloud, Core 4.0.1-20581** (platform STM32 MCU 12.0.1), the version
+  actually used. (Earlier notes referenced v2.2.0 / X-CUBE-AI 10.2.0; the Cloud
+  serves 4.0.1.) Inputs accepted in practice: Keras `.h5` and TFLite (our path);
+  ONNX also supported.
 - Inputs: Keras, TFLite, **ONNX (float or int8 QDQ)**. PyTorch only via ONNX.
 - `stedgeai` does **not** quantize (old `--quantize` flag removed) — the model
   must arrive already quantized.
@@ -55,7 +57,8 @@ Developer Cloud does not report energy).
 
 ## Open questions
 
-- [ ] Verify installed `stedgeai --version` after install on this machine.
-- [ ] Confirm Developer Cloud farm has H7B3/F401 (or nearest equivalents).
-- [ ] Decide: buy a NUCLEO board for the paper's measured numbers, or rely on
-      Developer Cloud (ask supervisor — measured-on-our-desk is stronger).
+- [x] `stedgeai` version: measured on Developer Cloud **Core 4.0.1-20581**.
+- [x] Farm has **STM32H7B3I-DK and NUCLEO-F401RE** — both used for the measured
+      numbers in `deployment.md`.
+- [x] Measured via the Developer Cloud (no board purchase needed); the TFLite
+      path (not PyTorch→ONNX) was the one used.

@@ -68,6 +68,7 @@ deployment numbers, ideally on the same two boards.
 ## Open questions
 
 - [ ] Table III exact values (get PDF via institutional access).
-- [ ] Confirm our pickles use the same driver-wise split (ask colleague) —
-      otherwise our comparison to 0.5102 is not apples-to-apples.
+- [x] Driver-wise split confirmed — `scripts/analysis/verify_split.py`
+      reproduces the official val/test user sets exactly (see DATA.md and
+      dataset-provenance.md), so the comparison to 0.5102 is apples-to-apples.
 - [ ] Which 1DCNN config is in Table III (paper says 64+32; repo ships 32+32).

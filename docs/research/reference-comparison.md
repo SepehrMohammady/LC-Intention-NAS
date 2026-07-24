@@ -23,16 +23,17 @@ test set with our own metrics (`unas/eval_reference.py`).
 
 | Task | Reference | Ours | Verdict |
 |---|---|---|---|
-| Classification | 441k @ 91.5% | **83k @ 92.15%** (or 8k @ 91.3%) | **win**: 5.3× smaller *and* more accurate; 8k model matches the 441k CNN at 55× smaller |
+| Classification | 441k @ 91.5% | **83k @ 92.08%** (or 8k @ 91.3%) | **win**: 5.3× smaller *and* more accurate; 8k model matches the 441k CNN at 55× smaller |
 | LCR regression | 333k @ RMSE 0.42 | 117k @ RMSE 0.447 (MAE 0.286) | mixed: 2.8× smaller, RMSE slightly worse (we optimize MAE) |
-| LCL regression | **49k @ RMSE 0.44** | 85k @ RMSE 0.501 (MAE 0.325) | **lose**: their Transformer is smaller *and* better on RMSE |
+| LCL regression | **49k @ RMSE 0.44** | 106k @ RMSE 0.466 (MAE 0.317) | **lose**: their Transformer is smaller *and* better on RMSE |
 
 ## Honest takeaways for the paper
 
 1. **Classification is a clean, strong win** — smaller and more accurate than the
    441k reference CNN, plus the turn-signal ablation and the F401-fits story.
 2. **vs the published SOTA** (0.51 RMSE single-TTLC, FP32 Transformer): our LCR
-   beats it; our models also quantize (int16x8) and deploy where theirs did not.
+   beats it; our models also quantize (int8 QAT, 89.82% @ 1.558 ms measured) and
+   deploy where theirs did not.
 3. **Regression vs the internal-reference Transformers is not yet a win on RMSE**
    — LCL in particular: their 49k Transformer (RMSE 0.44) beats our 85k
    (RMSE 0.501). Do not claim a regression win over the internal reference.
@@ -66,6 +67,7 @@ the MAE and RMSE runs, independently verified:
 
 **Final regression stance for the paper:** claim (i) beating the published SOTA
 RMSE at a fraction of the size, (ii) a full accuracy/footprint Pareto front, and
-(iii) deployability (int16x8, fits the F401) — but do **not** claim beating the
+(iii) deployability (float32 headline; int8 QAT operating point, both fit the
+F401) — but do **not** claim beating the
 internal-reference Transformers on regression RMSE. The headline wins are
 classification and deployment.

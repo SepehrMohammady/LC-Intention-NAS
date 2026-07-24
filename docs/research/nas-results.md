@@ -73,13 +73,15 @@ vehicle dynamics and surrounding traffic, not a declared turn signal. An 11 KB
 no-indicator model reaches 90.2% and a 20 KB one 91.1% — both fit the tiny
 STM32F401 (96 KB RAM). This is the honest, defensible headline for the paper.
 
-## Quantization (int16x8 preserves accuracy; full-int8 does not)
+## Quantization (settled empirically on hardware)
 
-`unas/quantize_eval.py` / `quantize_compare.py`. The DMIR inputs have very
-different per-channel scales, so **full-int8 PTQ degrades badly** (LCR MAE
-0.287→0.449, cls 92.1%→86.9%, cls-noind 91.1%→76.1%). **int16x8**
-(int8 weights + int16 activations) essentially preserves — sometimes marginally
-improves — accuracy, with no QAT needed:
+`unas/quantize_eval.py` / `quantize_compare.py` / `unas/qat_finetune.py`. The
+DMIR inputs have very different per-channel scales, so **full-int8 PTQ degrades
+badly** (LCR MAE 0.287→0.449, cls 92.1%→86.9%, cls-noind 91.1%→76.1%). **int16x8**
+(int8 weights + int16 activations) preserves accuracy *offline* — but ST Edge AI
+does **not** deploy it: it silently dequantizes int16x8 back to float32
+(hardware-verified, see `deployment.md`). So the table below is an **offline
+bound, not a deployment option** (float → int16x8):
 
 | Deployment model | int16x8 TFLite | metric (float → int16x8) |
 |---|--:|---|
@@ -91,9 +93,12 @@ improves — accuracy, with no QAT needed:
 | cls-noind aaaaah | 44.6 KB | acc 91.09 → 91.08% |
 | cls-noind aaaaaw (tiny) | 36.3 KB | acc 90.16 → 90.15% |
 
-int8 weights keep the flash small; int16 activations cost ~2× activation RAM
-(ST Edge AI will report the exact peak). Deployment `.tflite` files:
-`results/tflite/`. This also sidesteps the Keras-3/tfmot QAT incompatibility.
+The real deployable quantized point is **QAT int8**: quantization-aware
+fine-tuning recovers the classifier to **89.82%** (from 86.9% PTQ) and was
+measured on-device at **1.558 ms** on the H7B3I-DK, 7.381 ms on the F401RE
+(`unas/qat_finetune.py`; see `deployment.md`). This supersedes the earlier
+"int16x8, no QAT needed" plan — the Keras-3/tfmot obstacle was solved (width-1
+2D re-expression) and QAT was in fact completed.
 
 ## Caveats / TODO
 
@@ -107,7 +112,8 @@ int8 weights keep the flash small; int16 activations cost ~2× activation RAM
 - [ ] Internal-reference RMSE 0.42/0.44 not beaten. The fork trains/thresholds
       on **MAE**; consider an RMSE-aware objective or report MAE as primary
       (where we beat the *published* SOTA). Decide framing with the team.
-- [ ] Peak RAM, MACs, int8 accuracy drop, and measured latency on the
-      STM32H7B3I-DK / F401 — the deployment stage (QAT → INT8 TFLite → ST Edge
-      AI). int8 sizes above assume 1 byte/weight; confirm against the actual
-      TFLite file.
+- [x] Peak RAM, MACs, int8 accuracy drop, and measured latency on the
+      STM32H7B3I-DK / F401 — DONE (deployment.md): cls_best float32 3.628 ms,
+      int8 PTQ 1.885 ms / 86.9%, int8 QAT 1.558 ms / 89.82%; all fit both boards,
+      the reference CNN fits neither the F401. int16x8 hardware-verified as
+      non-deployable (silently dequantized).
