@@ -135,6 +135,26 @@
     می‌کند: اینجا هیچ‌کس، حتی قهرمان، بیشتر از «عمر صف» زنده نمی‌ماند.</p>
   </div>
 
+  <div class="card">
+    <p class="card-title">خانواده‌های الگوریتم <span class="en">NAS</span> 🧭 — و چرا ما تکامل را برداشتیم</p>
+    <p>تکاملِ پیرشونده تنها راه جست‌وجوی معماری نیست. چهار خانوادهٔ اصلی وجود دارد و هر کدام
+    معاملهٔ متفاوتی پیشنهاد می‌کند:</p>
+    <table>
+      <thead><tr><th>خانواده</th><th>چطور کار می‌کند</th><th>هزینه</th><th>نقطه‌ضعف</th></tr></thead>
+      <tbody>
+        <tr><td>یادگیری تقویتی (<span class="en">RL</span>)</td><td>یک <span class="en">controller RNN</span> معماری پیشنهاد می‌دهد، دقتِ <span class="en">validation</span> پاداشش است و با <span class="en">policy gradient</span> یاد می‌گیرد بهتر پیشنهاد بدهد</td><td>نجومی</td><td>هزاران آموزشِ کامل لازم دارد</td></tr>
+        <tr><td>گرادیانی (<span class="en">DARTS</span>)</td><td>همهٔ عمل‌های ممکن را در یک ابرشبکه (<span class="en">supernet</span>) با وزن‌های نرمِ <span class="en">softmax</span> کنار هم نگه می‌دارد و انتخاب را با خودِ گرادیان انجام می‌دهد</td><td>ارزان</td><td>حافظه‌خوار؛ گاهی به <span class="en">skip-connection</span> فرومی‌ریزد</td></tr>
+        <tr><td>تکاملی (<span class="en">aging evolution</span>)</td><td>جمعیت + جهش + بازنشستگیِ پیرترین — همین درس</td><td>متوسط</td><td>هر فرزند باید جداگانه آموزش ببیند</td></tr>
+        <tr><td>تصادفی (<span class="en">random search</span>)</td><td>معماری‌های تصادفی می‌سازد و می‌سنجد — خطِ پایهٔ هر مقایسه</td><td>به بودجه بستگی دارد</td><td>از گذشته هیچ چیزی یاد نمی‌گیرد</td></tr>
+      </tbody>
+    </table>
+    <p>چرا <span class="en">µNAS</span> تکاملِ پیرشونده را انتخاب کرده؟ چون سقف‌های <b>سختِ</b>
+    منابع — حافظهٔ <span class="en">flash</span>، اوج <span class="en">RAM</span>، تعداد
+    <span class="en">MACs</span> — خیلی تمیز به <span class="en">fitness</span> آن پیچ می‌شوند:
+    فرزندی که از بودجه بزند همان‌جا جریمه می‌شود، بدون اینکه قید لازم باشد مشتق‌پذیر باشد یا
+    ترفند اضافه‌ای بخواهد. داستان کامل این قیدها، درس بعدی است.</p>
+  </div>
+
   <h3>قدم سوم: هیچ «بهترین» واحدی وجود ندارد — مرز Pareto</h3>
   <p>ما دو هدف همزمان داریم که با هم می‌جنگند: <b>خطای کم</b> و <b>اندازهٔ کوچک</b>
   (تا مدل در <span class="en">microcontroller</span> جا شود). مدلی که هم کوچک‌تر و هم
@@ -191,7 +211,7 @@
       <text x="215" y="292" text-anchor="middle" fill="var(--series-1)" font-size="13" font-weight="700">مرز <tspan direction="ltr">Pareto</tspan></text>
       <line x1="228" y1="275" x2="252" y2="218" stroke="var(--series-1)" stroke-width="1.5" stroke-dasharray="4 4" marker-end="url(#arr-p)"/>
     </svg>
-    <figcaption>شکل ۲ — نمای مفهومی مرز <span class="en">Pareto</span>: هر نقطه یک معماری است؛ راست‌تر یعنی بزرگ‌تر، بالاتر یعنی پرخطاتر، و گوشهٔ پایین-چپ ایده‌آل است. نقاط آبی را هیچ مدل دیگری همزمان در هر دو معیار شکست نمی‌دهد؛ انتخاب بین آن‌ها به بودجهٔ سخت‌افزار بستگی دارد.</figcaption>
+    <figcaption>شکل ۲ — نمای مفهومی مرز <span class="en">Pareto</span>: هر نقطه یک معماری است؛ راست‌تر یعنی بزرگ‌تر، بالاتر یعنی پرخطاتر، و گوشهٔ پایین-چپ ایده‌آل است. نقاط آبی را هیچ مدل دیگری همزمان در هر دو معیار شکست نمی‌دهد؛ انتخاب بین آن‌ها به بودجهٔ سخت‌افزار بستگی دارد. یک ریزه‌کاری مهم: مرزِ واقعیِ ما بیش از دو بعد دارد — دقت، اندازهٔ مدل، اوج <span class="en">RAM</span> و <span class="en">MACs</span> — و این شکل فقط یک برشِ دوبعدی از آن است تا خوانا بماند.</figcaption>
   </figure>
 
   <p>برای همین خروجی <span class="en">NAS</span> یک مدل نیست، بلکه یک «ویترین» از
@@ -275,16 +295,57 @@
       <tbody>
         <tr><td>Classification</td><td class="num"><b>92.08%</b> (۸۴k پارامتر)</td><td class="num">92% (۴۴۱k)</td><td>✅ بهتر، با ۵ برابر پارامتر کمتر</td></tr>
         <tr><td>Classification ریز</td><td class="num">91.30% (۸k)</td><td class="num">—</td><td>✅ ۵۵ برابر کوچک‌تر از مرجع</td></tr>
-        <tr><td>LCR — در برابر رکورد منتشرشده</td><td class="num"><b>MAE 0.287 / RMSE 0.447</b></td><td class="num">MAE 0.298 / RMSE 0.510</td><td>✅ رکورد شکست</td></tr>
-        <tr><td>LCR/LCL — در برابر مرجع داخلی</td><td class="num">RMSE 0.447 / 0.466</td><td class="num">RMSE 0.42 / 0.44</td><td>❌ هنوز نه — صادقانه گزارش می‌کنیم</td></tr>
         <tr><td>بدون راهنما (ablation)</td><td class="num">91.08%</td><td class="num">—</td><td>✅ نشتی فقط ۱ واحد درصد ارزش داشت</td></tr>
       </tbody>
     </table>
+    <p>و برای <span class="en">regression</span>، به‌جای یک جملهٔ کلی، هر مقایسه را جداگانه و صادقانه می‌بندیم:</p>
+    <table>
+      <thead><tr><th>جهت (RMSE ما)</th><th>در برابر SOTA منتشرشده (RMSE 0.510)</th><th>در برابر مرجع داخلی (0.42 / 0.44)</th></tr></thead>
+      <tbody>
+        <tr><td><span class="en">LCR</span> — 0.447</td><td>✅ بهتر (0.447 در برابر 0.510)</td><td>❌ هنوز نه (0.447 در برابر 0.42)</td></tr>
+        <tr><td><span class="en">LCL</span> — 0.466</td><td>✅ بهتر، با احتیاط (0.466 در برابر 0.510)</td><td>❌ هنوز نه (0.466 در برابر 0.44)</td></tr>
+      </tbody>
+    </table>
+    <p>در <span class="en">MAE</span> هم همین الگو: <span class="en">LCR</span> ما (0.287) از رکورد
+    منتشرشده (0.298) بهتر است، ولی <span class="en">MAE</span> مدل <span class="en">LCL</span> ما
+    (0.317) هنوز از 0.298 پایین‌تر نیامده — چپ جهتِ سخت‌تر است.</p>
+    <p><b>دو احتیاطِ لازم برای این جدول:</b> اول، عدد منتشرشده یک <span class="en">TTLC</span>
+    <b>ترکیبیِ واحد</b> برای هر دو جهت است، نه عددی جداگانه برای <span class="en">LCL</span>؛ پس
+    ستون اولِ ردیف <span class="en">LCL</span> مقایسه‌ای هم‌راستاست، نه سربه‌سرِ دقیق. دوم، مرجع
+    داخلی با پروتکل آموزش و آستانه‌گذاریِ متفاوتی به دست آمده، پس آن ستون هم مقایسه‌ای نرم است.
+    هر دو را شفاف می‌گوییم تا عددها بزرگ‌تر از واقعیت به نظر نرسند.</p>
+    <p>یک نکته تا عددها قاطی نشوند: آن «۳۱ مدل» که بالاتر دیدی مال همان جست‌وجوی <b>کوتاهِ</b>
+    نمایشی بود. جست‌وجوهای کاملِ ۱۵۰ دوره‌ای مرزهای <span class="en">Pareto</span> بزرگ‌تری تحویل
+    دادند: ۳۳ مدل برای <span class="en">classification</span>، ۲۹ برای نسخهٔ بدون راهنما، ۳۲ برای
+    <span class="en">LCR</span> و ۳۳ برای <span class="en">LCL</span> (بازاجراهای
+    <span class="en">rmse</span> که همهٔ مدل‌ها را ذخیره می‌کردند: ۹۰ و ۸۲).</p>
+    <p>و دو مدلِ ردیف‌های اول جدول — بهترین (<span class="en">model_aaaabl</span>، ۸۴k پارامتر) و
+    ریز (<span class="en">model_aaaaat</span>، حدود ۸k پارامتر) — هر دو عضو <b>همان مرز ۳۳تاییِ</b>
+    <span class="en">classification</span> هستند. مدل ریز نسخهٔ هرس‌شده یا فشرده‌شدهٔ مدل بزرگ
+    نیست؛ معماریِ متفاوتی است که خودِ جست‌وجو پیدا کرد، چون با
+    <span class="en">save_criteria=pareto</span> کل مرزِ دقت-اندازه ذخیره می‌شود، نه فقط یک برنده.</p>
     <p>یک یافتهٔ قشنگِ غیرمنتظره: شکل شبکه از جنس مسئله پیروی کرد. جست‌وجو برای هر دو نوع مسئله
     اجازهٔ شاخه‌های موازی داشت، ولی مدل‌های <span class="en">classification</span> تقریباً
     <b>خطی</b> شدند و مدل‌های <span class="en">regression</span> <b>چندشاخه</b>
     (<span class="en">LCR</span> دو شاخه، <span class="en">LCL</span> سه شاخه) —
     کسی این را طراحی نکرد؛ جست‌وجو خودش کشفش کرد.</p>
+  </div>
+
+  <div class="card callout">
+    <p class="card-title">هزینهٔ جست‌وجو ⏱️ — حدود یک شبِ GPU</p>
+    <p>هر چهار جست‌وجوی کاملِ ۱۵۰ دوره‌ای در یک صفِ شبانه روی <b>یک</b>
+    <span class="en">RTX 5070</span> لپ‌تاپی اجرا شدند و با ادامهٔ تکه‌تکه
+    (<span class="en">chunked resume</span>) فردایش تمام شدند
+    (<span class="en">LOGBOOK</span>، ۸ و ۹ ژوئیهٔ ۲۰۲۶). زمانِ جداگانهٔ تک‌تکِ جست‌وجوها ثبت
+    نشده، پس صادقانه همین را می‌گوییم: <b>حدود یک شبِ GPU برای هر چهار جست‌وجو</b> — نه عددی
+    دقیق‌تر که نداریم.</p>
+    <p>برای حسِ مقیاس، عددهای معروف ادبیات: <span class="en">NASNet</span> با یادگیری تقویتی
+    (<span class="en">Zoph &amp; Le</span>) حدود ۲۰۰۰ <span class="en">GPU-day</span>،
+    <span class="en">AmoebaNet</span> با تکامل (<span class="en">Real et al., 2019</span>) حدود
+    ۳۱۵۰ <span class="en">GPU-day</span>، و <span class="en">DARTS</span> گرادیانی
+    (<span class="en">Liu et al., 2019</span>) حدود ۱ تا ۴ <span class="en">GPU-day</span>.
+    <b>احتیاط لازم:</b> آن‌ها مسئله‌ها و سخت‌افزارهای کاملاً متفاوتی بودند؛ این عددها فقط برای
+    درکِ زمینه‌اند، نه یک مقایسهٔ سربه‌سر.</p>
   </div>
 
   <div class="card callout">

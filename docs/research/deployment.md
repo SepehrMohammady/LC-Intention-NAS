@@ -2,6 +2,13 @@
 
 Updated 2026-07-14.
 
+## Why this board
+
+**STM32H7B3I-DK**, for two reasons (user decision, recorded 2026-07-24):
+(a) the published baseline deployed on STM32H7B3/F401, so measuring on the
+same board makes the on-device comparison like-for-like; (b) the unit is
+physically available in the ELIOS lab.
+
 ## ✔ SETTLED EMPIRICALLY: int16x8 is NOT deployable on ST Edge AI 4.0.1
 
 **Measured 2026-07-14 on ST Edge AI Developer Cloud, Core 4.0.1-20581 — the

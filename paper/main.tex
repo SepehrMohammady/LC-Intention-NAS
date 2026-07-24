@@ -117,8 +117,15 @@ oldest member is retired. Fitness combines four objectives---validation error,
 peak RAM, model size and multiply--accumulate count---by the random
 scalarisation of \cite{liberis2021munas}: each is normalised by a user budget
 and divided by a random weight resampled every round, so a candidate exceeding
-any budget is penalised first. Budgets were set from the STM32H7B3I-DK.
-\todo{state population/sample sizes, rounds, and search cost.}
+any budget is penalised first. Budgets were set from the STM32H7B3I-DK, the
+deployment platform of the published baseline, so the on-device comparison is
+like for like. Each task ran 150 rounds with a population of 50 and a sample
+size of 15; all four searches completed overnight on a single laptop GPU
+(RTX~5070), against thousands of GPU-days for early reinforcement-learning and
+evolutionary NAS \cite{zoph2017neural, real2019regularized}---a different-task
+comparison offered as context only, but one that follows from searching
+directly in the microcontroller-scale regime, where every candidate trains in
+minutes.
 
 \subsection{Discovered architecture}
 Across tasks the search independently arrives at the same microcontroller-friendly
@@ -317,6 +324,12 @@ lightweight simulation environment for automated driving dataset
 collection,'' in \emph{Applications in Electronics Pervading Industry,
 Environment and Society (ApplePies)}, Springer LNEE, 2024, pp. 156--163,
 doi: 10.1007/978-3-031-84100-2\_19.
+\bibitem{zoph2017neural} B.~Zoph and Q.~V.~Le, ``Neural architecture search
+with reinforcement learning,'' in \emph{Proc.\ Int.\ Conf.\ Learn.\
+Representations (ICLR)}, 2017.
+\bibitem{real2019regularized} E.~Real, A.~Aggarwal, Y.~Huang, and Q.~V.~Le,
+``Regularized evolution for image classifier architecture search,'' in
+\emph{Proc.\ AAAI Conf.\ Artif.\ Intell.}, 2019, pp. 4780--4789.
 \end{thebibliography}
 
 \end{document}

@@ -138,3 +138,5 @@ articles the team shared). Run every draft section against it.
       (not the search) to show insensitivity to the specific 7-driver test
       choice. Cheap (~7 retrainings per task); would preempt a likely reviewer
       question about the small driver count.
+- [ ] Log per-search wall-clock on any future NAS re-run (current evidence:
+      one overnight queue for all four searches, LOGBOOK 2026-07-08/09).

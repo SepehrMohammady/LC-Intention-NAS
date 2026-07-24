@@ -15,6 +15,21 @@ Reference points: published SOTA (Forneris et al., SPL 2026, Transformer
 reference: RMSE 0.42 (LCR) / 0.44 (LCL), acc 92%. Our PyTorch DSCNN (~10.5k
 params): LCR MAE 0.318 / RMSE 0.439; LCL MAE 0.333 / RMSE 0.459; acc 91.5%.
 
+## Search cost
+
+All four 150-round searches ran as a single overnight queue on one RTX 5070
+laptop GPU (launched 2026-07-08, completed via chunked resume on 2026-07-09 —
+see `LOGBOOK.md`): **about one GPU-night for all four searches in total**. No
+finer per-search wall-clock was logged, so no per-task figure is quoted.
+
+Literature context (different tasks, datasets, and hardware — cite as context
+only, never as a direct comparison): NASNet's RL search ~2000 GPU-days
+(Zoph & Le), AmoebaNet's evolution ~3150 GPU-days (Real et al., 2019),
+DARTS' gradient search ~1–4 GPU-days (Liu et al., 2019).
+
+- [ ] TODO: log wall-clock per chunk on any future re-run so a per-search
+      figure can be reported.
+
 ## Regression — LCR (time to right lane change)
 
 | Model | params | int8 KB | test MAE | test RMSE |
