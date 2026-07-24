@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 01 — The Problem | LC-Intention-NAS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/course.css">
+<script src="../assets/course.js" defer></script>
+</head>
+<body>
+<div class="topbar">
+  <a class="home" href="index.html">↪ Course index</a>
+  <div class="spacer"></div>
+  <nav class="lang-switch" aria-label="Language">
+    <a href="../01-the-problem.html" hreflang="fa">فا</a>
+    <a href="01-the-problem.html" class="active" hreflang="en">EN</a>
+    <a href="../it/01-the-problem.html" hreflang="it">IT</a>
+  </nav>
+  <button class="theme-toggle" onclick="toggleTheme()">🌗 Light/Dark</button>
+</div>
+<main>
+  <p class="kicker">Lesson 01</p>
+  <h1>The problem: how can a car tell the driver is about to change lanes? 🚗</h1>
+  <p class="lede">Before changing lanes, a driver leaves small traces in the car's signals — our job is to find those traces, a few seconds before the maneuver itself.</p>
+
+  <div class="card callout story">
+    <p class="card-title">The story 📖</p>
+    <p>When someone is about to change lanes, they give off plenty of small cues well before
+    the main move: they turn the wheel bit by bit, adjust their speed, glance at the mirror,
+    drift closer to or farther from the car in front. People read these cues without thinking —
+    when a motorcyclist starts weaving next to you, you can "feel" they are about to cut across,
+    without being able to say exactly how you knew.</p>
+    <p>The question this project asks: can a computer program, watching those same cues,
+    predict a lane change <b>a few seconds before</b> it happens? If it can, the car has time
+    to warn the driver or prepare itself — and those few seconds can be worth a great deal.</p>
+  </div>
+
+  <h2>More precisely 🔬</h2>
+  <p>Modern cars are packed with sensors; dozens of signals are recorded at every instant:
+  speed, steering angle, distance to the lane marking, distance to the surrounding cars, and so on.
+  Together these signals form a <b><span class="en">multivariate time series</span></b>:
+  several parallel signals that all change over time — a bit like several ECG traces recorded
+  side by side, simultaneously, each telling its own story.</p>
+
+  <p>The interesting part is that the lane-change cues — those very "traces" — show up in these
+  signals a few seconds in advance. The figure below is a simple sketch of the idea:</p>
+
+  <figure class="viz">
+    <div class="legend">
+      <span class="key"><span class="swatch" style="background:var(--series-1)"></span> <span class="en">steering angle</span></span>
+      <span class="key"><span class="swatch" style="background:var(--series-2)"></span> <span class="en">turn signal</span></span>
+      <span class="key"><span class="swatch" style="background:var(--muted)"></span> <span class="en">lane distance</span></span>
+    </div>
+    <svg viewBox="0 0 720 335" role="img" aria-label="Three vehicle signals in a five-second window: the steering angle rises shortly before the lane change, the turn signal switches on like a step, and the distance to the lane line shrinks; the vertical dashed line marks the lane-change moment and the cues start a few seconds before it">
+      <defs>
+        <marker id="arrA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="var(--muted)"/>
+        </marker>
+      </defs>
+      <!-- grid: one vertical line per second -->
+      <line x1="60"  y1="26" x2="60"  y2="290" stroke="var(--grid)" stroke-width="1"/>
+      <line x1="180" y1="26" x2="180" y2="290" stroke="var(--grid)" stroke-width="1"/>
+      <line x1="300" y1="26" x2="300" y2="290" stroke="var(--grid)" stroke-width="1"/>
+      <line x1="420" y1="26" x2="420" y2="290" stroke="var(--grid)" stroke-width="1"/>
+      <line x1="540" y1="26" x2="540" y2="290" stroke="var(--grid)" stroke-width="1"/>
+      <line x1="660" y1="26" x2="660" y2="290" stroke="var(--grid)" stroke-width="1"/>
+      <!-- lane-change marker -->
+      <line x1="600" y1="26" x2="600" y2="290" stroke="var(--ink-2)" stroke-width="1.5" stroke-dasharray="5 5"/>
+      <text x="600" y="18" text-anchor="middle" fill="var(--ink)" font-size="13" font-weight="700">Lane change</text>
+      <!-- band 1: steering angle -->
+      <text x="125" y="58" text-anchor="middle" fill="var(--ink-2)" font-size="12.5" font-weight="700">Steering angle</text>
+      <path d="M60,88 C90,82 110,94 140,88 C170,83 190,93 220,88 C250,84 270,92 300,88 C330,84 350,91 380,87 C410,84 435,84 460,79 C495,72 550,60 600,50 C625,46 645,49 660,50"
+            fill="none" stroke="var(--series-1)" stroke-width="2" stroke-linecap="round"/>
+      <!-- band 2: turn signal (step) -->
+      <text x="125" y="145" text-anchor="middle" fill="var(--ink-2)" font-size="12.5" font-weight="700">Turn signal</text>
+      <path d="M60,172 L416,172 L420,132 L660,132"
+            fill="none" stroke="var(--series-2)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+      <text x="240" y="164" text-anchor="middle" fill="var(--ink-2)" font-size="11">off</text>
+      <text x="520" y="124" text-anchor="middle" fill="var(--ink-2)" font-size="11">on</text>
+      <!-- band 3: distance to lane line -->
+      <text x="125" y="240" text-anchor="middle" fill="var(--ink-2)" font-size="12.5" font-weight="700">Lane distance</text>
+      <path d="M60,212 C120,209 170,215 230,212 C280,210 330,214 380,218 C440,224 520,239 600,251 C625,254 645,255 660,255"
+            fill="none" stroke="var(--muted)" stroke-width="2" stroke-dasharray="7 5" stroke-linecap="round"/>
+      <!-- annotation: signals appear seconds before -->
+      <text x="507" y="268" text-anchor="middle" fill="var(--ink-2)" font-size="11.5">Cues begin a few seconds earlier</text>
+      <line x1="422" y1="277" x2="594" y2="277" stroke="var(--muted)" stroke-width="1.5" marker-start="url(#arrA)" marker-end="url(#arrA)"/>
+      <!-- time axis -->
+      <line x1="60" y1="290" x2="660" y2="290" stroke="var(--baseline)" stroke-width="1"/>
+      <line x1="60"  y1="290" x2="60"  y2="296" stroke="var(--baseline)" stroke-width="1"/>
+      <line x1="180" y1="290" x2="180" y2="296" stroke="var(--baseline)" stroke-width="1"/>
+      <line x1="300" y1="290" x2="300" y2="296" stroke="var(--baseline)" stroke-width="1"/>
+      <line x1="420" y1="290" x2="420" y2="296" stroke="var(--baseline)" stroke-width="1"/>
+      <line x1="540" y1="290" x2="540" y2="296" stroke="var(--baseline)" stroke-width="1"/>
+      <line x1="660" y1="290" x2="660" y2="296" stroke="var(--baseline)" stroke-width="1"/>
+      <text x="60"  y="311" text-anchor="middle" fill="var(--muted)" font-size="11">0</text>
+      <text x="180" y="311" text-anchor="middle" fill="var(--muted)" font-size="11">1</text>
+      <text x="300" y="311" text-anchor="middle" fill="var(--muted)" font-size="11">2</text>
+      <text x="420" y="311" text-anchor="middle" fill="var(--muted)" font-size="11">3</text>
+      <text x="540" y="311" text-anchor="middle" fill="var(--muted)" font-size="11">4</text>
+      <text x="660" y="311" text-anchor="middle" fill="var(--muted)" font-size="11">5</text>
+      <text x="360" y="330" text-anchor="middle" fill="var(--muted)" font-size="11">Time (seconds)</text>
+    </svg>
+    <figcaption>Figure 1 — Schematic sketch of three signals in a 5-second window: the gradual steering turn, the turn signal switching on, and the shrinking distance to the lane line are all visible <b>before</b> the lane-change moment (the vertical dashed line). The scales are symbolic, not real data.</figcaption>
+  </figure>
+
+  <div class="tiles">
+    <div class="tile">
+      <div class="value">3</div>
+      <div class="label">classes in <span class="en">classification</span>: none, right, left</div>
+    </div>
+    <div class="tile">
+      <div class="value">0–4 s</div>
+      <div class="label"><span class="en">regression</span> output range (step <span class="en">0.1</span>)</div>
+    </div>
+    <div class="tile">
+      <div class="value">50×31</div>
+      <div class="label">input <span class="en">window</span> size: 50 time steps × 31 signals</div>
+    </div>
+  </div>
+
+  <p>With these signals we solve <b>three problems</b>:</p>
+  <div class="card">
+    <p>1. <b><span class="en">Classification</span></b> with three classes — the model must say which state the driver is in right now:</p>
+    <table>
+      <thead><tr><th>Class code</th><th>Meaning</th></tr></thead>
+      <tbody>
+        <tr><td class="num">0</td><td>No lane-change intention</td></tr>
+        <tr><td class="num">1</td><td>Intention to change lanes to the right (<span class="en">LCR</span> = Lane Change Right)</td></tr>
+        <tr><td class="num">2</td><td>Intention to change lanes to the left (<span class="en">LCL</span> = Lane Change Left)</td></tr>
+      </tbody>
+    </table>
+    <p>2. <b><span class="en">Regression</span> for LCL</b>: how many seconds are left until the left lane change?
+    The answer is a number between <span class="en">0</span> and <span class="en">4</span> seconds, in steps of <span class="en">0.1</span>.<br>
+    3. <b><span class="en">Regression</span> for LCR</b>: the same question, this time for the right.</p>
+    <p>Where does this 0-to-4 range come from? From the <b>labels</b> themselves: only windows whose
+    lane change happens within the next few seconds receive a numeric label. At longer horizons
+    no cue has formed yet, so values above 4 seconds are simply never defined.</p>
+  </div>
+
+  <p>And one important constraint: why isn't "accuracy alone" enough? Because the answer has to be
+  computed on a <span class="en">microcontroller</span> inside the car itself — within a few
+  milliseconds and a few hundred kilobytes of memory. A big <span class="en">model</span> that is
+  accurate but slow is like a brilliant scientist who needs a week for every answer: useless here.
+  We want accuracy <b>and</b> compactness <b>and</b> speed, all at once.</p>
+
+  <h2>In our project 🧰</h2>
+  <p>The best published result on this very dataset (the
+  <a href="https://elios-lab.github.io/LC-Intention-Framework/"><span class="en">LC-Intention</span></a>
+  framework) stands at: <span class="en">accuracy</span> of <span class="en">92%</span> for
+  <span class="en">classification</span>, and <span class="en">RMSE</span> of
+  <span class="en">0.42 s</span> and <span class="en">0.44 s</span> for the two
+  <span class="en">regression</span> tasks. And already on day one, our first simple model — a
+  small <span class="en">CNN</span>, with no special tuning — reached <span class="en">91.5%</span>:</p>
+
+  <figure class="viz">
+    <div class="legend">
+      <span class="key"><span class="swatch" style="background:var(--series-1)"></span> Our first model</span>
+      <span class="key"><span class="swatch" style="background:var(--series-2)"></span> Published target</span>
+    </div>
+    <div class="hbar">
+      <div class="name">Our first model (small <span class="en">CNN</span>, untuned)</div>
+      <div class="track"><div class="fill" style="width:91.5%"></div></div>
+      <div class="val">91.5%</div>
+      <div class="name">Published target (<span class="en">LC-Intention</span>)</div>
+      <div class="track"><div class="fill alt" style="width:92%"></div></div>
+      <div class="val">92%</div>
+    </div>
+    <figcaption>Figure 2 — <span class="en">accuracy</span> on the <span class="en">classification</span> task (scale 0 to 100%): our first model sits only half a percentage point behind the record — the race is entirely winnable, and there is room to improve.</figcaption>
+  </figure>
+
+  <div class="card">
+    <p>• Every experiment's result is recorded in <span class="en">logs/experiments.jsonl</span>,
+    so every number you see here is reproducible.<br>
+    • In the coming lessons we improve this simple model step by step, until we pass the
+    <span class="en">92%</span> and <span class="en">RMSE</span>
+    <span class="en">0.42/0.44 s</span> targets.</p>
+  </div>
+
+  <div id="quiz" class="quiz"></div>
+  <script type="application/json" id="quiz-data">
+  [
+    {"stem": "A 5-second window ends exactly at the moment the main steering turn begins. For predicting the maneuver \"before it happens\", which information inside the window is the most valuable?",
+     "options": ["Only the last frame of the window, since the car's most recent state is recorded there and the earlier frames are redundant", "The gradual trend of the signals across the window: the smooth steering turn, the shrinking distance to the lane line", "Averaging over the whole window, since that removes momentary fluctuations and sensor noise and leaves a clean signal behind", "The first frame of the window, since it is furthest in time from the maneuver and therefore gives the earliest warning"],
+     "answer": 1,
+     "explain": "Intention cues are patterns \"over time\", not a single snapshot: the wheel turns bit by bit and the distance to the line shrinks. The last frame alone shows no trend, and averaging crushes exactly this dynamic — which is why the model must watch the whole 50-frame film."},
+    {"stem": "In this project's class convention, which option pairs (code, meaning) correctly?",
+     "options": ["Class 0 = lane change to the right; class 1 = lane change to the left; class 2 = no lane-change intention", "Class 1 = lane change to the right (LCR); class 2 = lane change to the left (LCL)", "Class 1 = no lane-change intention; class 2 = lane change to the right; class 0 = lane change to the left", "Class 0 = lane change to the left (LCL); class 1 = no intention; class 2 = lane change to the right (LCR)"],
+     "answer": 1,
+     "explain": "The convention: 0 = no intention, 1 = LCR (right), 2 = LCL (left). Keeping this straight matters because every later table and confusion matrix is reported with these codes, and reading them swapped turns the conclusions upside down."},
+    {"stem": "We have a model with 99% accuracy whose every prediction takes half a second and needs 8 megabytes of memory. Why is it a bad model for this project?",
+     "options": ["Because 99% accuracy on simulator driving data is almost always a sign of memorization (overfitting) and it collapses in the real world", "Because it does not fit on a microcontroller with a few hundred kilobytes of memory, and it is also too slow for a timely warning", "Because the car's sensors deliver their data with several hundred milliseconds of delay, which cancels out the model's high accuracy", "Because the regression output must by definition be an integer, while such a large model can only ever produce decimal numbers"],
+     "answer": 1,
+     "explain": "There are two hard budgets: a few hundred kilobytes of memory, and a response within milliseconds. 8MB simply does not fit on the chip, and half a second of latency eats a large share of the reaction time for a maneuver that is itself only seconds away. High accuracy is necessary but not sufficient."},
+    {"stem": "Why is the regression output limited to the 0-to-4-second range?",
+     "options": ["Because labels are only built for windows whose maneuver occurs within the few-second horizon that follows them", "Because the output activation function of neural networks is inherently unable to produce numbers larger than 4", "Because the simulator flushes the sensor buffers after recording 4 seconds of continuous data and then starts over", "Because all signals get squeezed into the zero-to-four range during normalization, and the output follows that scale"],
+     "answer": 0,
+     "explain": "The output range comes from the label definition, not from a network limitation: every window with a lane change up to 4 seconds ahead is labeled with that time gap (step 0.1). Predicting intention at much longer horizons is not really meaningful anyway — the cues have not formed yet."}
+  ]
+  </script>
+
+  <div class="lesson-nav">
+    <a href="00-roadmap.html"><div class="dir">← Previous</div><div>Lesson 00 — The Roadmap</div></a>
+    <a href="02-the-data.html"><div class="dir">Next →</div><div>Lesson 02 — The Data</div></a>
+  </div>
+  <footer class="site">LC-Intention-NAS · ELIOS Lab</footer>
+</main>
+</body>
+</html>

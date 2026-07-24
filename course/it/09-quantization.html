@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="it" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lezione 09 — Quantization | LC-Intention-NAS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/course.css">
+<script src="../assets/course.js" defer></script>
+</head>
+<body>
+<div class="topbar">
+  <a class="home" href="index.html">↪ Indice del corso</a>
+  <div class="spacer"></div>
+  <nav class="lang-switch" aria-label="Language">
+    <a href="../09-quantization.html" hreflang="fa">فا</a>
+    <a href="../en/09-quantization.html" hreflang="en">EN</a>
+    <a href="09-quantization.html" class="active" hreflang="it">IT</a>
+  </nav>
+  <button class="theme-toggle" onclick="toggleTheme()">🌗 Chiaro/Scuro</button>
+</div>
+<main>
+  <p class="kicker">Lezione 09</p>
+  <h1><span class="en">Quantization</span>: rimpicciolire i numeri senza rovinare il risultato 📏</h1>
+  <p class="lede">Convertiamo i pesi del modello da numeri a 32 bit a numeri a 8 bit: circa quattro volte più piccoli e più veloci sul chip — a patto di fare attenzione all&rsquo;arrotondamento.</p>
+
+  <div class="card callout">
+    <p class="card-title">Stato di questa fase ✅ — con un vero colpo di scena</p>
+    <p>Questa fase è stata completata e ci ha dato <b>due</b> lezioni vere. Prima lezione:
+    l&rsquo;<span class="en">int8</span> semplice fa crollare l&rsquo;accuratezza dei nostri modelli
+    (i segnali di ingresso hanno scale molto diverse), mentre
+    <span class="en">int16×8</span> (pesi a 8 bit, attivazioni a 16 bit) mantiene l&rsquo;accuratezza
+    intatta. Seconda lezione — amara ma importante: quando abbiamo davvero dato il file
+    <span class="en">int16×8</span> al tool <span class="en">ST</span>, si è scoperto che
+    <b>non è supportato</b> e che il tool lo riconverte <b>in silenzio</b> a
+    <span class="en">float32</span>! Dettagli più sotto.</p>
+  </div>
+
+  <div class="card">
+    <p class="card-title">int8 contro int16×8 — il nostro risultato reale 📊</p>
+    <table>
+      <thead><tr><th>Modello</th><th class="num">float</th><th class="num">int8 semplice</th><th class="num">int16×8</th></tr></thead>
+      <tbody>
+        <tr><td>Classification (accuratezza)</td><td class="num">92.1%</td><td class="num">86.9% ✗</td><td class="num">92.1% ✓</td></tr>
+        <tr><td>Regression LCR (errore MAE)</td><td class="num">0.287</td><td class="num">0.449 ✗</td><td class="num">0.286 ✓</td></tr>
+        <tr><td>Senza freccia (accuratezza)</td><td class="num">91.1%</td><td class="num">76.1% ✗</td><td class="num">91.1% ✓</td></tr>
+        <tr><td><b>Deployabile con il tool ST?</b></td><td class="num">✓</td><td class="num">✓</td><td class="num"><b>✗ — diventa float32 in silenzio</b></td></tr>
+      </tbody>
+    </table>
+    <p>La lezione: dopo la <span class="en">quantization</span> misura sempre di nuovo l&rsquo;accuratezza
+    sui dati di test — e prima di festeggiare, assicurati che la toolchain di destinazione
+    esegua davvero quel formato.</p>
+  </div>
+
+  <div class="card callout" style="border-left-color: var(--critical);">
+    <p class="card-title">🕵️ Storia da detective: il tool che riconverte il modello in silenzio</p>
+    <p>La documentazione <span class="en">ST</span> diceva che sono supportati solo
+    <span class="en">float32/int8/uint8</span>, ma i documenti erano datati e valeva la pena
+    provare in pratica con la versione recente (<span class="en">4.0.1</span>).
+    Abbiamo progettato un esperimento con la risposta definita in anticipo: il nostro file
+    <span class="en">int16×8</span> pesa <span class="en">118 KB</span> e la versione
+    <span class="en">float32</span> dello stesso modello <span class="en">338 KB</span>;
+    quindi, dopo l&rsquo;upload, il numero dei pesi riportato fa da giudice:</p>
+    <p><code>weights &asymp; 118 KB &rarr; int16&times;8 really deployed ✓<br>weights &asymp; 326 KB &rarr; silently converted to float32 ✗</code></p>
+    <p>Risultato della misura: <b><span class="en">326.15 KiB</span></b> — esattamente la taglia del
+    <span class="en">float32</span>. Il tool cioè ha «accettato» il file, non ha dato alcun errore,
+    ma ha riportato i pesi a 8 bit di nuovo a 32 bit e ha buttato via lo schema
+    <span class="en">int16</span>. (Controllo di sanità: il file <span class="en">int8</span>
+    vero, nello stesso punto, è stato riportato come <span class="en">83.28 KiB</span> — quindi
+    il metodo di misura era corretto.) Se avessimo fatto il <span class="en">benchmark</span>
+    in modo ingenuo, nel paper avremmo scritto «<span class="en">int16×8</span> gira a questa
+    velocità» mentre in realtà girava <span class="en">float32</span> — un numero falso, senza
+    aver mentito!</p>
+    <p>💡 La grande lezione: <b>«non ha dato errore» è diverso da «ha funzionato».</b> A volte
+    i tool convertono in silenzio un input non supportato in qualcos&rsquo;altro; un buon esperimento
+    è quello la cui risposta ha, già in partenza, due esiti distinguibili. Quindi: per noi
+    <span class="en">int16×8</span> è soltanto un «limite di accuratezza offline» e non viene
+    mai riportato come configurazione deployata; il deployment principale del paper è in
+    <span class="en">float32</span> (lo stesso metodo del paper di riferimento — confronto equo).</p>
+  </div>
+
+  <div class="card callout story">
+    <p class="card-title">La storia 📖</p>
+    <p>Immagina di voler misurare l&rsquo;altezza di un amico. Hai due righelli: uno millimetrato
+    con migliaia di tacche sottili, e uno semplice che ha solo i centimetri. Il righello
+    millimetrato è più preciso, ma a dirla tutta, per misurare l&rsquo;altezza «173 centimetri»
+    serve esattamente quanto «1730 millimetri» — e il righello più semplice è più leggero
+    e si legge più in fretta.</p>
+    <p>La <b><span class="en">quantization</span></b> è esattamente questo scambio: invece di
+    conservare ogni <span class="en">weight</span> del modello con un numero decimale molto
+    preciso, lo misuriamo con un righello più grossolano che ha solo 256 tacche. La precisione
+    dei singoli numeri cala un po&rsquo;, ma la risposta complessiva del modello — se facciamo le
+    cose per bene — resta pressoché la stessa. In cambio il modello diventa molto più piccolo
+    e più veloce; per il nostro piccolo chip è esattamente ciò che vogliamo.</p>
+  </div>
+
+  <h2>Più in dettaglio 🔬</h2>
+  <p>In un computer, ogni <span class="en">weight</span> è di solito un numero decimale di tipo
+  <span class="en">float32</span> e occupa 32 bit di memoria. Se salviamo lo stesso numero come
+  <span class="en">int8</span> (intero a 8 bit) bastano 8 bit — cioè il volume dei pesi si riduce
+  a circa <b>un quarto</b>. E c&rsquo;è pure un secondo regalo: i
+  <span class="en">microcontroller</span> hanno circuiti veloci per l&rsquo;aritmetica intera,
+  quindi il modello <span class="en">int8</span> non è solo più piccolo, ma gira anche
+  <b>più veloce</b>.</p>
+
+  <p>Resta però una grande domanda: un numero a 8 bit ha solo 256 stati. Come facciamo a far
+  stare infiniti numeri decimali in 256 stati? Risposta: dividiamo l&rsquo;intervallo dei numeri
+  reali in 256 gradini uguali e arrotondiamo ogni numero al gradino più vicino:</p>
+
+  <figure class="viz">
+    <svg viewBox="0 0 720 300" role="img" aria-label="Mappatura della retta continua dei numeri float32 sui 256 gradini discreti di int8: ogni numero reale viene arrotondato al gradino più vicino; scale è la dimensione di un gradino e zero-point è il gradino che fa da zero">
+      <defs>
+        <marker id="arr-q" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="var(--muted)"/>
+        </marker>
+        <linearGradient id="f32grad" gradientUnits="userSpaceOnUse" x1="60" y1="0" x2="660" y2="0">
+          <stop offset="0" stop-color="var(--series-1)"/>
+          <stop offset="1" stop-color="var(--series-2)"/>
+        </linearGradient>
+      </defs>
+
+      <!-- ===== float32 line (top) ===== -->
+      <text x="60" y="30" text-anchor="start" fill="var(--series-1)" font-size="13" font-weight="700" font-family="ui-monospace, Consolas, monospace">float32 (32-bit)</text>
+      <text x="445" y="30" text-anchor="middle" fill="var(--ink-2)" font-size="12.5">continua — tra due numeri ce ne sono sempre altri</text>
+      <line x1="60" y1="70" x2="660" y2="70" stroke="var(--muted)" stroke-width="12" stroke-dasharray="1 4" opacity="0.5"/>
+      <rect x="60" y="68.5" width="600" height="3" fill="url(#f32grad)"/>
+      <text x="110" y="97" text-anchor="middle" fill="var(--muted)" font-size="11.5">valore minimo</text>
+      <text x="612" y="97" text-anchor="middle" fill="var(--muted)" font-size="11.5">valore massimo</text>
+      <!-- real zero on the float line -->
+      <circle cx="290" cy="70" r="4.5" fill="var(--ink)"/>
+      <text x="290" y="52" text-anchor="middle" fill="var(--ink)" font-size="12.5" font-weight="700" font-family="ui-monospace, Consolas, monospace">0</text>
+      <!-- a sample real value -->
+      <circle cx="470" cy="70" r="4.5" fill="var(--ink)"/>
+
+      <!-- ===== mapping arrows ===== -->
+      <line x1="290" y1="80" x2="291.5" y2="194" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="4 4" marker-end="url(#arr-q)"/>
+      <line x1="470" y1="80" x2="475.5" y2="194" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="4 4" marker-end="url(#arr-q)"/>
+      <text x="555" y="140" text-anchor="middle" fill="var(--ink-2)" font-size="12">ogni numero va al gradino più vicino</text>
+
+      <!-- ===== int8 line (bottom) ===== -->
+      <text x="60" y="172" text-anchor="start" fill="var(--series-2)" font-size="13" font-weight="700" font-family="ui-monospace, Consolas, monospace">int8 (8-bit)</text>
+      <text x="530" y="172" text-anchor="middle" fill="var(--ink-2)" font-size="12.5">discreta — solo 256 gradini</text>
+      <line x1="60" y1="210" x2="660" y2="210" stroke="var(--series-2)" stroke-width="2" opacity="0.45"/>
+      <line x1="60" y1="210" x2="661" y2="210" stroke="var(--series-2)" stroke-width="20" stroke-dasharray="3 43"/>
+      <text x="61.5" y="243" text-anchor="middle" fill="var(--muted)" font-size="12" font-family="ui-monospace, Consolas, monospace">-128</text>
+      <text x="659.5" y="243" text-anchor="middle" fill="var(--muted)" font-size="12" font-family="ui-monospace, Consolas, monospace">+127</text>
+
+      <!-- zero-point label -->
+      <text x="291.5" y="245" text-anchor="middle" fill="var(--ink)" font-size="12" font-weight="700" font-family="ui-monospace, Consolas, monospace">zero-point</text>
+      <text x="291.5" y="264" text-anchor="middle" fill="var(--ink-2)" font-size="11.5">il gradino che fa da «zero»</text>
+
+      <!-- scale bracket between two adjacent buckets -->
+      <path d="M429.5,232 v8 h46 v-8" fill="none" stroke="var(--ink-2)" stroke-width="1.5"/>
+      <text x="452.5" y="260" text-anchor="middle" fill="var(--ink)" font-size="12" font-weight="700" font-family="ui-monospace, Consolas, monospace">scale</text>
+      <text x="452.5" y="279" text-anchor="middle" fill="var(--ink-2)" font-size="11.5">dimensione di un gradino</text>
+    </svg>
+    <figcaption>Figura 1 — La mappatura dei numeri continui <span class="en">float32</span> (in alto) sui 256 gradini discreti di <span class="en">int8</span> (in basso): <span class="en">scale</span> è la dimensione di ogni gradino e <span class="en">zero-point</span> dice su quale gradino cade lo zero reale.</figcaption>
+  </figure>
+
+  <div class="card">
+    <p>La regola di mappatura è tutta qui:<br>
+    <b>numero reale ≈ <span class="en">scale</span> × (codice <span class="en">int8</span> − <span class="en">zero-point</span>)</b><br>
+    • <b><span class="en">scale</span></b>: la dimensione di ogni gradino — l&rsquo;intervallo dei numeri reali diviso 256.<br>
+    • <b><span class="en">zero-point</span></b>: il codice che fa da zero; non deve per forza stare
+    al centro, perché anche l&rsquo;intervallo dei numeri reali non è necessariamente simmetrico
+    intorno allo zero.</p>
+    <p>Un punto importante: questi <span class="en">scale</span> e <span class="en">zero-point</span>
+    vengono scelti per <b>tutti i pesi di un layer insieme</b>, non per ogni singolo peso.
+    Quindi, se in un layer c&rsquo;è un peso <b>anomalo</b> (molto grande), questo stira
+    l&rsquo;intervallo e ingrossa i gradini — e tutti gli altri pesi, che erano vicini tra loro,
+    vengono arrotondati a pochi gradini e la loro informazione viene schiacciata. È proprio
+    questa la causa principale del calo di accuratezza di <span class="en">int8</span> sui
+    nostri dati.</p>
+  </div>
+
+  <div class="tiles">
+    <div class="tile">
+      <div class="value">×4</div>
+      <div class="label">riduzione del volume dei pesi</div>
+    </div>
+    <div class="tile">
+      <div class="value">8 bit</div>
+      <div class="label">memoria per ogni <span class="en">weight</span> (invece di 32 bit)</div>
+    </div>
+    <div class="tile">
+      <div class="value">~256</div>
+      <div class="label">numero di tacche del righello <span class="en">int8</span></div>
+    </div>
+  </div>
+
+  <h3>Da dove conosciamo l&rsquo;intervallo? <span class="en">calibration</span> 🎯</h3>
+  <p>Per sistemare i gradini nel modo giusto dobbiamo sapere in quale range cadono davvero i
+  numeri. Per i <span class="en">weight</span> è facile — li abbiamo sotto gli occhi. Ma le
+  uscite intermedie dei layer (<span class="en">activations</span>) dipendono dall&rsquo;input.
+  La soluzione: facciamo passare per il modello <b>qualche centinaio di esempi reali</b>
+  (le nostre stesse finestre da 5 secondi) e osserviamo dove cadono di solito i numeri di
+  ogni layer. Questa operazione si chiama <span class="en">calibration</span>. Se scegliamo
+  male l&rsquo;intervallo, o un sacco di gradini restano sprecati e inutilizzati, oppure i numeri
+  grandi escono dal righello e vengono tagliati.</p>
+
+  <h3>Due modi di arrotondare: <span class="en">PTQ</span> e <span class="en">QAT</span> ⚖️</h3>
+  <p>L&rsquo;arrotondamento aggiunge un piccolo errore a ogni numero. La domanda è quando il
+  modello debba fare conoscenza con questo errore:</p>
+  <table>
+    <thead><tr><th>Metodo</th><th>Come funziona</th><th>Risultato</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><span class="en">PTQ</span><br><small>Post-Training Quantization</small></td>
+        <td>A training finito, i pesi vengono arrotondati in un colpo solo; rapido e indolore</td>
+        <td>A volte si perde un po&rsquo; di accuratezza</td>
+      </tr>
+      <tr>
+        <td><span class="en">QAT</span><br><small>Quantization-Aware Training</small></td>
+        <td>In un breve training aggiuntivo l&rsquo;arrotondamento viene simulato «per finta», così la rete impara a conviverci</td>
+        <td>L&rsquo;accuratezza si conserva meglio</td>
+      </tr>
+    </tbody>
+  </table>
+  <p>Con <span class="en">QAT</span> la rete sa già in anticipo che verrà misurata con il
+  righello grossolano, quindi regola i suoi pesi in modo che la risposta resti buona anche
+  dopo l&rsquo;arrotondamento. In pratica, i nostri file di deployment sono stati prodotti con
+  <span class="en">PTQ</span> (rapido, con qualche centinaio di finestre reali per la
+  <span class="en">calibration</span>) — e poiché su questi dati perfino un
+  <span class="en">int8</span> ben fatto fa calare l&rsquo;accuratezza, e
+  <span class="en">int16×8</span> non è deployabile, la configurazione principale del paper
+  è rimasta <span class="en">float32</span>. <span class="en">QAT</span> resta l&rsquo;opzione
+  futura per recuperare il calo di <span class="en">int8</span>, se un giorno ci servirà il
+  punto operativo <span class="en">int8</span>.</p>
+
+  <h2>Nel nostro progetto 🧰</h2>
+  <figure class="viz">
+    <svg viewBox="0 0 720 170" role="img" aria-label="La nostra pipeline: il modello vincitore del NAS in float32 passa per la PTQ — arrotondamento dopo il training, con calibration su finestre reali — e alla fine produciamo due file TFLite pronti per la board: float32 e int8">
+      <defs>
+        <marker id="arr-p" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="var(--muted)"/>
+        </marker>
+      </defs>
+      <!-- right: NAS winner -->
+      <rect x="520" y="45" width="160" height="80" rx="12" fill="none" stroke="var(--baseline)" stroke-width="2"/>
+      <text x="600" y="80" text-anchor="middle" fill="var(--ink)" font-size="14.5" font-weight="700">Vincitore NAS</text>
+      <text x="600" y="105" text-anchor="middle" fill="var(--ink-2)" font-size="12" font-family="ui-monospace, Consolas, monospace">float32</text>
+      <!-- arrow -->
+      <line x1="520" y1="85" x2="466" y2="85" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr-p)"/>
+      <!-- middle: PTQ -->
+      <rect x="278" y="45" width="184" height="80" rx="12" fill="none" stroke="var(--series-2)" stroke-width="2.5"/>
+      <text x="370" y="74" text-anchor="middle" fill="var(--ink)" font-size="15" font-weight="800" font-family="ui-monospace, Consolas, monospace">PTQ</text>
+      <text x="370" y="96" text-anchor="middle" fill="var(--ink-2)" font-size="11.5">arrotondamento post-training,</text>
+      <text x="370" y="114" text-anchor="middle" fill="var(--ink-2)" font-size="11.5">calibration con finestre reali</text>
+      <!-- arrow -->
+      <line x1="278" y1="85" x2="224" y2="85" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr-p)"/>
+      <!-- left: TFLite outputs -->
+      <rect x="64" y="45" width="160" height="80" rx="12" fill="none" stroke="var(--series-1)" stroke-width="2.5"/>
+      <text x="144" y="74" text-anchor="middle" fill="var(--ink)" font-size="12.5" font-weight="800" font-family="ui-monospace, Consolas, monospace">float32 + int8</text>
+      <text x="144" y="96" text-anchor="middle" fill="var(--ink)" font-size="12.5" font-weight="800" font-family="ui-monospace, Consolas, monospace">TFLite</text>
+      <text x="144" y="116" text-anchor="middle" fill="var(--ink-2)" font-size="11">due file pronti per la board</text>
+    </svg>
+    <figcaption>Figura 2 — La nostra pipeline: dal modello vincitore del <span class="en">NAS</span>, con la <span class="en">PTQ</span> produciamo due output — <span class="en">float32</span> (configurazione principale, accuratezza piena) e <span class="en">int8</span> (punto operativo piccolo e veloce).</figcaption>
+  </figure>
+
+  <div class="card">
+    <p>• Da ogni modello vincitore del <span class="en">NAS</span> produciamo due file
+    <span class="en">TFLite</span>: <span class="en">float32</span> (configurazione principale
+    del paper — lo stesso metodo di deployment del paper di riferimento) e
+    <span class="en">int8</span> con <span class="en">PTQ</span> (punto operativo più
+    piccolo/veloce, con un calo di accuratezza misurato).<br>
+    • Curiosamente, <span class="en">µNAS</span> calcolava fin dall&rsquo;inizio la dimensione del
+    modello in byte <span class="en">int8</span> (il nostro tetto: <span class="en">256 KB</span>) —
+    cioè la ricerca è stata condotta già assumendo la <span class="en">quantization</span>.<br>
+    • Per la <span class="en">calibration</span> abbiamo usato qualche centinaio di finestre
+    reali del dataset stesso.<br>
+    • I file <span class="en">TFLite</span> sono stati dati al tool
+    <span class="en">ST Edge AI</span> e memoria e velocità reali sono state misurate sulla
+    board — i numeri completi nella prossima lezione!</p>
+  </div>
+
+  <div class="card callout">
+    <p class="card-title">Curiosità 💡</p>
+    <p>Il paper detentore del record (<span class="en">IEEE SPL 2026</span>) ha messo il suo
+    modello sulla board <b>senza</b> <span class="en">quantization</span>, nello stesso
+    <span class="en">float32</span>; risultato: sulla board più piccola dei loro esperimenti
+    (<span class="en">STM32F401</span>) il loro modello <span class="en">Transformer</span>
+    non entrava affatto nella <span class="en">RAM</span>! La fase
+    <span class="en">int8</span> è una delle nostre vie per diventare più piccoli e più veloci
+    di loro. Per esempio, uno dei candidati della nostra ricerca, con 72,729 parametri, in
+    <span class="en">float</span> pesa circa <span class="en">284 KB</span> — con
+    <span class="en">int8</span> scende a circa un quarto e resta comodamente sotto il tetto
+    dei <span class="en">256 KB</span>.</p>
+  </div>
+
+  <div id="quiz" class="quiz"></div>
+  <script type="application/json" id="quiz-data">
+  [
+    {"stem": "I pesi di un layer sono distribuiti tra −2 e +2, ma un singolo peso vale 100. Se prendiamo come intervallo int8 [−100, 100], cosa succede agli altri pesi?",
+     "options": ["Non succede nulla: l'algoritmo di mappatura determina uno scale separato per ciascun peso e tutti vengono salvati con la precisione di prima", "La dimensione di ogni gradino diventa circa 0.78 e tutta la popolazione di [−2,+2] si schiaccia in appena 5 gradini, perdendo l'informazione", "Il peso anomalo 100 viene rimosso automaticamente dalla rete e gli altri pesi conservano il loro intervallo pulito, senza alcuna distorsione", "La libreria di conversione, quando incontra un peso anomalo del genere, promuove automaticamente quel layer a int16 per preservare la precisione"],
+     "answer": 1,
+     "explain": "scale = intervallo ÷ 256 = 200/256 ≈ 0.78. Con un gradino da 0.78, la distanza da −2 a +2 contiene solo 5-6 gradini; centinaia di pesi diversi vengono arrotondati a 5 valori. È esattamente il problema dei nostri dati: segnali con dinamiche molto diverse stirano l'intervallo e l'accuratezza int8 crolla — quello che abbiamo visto in tabella (92.1→86.9)."},
+    {"stem": "Perché per la calibration usiamo finestre reali del dataset stesso e non numeri casuali?",
+     "options": ["Perché l'intervallo delle activation di ogni layer dipende dalla distribuzione dell'input reale; un input casuale dispone i gradini nel posto sbagliato", "Perché il convertitore TFLite accetta l'input di calibration solo se ha la struttura e il tipo di dato del dataset originale (pickle), per vincolo di formato", "Perché durante la calibration i pesi del modello ricevono anche un breve giro di fine-tuning sui dati reali, che ne migliora la qualità complessiva finale", "Perché con esempi reali si può misurare subito l'accuratezza del modello quantizzato e accorgersi di un suo eventuale calo prima del deployment sulla board"],
+     "answer": 0,
+     "explain": "calibration significa «vedere dove cadono in pratica i numeri di ogni layer». Se al posto della guida reale facciamo passare rumore casuale, i layer producono activation con intervalli del tutto diversi e scale/zero-point vengono tarati male per il mondo reale. La calibration non è training — i pesi non vengono toccati."},
+    {"stem": "Come è stato progettato l'esperimento int16×8 sul tool ST perché la risposta non fosse falsificabile?",
+     "options": ["Il criterio era il messaggio di errore: se il tool accetta il file senza errori e la fase di optimize si completa, allora il supporto è reale e la prova è conclusa", "I due esiti possibili avevano già in anticipo numeri diversi: pesi ~118KB (supporto reale) oppure ~326KB (conversione silenziosa) — e sono stati riportati 326.15KiB", "Abbiamo confrontato l'accuratezza del modello prima e dopo l'upload; se restava intatta, significava che era stato eseguito davvero il formato int16×8 sulla board", "Abbiamo misurato il tempo di esecuzione; int16×8 per definizione doveva impiegare esattamente metà del tempo di float32 e ogni scostamento indicava la conversione"],
+     "answer": 1,
+     "explain": "La chiave del design era prevedere, prima dell'esperimento, due esiti distinguibili. «Non ha dato errore» non prova nulla, perché il tool converte in silenzio l'input non supportato; anche l'accuratezza resta più o meno uguale (float32 è più preciso!). Solo la dimensione dei pesi non mente — e il file int8, usato come controllo, ha mostrato che il metodo di misura era sano."},
+    {"stem": "Anche se int16×8 conserva completamente l'accuratezza, la configurazione finale del paper è float32. Qual è la giustificazione migliore?",
+     "options": ["Perché i processori Cortex-M hanno una FPU hardware e float32 su di essi viene sempre eseguito più velocemente di qualunque formato intero", "Perché il file float32, dopo la compressione della toolchain, risulta in pratica più piccolo del file int16×8 e occupa meno spazio in flash", "Il tool ST non può davvero deployare int16×8 e int8 perde 5 punti di accuratezza; float32 dà precisione piena e un confronto equo", "Perché la politica di revisione delle riviste Q1 non ammette risultati di modelli quantizzati senza la conferma del produttore del chip"],
+     "answer": 2,
+     "explain": "Le opzioni davvero sul tavolo sono solo float32 e int8. int8 su questi dati costa caro (92.1→86.9) e int16×8 non è deployabile — quindi la scelta realmente deployabile più fedele all'accuratezza è float32; in più anche il paper di riferimento aveva deployato in float32, quindi il confronto resta mele-con-mele. int8 lo riportiamo comunque accanto, come punto operativo misurato."}
+  ]
+  </script>
+
+  <div class="lesson-nav">
+    <a href="08-munas-constraints.html"><div class="dir">← Precedente</div><div>Lezione 08 — µNAS</div></a>
+    <a href="10-stm32.html"><div class="dir">Successiva →</div><div>Lezione 10 — STM32</div></a>
+  </div>
+  <footer class="site">LC-Intention-NAS · ELIOS Lab</footer>
+</main>
+</body>
+</html>

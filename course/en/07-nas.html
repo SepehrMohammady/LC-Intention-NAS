@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 07 — NAS | LC-Intention-NAS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/course.css">
+<script src="../assets/course.js" defer></script>
+</head>
+<body>
+<div class="topbar">
+  <a class="home" href="index.html">↪ Course index</a>
+  <div class="spacer"></div>
+  <nav class="lang-switch" aria-label="Language">
+    <a href="../07-nas.html" hreflang="fa">فا</a>
+    <a href="07-nas.html" class="active" hreflang="en">EN</a>
+    <a href="../it/07-nas.html" hreflang="it">IT</a>
+  </nav>
+  <button class="theme-toggle" onclick="toggleTheme()">🌗 Light/Dark</button>
+</div>
+<main>
+  <p class="kicker">Lesson 07</p>
+  <h1><span class="en">NAS</span>: when the computer designs the network itself 🧬</h1>
+  <p class="lede">Instead of building the network architecture ourselves by guesswork and trial, we set up an evolutionary competition: a hundred designs compete, the best ones have children, and the old ones retire.</p>
+
+  <div class="card callout story">
+    <p class="card-title">The story 📖 — Evolutionary cooking</p>
+    <p>Imagine you have a notebook of 100 recipes and you want to reach the best soup in the world.
+    Every day you play this game: you pick 25 recipes <b>at random</b> from the notebook and taste them;
+    the tastiest of those 25 is today's "parent". Now you change its recipe <b>slightly</b> —
+    a new spice, a little more onion — rather than writing one from scratch. You cook the new recipe,
+    write down its score, and add it to the notebook.</p>
+    <p>And now the strange rule of the game: <b>the oldest recipe in the notebook retires</b> — even if
+    it was once the champion! Why? Because if the old champion stayed forever, it alone would become
+    the parent every day and the notebook would fill up with its copies; no fresh idea would ever get
+    a chance to grow. But when everyone eventually retires, a good recipe survives only through its
+    "children" — and the notebook stays fresh and diverse. After hundreds of days, the notebook is
+    full of excellent, different recipes.</p>
+  </div>
+
+  <h2>More precisely 🔬</h2>
+  <h3>Step one: the search space</h3>
+  <p>Before any search can start, we have to say "what we are allowed to build". This is called the
+  <b><span class="en">search space</span></b>: the set of all possible designs. In our project this
+  space consists of <span class="en">1D CNN</span> networks: how many
+  <span class="en">layer</span>s? Of what type (regular <span class="en">Conv1D</span>,
+  <span class="en">depthwise</span>, or the <span class="en">1x1</span> we met in Lesson 04)?
+  What <span class="en">kernel</span> size (3 to 7)? How many channels per layer?
+  <span class="en">pooling</span> or not? And at the end, a small
+  <span class="en">dense head</span> for the final answer.</p>
+  <p>Each combination of these choices is a different network — and the number of combinations is
+  astronomical. Trying them all is impossible; so we need a clever searcher.</p>
+
+  <h3>Step two: aging evolution</h3>
+  <p>Our algorithm is called <b><span class="en">aging evolution</span></b>, and it is exactly the
+  cooking game — only instead of recipes, we have network architectures:</p>
+  <div class="card">
+    <p>1. We keep a <b>population</b> (<span class="en">population</span>) of architectures — say, 100.<br>
+    2. Each round, we draw a random sample — say, 25.<br>
+    3. <b>The best of that sample</b> becomes the parent (a small tournament, not the whole population).<br>
+    4. The parent <b>mutates</b> (<span class="en">mutation</span>): one small change, like adding or removing a <span class="en">layer</span>, or widening one (more channels). This kind of structural edit is also called a <span class="en">morphism</span>.<br>
+    5. The child <b>is trained</b> and joins the population with its score.<br>
+    6. <b>The oldest member of the population is removed</b> — not the worst!</p>
+  </div>
+
+  <figure class="viz">
+    <svg viewBox="0 0 720 390" role="img" aria-label="The aging evolution cycle: from a population of one hundred architectures, twenty-five are sampled at random, the best of the sample becomes the parent, a mutation changes it slightly, the child is trained and returns to the population; meanwhile the oldest member of the population retires">
+      <defs>
+        <marker id="arr-c" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="var(--muted)"/>
+        </marker>
+      </defs>
+      <!-- step numbers -->
+      <text x="605" y="42" text-anchor="middle" fill="var(--muted)" font-size="12" font-weight="800">1</text>
+      <text x="365" y="20" text-anchor="middle" fill="var(--muted)" font-size="12" font-weight="800">2</text>
+      <text x="120" y="42" text-anchor="middle" fill="var(--muted)" font-size="12" font-weight="800">3</text>
+      <text x="160" y="227" text-anchor="middle" fill="var(--muted)" font-size="12" font-weight="800">4</text>
+      <text x="470" y="227" text-anchor="middle" fill="var(--muted)" font-size="12" font-weight="800">5</text>
+      <!-- A: population -->
+      <rect x="520" y="50" width="170" height="70" rx="12" fill="none" stroke="var(--series-1)" stroke-width="2.5"/>
+      <text x="605" y="80" text-anchor="middle" fill="var(--ink)" font-size="15" font-weight="700">Population</text>
+      <text x="605" y="103" text-anchor="middle" fill="var(--ink-2)" font-size="12">e.g. 100 architectures</text>
+      <!-- B: sampling -->
+      <rect x="285" y="28" width="160" height="70" rx="12" fill="none" stroke="var(--baseline)" stroke-width="2"/>
+      <text x="365" y="58" text-anchor="middle" fill="var(--ink)" font-size="15" font-weight="700">Sampling</text>
+      <text x="365" y="81" text-anchor="middle" fill="var(--ink-2)" font-size="12">e.g. 25 at random</text>
+      <!-- C: fittest parent -->
+      <rect x="40" y="50" width="160" height="70" rx="12" fill="none" stroke="var(--series-2)" stroke-width="2"/>
+      <text x="120" y="80" text-anchor="middle" fill="var(--ink)" font-size="15" font-weight="700">Best parent 🏆</text>
+      <text x="120" y="103" text-anchor="middle" fill="var(--ink-2)" font-size="12">winner of this sample</text>
+      <!-- D: mutation -->
+      <rect x="75" y="235" width="170" height="70" rx="12" fill="none" stroke="var(--baseline)" stroke-width="2"/>
+      <text x="160" y="263" text-anchor="middle" fill="var(--ink)" font-size="15" font-weight="700">Mutation</text>
+      <text x="160" y="286" text-anchor="middle" fill="var(--ink-2)" font-size="12">add a layer or widen one</text>
+      <text x="160" y="324" text-anchor="middle" fill="var(--muted)" font-size="11" font-family="ui-monospace, Consolas, monospace">mutation / morphism</text>
+      <!-- E: train child -->
+      <rect x="385" y="235" width="170" height="70" rx="12" fill="none" stroke="var(--baseline)" stroke-width="2"/>
+      <text x="470" y="263" text-anchor="middle" fill="var(--ink)" font-size="15" font-weight="700">Train the child</text>
+      <text x="470" y="286" text-anchor="middle" fill="var(--ink-2)" font-size="12">a few short epochs</text>
+      <!-- ghost: oldest retires -->
+      <text x="548" y="303" text-anchor="middle" fill="var(--muted)" font-size="12" font-weight="800">6</text>
+      <rect x="540" y="310" width="150" height="58" rx="12" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="6 5"/>
+      <text x="615" y="335" text-anchor="middle" fill="var(--ink-2)" font-size="13">Oldest member</text>
+      <text x="615" y="356" text-anchor="middle" fill="var(--muted)" font-size="12">retires 👋</text>
+      <!-- cycle arrows -->
+      <line x1="520" y1="80" x2="448" y2="66" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr-c)"/>
+      <line x1="285" y1="63" x2="205" y2="80" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr-c)"/>
+      <line x1="110" y1="120" x2="148" y2="231" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr-c)"/>
+      <line x1="247" y1="270" x2="381" y2="270" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr-c)"/>
+      <line x1="497" y1="233" x2="560" y2="124" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr-c)"/>
+      <text x="445" y="180" text-anchor="middle" fill="var(--muted)" font-size="11.5">joins the population</text>
+      <!-- aging side arrow -->
+      <line x1="612" y1="122" x2="612" y2="306" stroke="var(--muted)" stroke-width="2" stroke-dasharray="5 5" marker-end="url(#arr-c)"/>
+      <text x="666" y="195" text-anchor="middle" fill="var(--muted)" font-size="11.5">oldest is</text>
+      <text x="666" y="215" text-anchor="middle" fill="var(--muted)" font-size="11.5">removed</text>
+    </svg>
+    <figcaption>Figure 1 — The <span class="en">aging evolution</span> cycle: each round one small tournament, one small mutation, one fresh child — and one retirement. This cycle repeats hundreds of times.</figcaption>
+  </figure>
+
+  <p>The golden detail is step 6. If we always removed the "worst", an early lucky winner could stay
+  in the population forever, keep becoming the parent, and fill the population with copies of itself.
+  By removing the <b>oldest</b>, even the champion has an expiry date: its good ideas survive only
+  through its children, and the search never stops exploring.</p>
+
+  <div class="card">
+    <p class="card-title">How do we know who is "oldest"? (especially in round one!) 🧓</p>
+    <p>A fair question: in round one, when everyone is a newcomer, who is the oldest? The answer lies
+    in how the population is built. In the <span class="en">µNAS</span> code, the population is a
+    <b>queue</b> (<span class="en">queue</span>), not a jumbled bag:</p>
+    <p>1. Even the initial population is not built <b>in one go</b>: random architectures are created and
+    trained one at a time, and each one is appended to the back of the queue <b>in the order it becomes
+    ready</b>. So from the very first moment, the entry order is fully defined: "oldest" means the front
+    of the queue — the first member that entered.<br>
+    2. Removal is just as simple: whenever the population grows past the cap (say, 100), the member at
+    the front of the queue is removed — <b>without looking at its score</b>. In the code it really is
+    this one line: <span class="en">population.pop(0)</span>.</p>
+    <p>So "age" has nothing to do with quality; it is purely entry order. This very simplicity is what
+    separates <span class="en">aging evolution</span> from the classic genetic algorithm (removing the
+    weakest): here nobody, not even the champion, lives longer than the "lifetime of the queue".</p>
+  </div>
+
+  <div class="card">
+    <p class="card-title">The families of <span class="en">NAS</span> algorithms 🧭 — and why we picked evolution</p>
+    <p>Aging evolution is not the only way to search for architectures. There are four main families,
+    and each offers a different bargain:</p>
+    <table>
+      <thead><tr><th>Family</th><th>How it works</th><th>Cost</th><th>Weak spot</th></tr></thead>
+      <tbody>
+        <tr><td>Reinforcement learning (<span class="en">RL</span>)</td><td>A <span class="en">controller RNN</span> proposes architectures, <span class="en">validation</span> accuracy is its reward, and it learns via <span class="en">policy gradient</span> to propose better ones</td><td>Astronomical</td><td>Needs thousands of full trainings</td></tr>
+        <tr><td>Gradient-based (<span class="en">DARTS</span>)</td><td>Keeps all possible operations side by side in one supernetwork (<span class="en">supernet</span>) with soft <span class="en">softmax</span> weights and lets the gradient itself make the choice</td><td>Cheap</td><td>Memory-hungry; sometimes collapses onto <span class="en">skip-connection</span>s</td></tr>
+        <tr><td>Evolutionary (<span class="en">aging evolution</span>)</td><td>Population + mutation + retiring the oldest — this lesson</td><td>Moderate</td><td>Every child must be trained separately</td></tr>
+        <tr><td>Random (<span class="en">random search</span>)</td><td>Builds random architectures and scores them — the baseline of every comparison</td><td>Depends on the budget</td><td>Learns nothing from the past</td></tr>
+      </tbody>
+    </table>
+    <p>Why did <span class="en">µNAS</span> choose aging evolution? Because <b>hard</b> resource
+    ceilings — <span class="en">flash</span> memory, peak <span class="en">RAM</span>, number of
+    <span class="en">MACs</span> — bolt onto its <span class="en">fitness</span> very cleanly:
+    a child that blows the budget is penalized right there, with no need for the constraint to be
+    differentiable or for any extra trick. The full story of these constraints is the next lesson.</p>
+  </div>
+
+  <h3>Step three: there is no single "best" — the Pareto front</h3>
+  <p>We have two goals at once, and they fight each other: <b>low error</b> and <b>small size</b>
+  (so the model fits in a <span class="en">microcontroller</span>). A model that is both smaller and
+  more accurate than another one "beats" it. But very often that is not the case:
+  one is smaller and the other more accurate — neither is the absolute winner. The set of models that
+  nobody can beat on both criteria at once forms a "trade-off frontier": the
+  <b><span class="en">Pareto front</span></b>.</p>
+
+  <figure class="viz">
+    <div class="legend">
+      <span class="key"><span class="swatch" style="background:var(--series-1)"></span> <span class="en">Pareto</span>-front models — the best trade-offs</span>
+      <span class="key"><span class="swatch" style="background:var(--muted)"></span> Dominated models — some other model is both smaller and more accurate</span>
+    </div>
+    <svg viewBox="0 0 720 400" role="img" aria-label="Conceptual Pareto front chart: architectures scattered over two axes, model size and error; four frontier points are connected by a step line and the remaining points are dominated">
+      <defs>
+        <marker id="arr-ax" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="var(--baseline)"/>
+        </marker>
+        <marker id="arr-p" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="var(--series-1)"/>
+        </marker>
+      </defs>
+      <!-- grid -->
+      <line x1="80" y1="105" x2="680" y2="105" stroke="var(--grid)" stroke-width="1"/>
+      <line x1="80" y1="180" x2="680" y2="180" stroke="var(--grid)" stroke-width="1"/>
+      <line x1="80" y1="255" x2="680" y2="255" stroke="var(--grid)" stroke-width="1"/>
+      <!-- axes -->
+      <line x1="80" y1="330" x2="695" y2="330" stroke="var(--baseline)" stroke-width="1.5" marker-end="url(#arr-ax)"/>
+      <line x1="80" y1="330" x2="80" y2="30" stroke="var(--baseline)" stroke-width="1.5" marker-end="url(#arr-ax)"/>
+      <text x="380" y="368" text-anchor="middle" fill="var(--ink-2)" font-size="13">Model size (<tspan>KB</tspan>)</text>
+      <text x="135" y="22" text-anchor="middle" fill="var(--ink-2)" font-size="13">Error (<tspan>MAE</tspan>)</text>
+      <!-- ideal corner -->
+      <text x="150" y="318" text-anchor="middle" fill="var(--series-2)" font-size="12">🎯 ideal corner</text>
+      <!-- dominated dots -->
+      <g fill="var(--muted)">
+        <circle cx="235" cy="115" r="5"/>
+        <circle cx="320" cy="155" r="5"/>
+        <circle cx="355" cy="95" r="5"/>
+        <circle cx="300" cy="70" r="5"/>
+        <circle cx="480" cy="175" r="5"/>
+        <circle cx="530" cy="125" r="5"/>
+        <circle cx="625" cy="205" r="5"/>
+      </g>
+      <!-- Pareto step line -->
+      <path d="M150,140 H260 V205 H400 V255 H600 V290" fill="none" stroke="var(--series-1)" stroke-width="2"/>
+      <!-- Pareto dots -->
+      <g fill="var(--series-1)">
+        <circle cx="150" cy="140" r="6"/>
+        <circle cx="260" cy="205" r="6"/>
+        <circle cx="400" cy="255" r="6"/>
+        <circle cx="600" cy="290" r="6"/>
+      </g>
+      <!-- annotation -->
+      <text x="215" y="292" text-anchor="middle" fill="var(--series-1)" font-size="13" font-weight="700"><tspan>Pareto</tspan> front</text>
+      <line x1="228" y1="275" x2="252" y2="218" stroke="var(--series-1)" stroke-width="1.5" stroke-dasharray="4 4" marker-end="url(#arr-p)"/>
+    </svg>
+    <figcaption>Figure 2 — A conceptual view of the <span class="en">Pareto</span> front: each point is an architecture; further right means larger, higher means more error, and the bottom-left corner is the ideal. No other model beats the blue points on both criteria at once; the choice among them depends on the hardware budget. One important subtlety: our real frontier has more than two dimensions — accuracy, model size, peak <span class="en">RAM</span> and <span class="en">MACs</span> — and this figure is only a 2-D slice of it, kept readable.</figcaption>
+  </figure>
+
+  <p>That is why the output of <span class="en">NAS</span> is not one model but a "showcase" of
+  optimal trade-offs — and we pick from this showcase depending on the target board.
+  Exactly how we measure "smallness" without the hardware, and which ceilings we hand to the
+  algorithm, is the story of the next lesson (<span class="en">µNAS</span>).</p>
+
+  <h2>In our project 🧰</h2>
+  <p>We use our own lab's (<span class="en">ELIOS</span>) version of
+  <span class="en">µNAS</span>, which runs on <span class="en">TensorFlow</span>.
+  The first short trial run (<span class="en">smoke test</span>) on the
+  <span class="en">RTX 5070</span> set this very cycle in motion and paid off very quickly:</p>
+
+  <div class="tiles">
+    <div class="tile">
+      <div class="value">72,729</div>
+      <div class="label">parameters (284 KB <span class="en">float</span>) — an early candidate</div>
+    </div>
+    <div class="tile">
+      <div class="value">0.41</div>
+      <div class="label"><span class="en">val MAE</span> of that candidate — after only 3 <span class="en">epoch</span>s</div>
+    </div>
+    <div class="tile">
+      <div class="value">31</div>
+      <div class="label">models saved on the <span class="en">Pareto</span> front in the short search</div>
+    </div>
+  </div>
+
+  <p>Then we ran a real short search: 25 rounds, each child trained for only 20
+  <span class="en">epoch</span>s. The result was 31 models on the <span class="en">Pareto</span> front.
+  We evaluated the best of them separately on the <span class="en">test</span> set — and the published
+  record (the <span class="en">Transformer</span> of the <span class="en">IEEE SPL 2026</span> paper)
+  is already broken:</p>
+
+  <figure class="viz">
+    <div class="legend">
+      <span class="key"><span class="swatch" style="background:var(--series-1)"></span> our best <span class="en">NAS</span> model (independently verified on <span class="en">test</span>)</span>
+      <span class="key"><span class="swatch" style="background:var(--series-2)"></span> published record (<span class="en">Transformer</span>)</span>
+    </div>
+    <div class="hbar">
+      <div class="name">MAE — our model</div>
+      <div class="track"><div class="fill" style="width:47.8%"></div></div>
+      <div class="val">0.287 s</div>
+      <div class="name">MAE — record</div>
+      <div class="track"><div class="fill alt" style="width:49.7%"></div></div>
+      <div class="val">0.298 s</div>
+    </div>
+    <div class="hbar" style="margin-top:16px">
+      <div class="name">RMSE — our model</div>
+      <div class="track"><div class="fill" style="width:73.8%"></div></div>
+      <div class="val">0.443 s</div>
+      <div class="name">RMSE — record</div>
+      <div class="track"><div class="fill alt" style="width:85%"></div></div>
+      <div class="val">0.510 s</div>
+    </div>
+    <figcaption>Figure 3 — <span class="en">test</span> error of the short search's best model against the published record; both charts share a common scale from 0 to 0.6 seconds, and lower is better.</figcaption>
+  </figure>
+
+  <table>
+    <thead><tr><th>Metric</th><th class="num">Our best model (short search)</th><th class="num">Published record (SPL 2026)</th></tr></thead>
+    <tbody>
+      <tr><td><span class="en">MAE</span></td><td class="num"><b>0.287 s</b></td><td class="num">0.298 s</td></tr>
+      <tr><td><span class="en">RMSE</span></td><td class="num"><b>0.443 s</b></td><td class="num">0.510 s</td></tr>
+    </tbody>
+  </table>
+
+  <p>Two notes of scientific honesty. First, these numbers were not handed to us by the search itself.
+  Throughout its run, the search compares candidates by their <span class="en">validation</span> score
+  hundreds of times and picks the best; this <b>repeated selection</b> makes the best
+  <span class="en">validation</span> score slightly optimistic and biased — just like an exam question
+  gradually leaking out, this time to the algorithm. That is why our short search reported an
+  <span class="en">MAE</span> of about <span class="en">0.11</span> on
+  <span class="en">validation</span>, while the number that can actually be cited is <span class="en">0.287</span>:
+  following our standing rule, we loaded the saved model separately with <span class="en">verify_models.py</span>
+  and re-evaluated it on the <span class="en">test</span> drivers (who were never part of training or
+  selection). Second, that was only the "short" search.</p>
+
+  <div class="card callout">
+    <p class="card-title">Final results of the full searches 🏁 (150 rounds, all tasks)</p>
+    <table>
+      <thead><tr><th>Task</th><th class="num">Our best model</th><th class="num">Reference</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>Classification</td><td class="num"><b>92.08%</b> (84k parameters)</td><td class="num">92% (441k)</td><td>✅ better, with 5x fewer parameters</td></tr>
+        <tr><td>Tiny classification</td><td class="num">91.30% (8k)</td><td class="num">—</td><td>✅ 55x smaller than the reference</td></tr>
+        <tr><td>Without turn signal (ablation)</td><td class="num">91.08%</td><td class="num">—</td><td>✅ the leak was worth only 1 percentage point</td></tr>
+      </tbody>
+    </table>
+    <p>And for <span class="en">regression</span>, instead of one sweeping sentence, we close each comparison separately and honestly:</p>
+    <table>
+      <thead><tr><th>Direction (our RMSE)</th><th>vs published SOTA (RMSE 0.510)</th><th>vs internal reference (0.42 / 0.44)</th></tr></thead>
+      <tbody>
+        <tr><td><span class="en">LCR</span> — 0.447</td><td>✅ better (0.447 vs 0.510)</td><td>❌ not yet (0.447 vs 0.42)</td></tr>
+        <tr><td><span class="en">LCL</span> — 0.466</td><td>✅ better, with caution (0.466 vs 0.510)</td><td>❌ not yet (0.466 vs 0.44)</td></tr>
+      </tbody>
+    </table>
+    <p>The same pattern holds for <span class="en">MAE</span>: our <span class="en">LCR</span> (0.287)
+    beats the published record (0.298), but our <span class="en">LCL</span> model's
+    <span class="en">MAE</span> (0.317) has not yet come below 0.298 — left is the harder direction.</p>
+    <p><b>Two necessary cautions for this table:</b> first, the published number is a single
+    <b>combined</b> <span class="en">TTLC</span> for both directions, not a separate figure for
+    <span class="en">LCL</span>; so the first column of the <span class="en">LCL</span> row is an
+    aligned comparison, not an exact head-to-head. Second, the internal reference was obtained with a
+    different training protocol and thresholding, so that column is a soft comparison too.
+    We state both openly so the numbers do not look bigger than they really are.</p>
+    <p>One note so the numbers do not get mixed up: the "31 models" you saw above belonged to that
+    <b>short</b> demonstration search. The full 150-round searches delivered larger
+    <span class="en">Pareto</span> fronts: 33 models for <span class="en">classification</span>,
+    29 for the no-turn-signal version, 32 for
+    <span class="en">LCR</span> and 33 for <span class="en">LCL</span> (the
+    <span class="en">rmse</span> re-runs that saved every model: 90 and 82).</p>
+    <p>And the two models in the first rows of the table — the best (<span class="en">model_aaaabl</span>, 84k parameters) and
+    the tiny one (<span class="en">model_aaaaat</span>, about 8k parameters) — are both members of <b>the same 33-model</b>
+    <span class="en">classification</span> front. The tiny model is not a pruned or compressed version
+    of the big one; it is a different architecture that the search itself found, because with
+    <span class="en">save_criteria=pareto</span> the whole accuracy-size frontier is saved, not just a single winner.</p>
+    <p>A lovely unexpected finding: the network's shape followed the nature of the task. The search
+    allowed parallel branches for both kinds of task, yet the <span class="en">classification</span>
+    models came out nearly <b>linear</b> and the <span class="en">regression</span> models grew
+    <b>multiple branches</b> (<span class="en">LCR</span> two branches, <span class="en">LCL</span> three) —
+    nobody designed this; the search discovered it on its own.</p>
+  </div>
+
+  <div class="card callout">
+    <p class="card-title">The cost of the search ⏱️ — about one GPU-night</p>
+    <p>All four full 150-round searches ran in a single overnight queue on <b>one</b> laptop
+    <span class="en">RTX 5070</span> and finished the next day via chunked resume
+    (<span class="en">chunked resume</span>)
+    (<span class="en">LOGBOOK</span>, July 8 and 9, 2026). The individual duration of each search was
+    not recorded, so we honestly say just this: <b>about one GPU-night for all four searches</b> — not
+    a more precise number that we do not have.</p>
+    <p>For a sense of scale, the famous numbers from the literature: <span class="en">NASNet</span>
+    with reinforcement learning (<span class="en">Zoph &amp; Le</span>) took about 2000
+    <span class="en">GPU-day</span>s, <span class="en">AmoebaNet</span> with evolution
+    (<span class="en">Real et al., 2019</span>) about 3150 <span class="en">GPU-day</span>s, and
+    gradient-based <span class="en">DARTS</span> (<span class="en">Liu et al., 2019</span>)
+    about 1 to 4 <span class="en">GPU-day</span>s.
+    <b>A necessary caution:</b> those were entirely different problems and hardware; these numbers are
+    only for context, not a head-to-head comparison.</p>
+  </div>
+
+  <div class="card callout">
+    <p class="card-title">Real engineering 🔧 — the war with a memory leak</p>
+    <p>Our first search kept crashing suddenly after about 40 candidates. Why?
+    <span class="en">TensorFlow</span> was keeping the old models — each around 200 MB —
+    in memory until <span class="en">RAM</span> ran out.
+    The fix: release the <span class="en">session</span> after every candidate.
+    The lesson is simple but important: long-running machine-learning jobs need memory hygiene
+    (<span class="en">memory hygiene</span>) — otherwise they die halfway through the third night.</p>
+  </div>
+
+  <div id="quiz" class="quiz"></div>
+  <script type="application/json" id="quiz-data">
+  [
+    {"stem": "In the very first round of the search, when the population has just been filled, how is the \"oldest member\" determined?",
+     "options": ["All initial members count as the same age, so in the early rounds one of them is picked at random for removal", "The population is a queue: even the initial members entered one by one; the oldest is simply the front of the queue", "The member with the lowest fitness score counts as the oldest, since it has effectively dropped out of the competition", "No member is removed in the first round; the algorithm waits until everyone has had at least one chance to become a parent"],
+     "answer": 1,
+     "explain": "This is exactly the point that looks ambiguous at first! The initial population is not built in one go — random architectures are trained one by one and appended to the back of the queue, so the entry order is defined from moment zero. Removal is equally blind, from the front of the queue (pop(0)), without looking at the score — neither random, nor based on weakness."},
+    {"stem": "Why is the parent chosen as \"the best of a random sample of 25\", rather than the best of the whole population of 100?",
+     "options": ["Because comparing the scores of 100 members every round is computationally heavier than training the candidates themselves and would paralyze the search", "Because the scores of older members become unreliable as time passes and would have to be recomputed from scratch before every comparison", "Because the small random tournament gives more diverse members a chance to become a parent and prevents locking onto a single champion", "Because in the µNAS code the real population size is 25, and the number 100 is only the maximum capacity reserved in memory"],
+     "answer": 2,
+     "explain": "The small tournament (tournament selection) is deliberately a little \"sloppy\": if the absolute champion always became the parent, the population would soon fill with its copies. With a random sample, different good members sometimes win too — diversity is preserved, and removing the oldest reinforces the same effect from the other side. Computational cost is not the issue; the scores are already computed."},
+    {"stem": "Model X: 40 KB, error 0.35. Model Y: 80 KB, error 0.30. Model Z: 90 KB, error 0.33. Which of them are on the Pareto front?",
+     "options": ["X and Y; model Z is dominated because Y is both smaller and more accurate than it is", "Only Y; it has the lowest error, and in safety problems accuracy takes absolute priority over every other criterion", "All three; each one differs from the others in at least one numeric criterion, and no two models are exactly identical", "Only X; it is the smallest, and in our project fitting into the chip's memory is the precondition for everything else"],
+     "answer": 0,
+     "explain": "The rule: a model is dropped when some other model is better or equal on both criteria at once. Y, at 80 KB and 0.30, beats Z (90 KB and 0.33) on both → Z is dominated. But neither X nor Y beats the other on both criteria: X is smaller, Y is more accurate — both are valid trade-offs."},
+    {"stem": "The short search reported an MAE of about 0.11 on validation, but we announced 0.287 on test. Where does this gap mostly come from, and which number can be cited?",
+     "options": ["From accumulated float32 rounding error across the layers; both numbers are valid and their average should be reported", "From partial corruption of the model file while saving to disk; the validation number, computed before saving, is the correct one", "From the test set being smaller than the validation set; a smaller set always shows a larger error", "The search looked at validation hundreds of times and is biased toward it; only an independent evaluation on test can be cited"],
+     "answer": 3,
+     "explain": "The search constantly compares and selects candidates by their validation score; after hundreds of selections, the best validation score also carries some \"luck on that particular data\" (the same exam-question-leak logic, this time for the algorithm). Hence our rule: every saved model is evaluated separately on test with verify_models.py, and only that number enters the paper."}
+  ]
+  </script>
+
+  <div class="lesson-nav">
+    <a href="06-validation-overfitting.html"><div class="dir">← Previous</div><div>Lesson 06 — Validation</div></a>
+    <a href="08-munas-constraints.html"><div class="dir">Next →</div><div>Lesson 08 — µNAS and constraints</div></a>
+  </div>
+  <footer class="site">LC-Intention-NAS · ELIOS Lab</footer>
+</main>
+</body>
+</html>

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 00 — Roadmap | LC-Intention-NAS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/course.css">
+<script src="../assets/course.js" defer></script>
+</head>
+<body>
+<div class="topbar">
+  <a class="home" href="index.html">↪ Course index</a>
+  <div class="spacer"></div>
+  <nav class="lang-switch" aria-label="Language">
+    <a href="../00-roadmap.html" hreflang="fa">فا</a>
+    <a href="00-roadmap.html" class="active" hreflang="en">EN</a>
+    <a href="../it/00-roadmap.html" hreflang="it">IT</a>
+  </nav>
+  <button class="theme-toggle" onclick="toggleTheme()">🌗 Light/Dark</button>
+</div>
+<main>
+  <p class="kicker">Lesson 00</p>
+  <h1>Roadmap: what are we going to build? 🗺️</h1>
+  <p class="lede">A tiny but clever assistant that guesses the driver's intention a few seconds before a lane change.</p>
+
+  <div class="card callout story">
+    <p class="card-title">The story 📖</p>
+    <p>Imagine a very small, very fast assistant sitting next to the driver of a car. Its job is exactly one thing:
+    a few seconds before the driver changes lanes, guess that they are about to do it.
+    If the assistant catches it early, the car can raise a warning or prepare itself, and many collisions can be avoided.</p>
+    <p>Here is the problem: this assistant has to live inside a very small, cheap chip
+    (called a <span class="en">microcontroller</span> — like an <span class="en">STM32</span>),
+    not inside a big computer. A small chip means little memory and limited speed.
+    So our assistant has to be both <b>smart</b> and <b>tiny</b>.</p>
+  </div>
+
+  <h2>More precisely 🔬</h2>
+  <p>This assistant is called a <span class="en">model</span> (a <span class="en">neural network</span>).
+  Its input is the car's signals over time (a <span class="en">time series</span>), and it does three jobs:</p>
+
+  <figure class="viz">
+    <svg viewBox="0 0 760 260" role="img" aria-label="System overview: the car's signals enter a time window, the model runs on the STM32, and it produces three outputs">
+      <defs>
+        <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="var(--muted)"/>
+        </marker>
+      </defs>
+      <!-- sensors -->
+      <rect x="615" y="90" width="130" height="80" rx="12" fill="none" stroke="var(--series-2)" stroke-width="2"/>
+      <text x="680" y="120" text-anchor="middle" fill="var(--ink)" font-size="14.5" font-weight="700">Car sensors</text>
+      <text x="680" y="145" text-anchor="middle" fill="var(--ink-2)" font-size="11.5">speed, steering, gaps…</text>
+      <!-- window -->
+      <line x1="615" y1="130" x2="580" y2="130" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr)"/>
+      <rect x="440" y="90" width="140" height="80" rx="12" fill="none" stroke="var(--baseline)" stroke-width="2"/>
+      <text x="510" y="120" text-anchor="middle" fill="var(--ink)" font-size="14.5" font-weight="700">Time window</text>
+      <text x="510" y="145" text-anchor="middle" fill="var(--ink-2)" font-size="12">50 × 31</text>
+      <!-- model on MCU -->
+      <line x1="440" y1="130" x2="405" y2="130" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr)"/>
+      <rect x="265" y="75" width="140" height="110" rx="12" fill="none" stroke="var(--series-1)" stroke-width="2.5"/>
+      <text x="335" y="108" text-anchor="middle" fill="var(--ink)" font-size="15" font-weight="700" font-family="ui-monospace, Consolas, monospace">Model</text>
+      <text x="335" y="133" text-anchor="middle" fill="var(--ink-2)" font-size="12">small neural network</text>
+      <text x="335" y="163" text-anchor="middle" fill="var(--series-1)" font-size="12" font-weight="700">on STM32 🧩</text>
+      <!-- outputs -->
+      <line x1="265" y1="100" x2="200" y2="50" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr)"/>
+      <line x1="265" y1="130" x2="200" y2="130" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr)"/>
+      <line x1="265" y1="160" x2="200" y2="210" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr)"/>
+      <text x="98" y="47" text-anchor="middle" fill="var(--ink)" font-size="13" font-weight="700">Lane change? (3 classes)</text>
+      <text x="98" y="134" text-anchor="middle" fill="var(--ink)" font-size="13" font-weight="700">Seconds to left? (LCL)</text>
+      <text x="98" y="217" text-anchor="middle" fill="var(--ink)" font-size="13" font-weight="700">Seconds to right? (LCR)</text>
+    </svg>
+    <figcaption>Figure 1 — Overview: the car's signals enter the model in 5-second windows, and the model answers three questions.</figcaption>
+  </figure>
+
+  <p>Our three problems:</p>
+  <div class="card">
+    <p>1. <b><span class="en">Classification</span></b>: does the driver intend to change lanes or not?
+    Three cases: none, right (<span class="en">LCR</span> = Lane Change Right), left (<span class="en">LCL</span> = Lane Change Left).<br>
+    2. <b><span class="en">Regression</span> for LCL</b>: how many seconds until they move left? (0 to 4 seconds, in steps of 0.1)<br>
+    3. <b><span class="en">Regression</span> for LCR</b>: the same question for the right.</p>
+    <p>One subtle point: the label "how many seconds until the maneuver?" is only meaningful for windows
+    that actually end in that same direction. That is why <span class="en">LCL</span> and <span class="en">LCR</span>
+    are two different datasets, each with its own separate model.</p>
+  </div>
+
+  <p>And instead of designing the network architecture ourselves by trial and error, we use
+  <b><span class="en">NAS (Neural Architecture Search)</span></b>:
+  an algorithm that tries thousands of designs on its own and finds the best one — under the condition that it
+  fits in the <span class="en">microcontroller</span>'s memory (the <span class="en">µNAS</span> approach).
+  Why do we put this condition inside the search from <b>the very start</b>? Because if we first build the most
+  accurate model and then try to shrink it to fit (pruning or compression), accuracy usually drops; a constrained
+  search only ever looks among models that fit, and optimizes accuracy within that same space.</p>
+
+  <h2>The end goal 🎯</h2>
+  <p>Break a scientific record! The best published result on this data
+  (the <span class="en">IEEE SPL 2026</span> paper from this very lab) and the team's internal reference results are these:</p>
+
+  <table>
+    <thead><tr><th>Task</th><th>Metric</th><th class="num">Target</th><th class="num">Our first model (untuned!)</th></tr></thead>
+    <tbody>
+      <tr><td>Classification</td><td><span class="en">accuracy</span></td><td class="num">92%</td><td class="num">91.5%</td></tr>
+      <tr><td>Regression LCR</td><td><span class="en">RMSE</span></td><td class="num">0.42 s</td><td class="num">0.439 s</td></tr>
+      <tr><td>Regression LCL</td><td><span class="en">RMSE</span></td><td class="num">0.44 s</td><td class="num">0.459 s</td></tr>
+      <tr><td>Single TTLC (published, Transformer)</td><td><span class="en">RMSE</span></td><td class="num">0.51 s</td><td class="num">—</td></tr>
+    </tbody>
+  </table>
+
+  <p>We want to beat these results with a <b>smaller and faster</b> model, actually run the model on the
+  <span class="en">STM32H7B3I-DK</span> board, and publish the outcome as a
+  <span class="en">paper</span> in a reputable (<span class="en">Q1</span>) journal.</p>
+
+  <div class="card callout">
+    <p class="card-title">Where we stand today 🏁 (this is already done!)</p>
+    <p>• <span class="en">NAS</span> is finished: our best model, with 84k parameters, reached
+    <b><span class="en">92.08%</span></b> accuracy (target: 92%), and in <span class="en">regression</span>
+    the published record (<span class="en">RMSE 0.51</span>) was broken with <span class="en">RMSE 0.447</span>.
+    (The internal targets of <span class="en">0.42/0.44</span> have not been beaten yet — we say so honestly!)<br>
+    • The models were <b>measured</b> on the real board: our model is <span class="en">9.2×</span> faster and
+    <span class="en">5.2×</span> smaller than the reference model — with higher accuracy.<br>
+    • On the cheap <span class="en">F401</span> board, the reference model <b>does not fit at all</b>, while our tiny
+    model runs in <span class="en">4.4 ms</span>. Details in Lessons 07 to 10.</p>
+  </div>
+
+  <h2>In our project 🧰</h2>
+  <div class="card">
+    <p>• Main code: the <span class="en">src/</span> folder and the main notebook <span class="en">notebooks/dmir_pipeline.ipynb</span><br>
+    • Every experiment is recorded in <span class="en">logs/experiments.jsonl</span> so that no number goes missing when the paper is written.<br>
+    • Paper draft: <span class="en">paper/main.tex</span> (the PDF is rebuilt after every change.)</p>
+  </div>
+
+  <div id="quiz" class="quiz"></div>
+  <script type="application/json" id="quiz-data">
+  [
+    {"stem": "The reference model has 441k parameters and 91.7% accuracy; our model reached 92.1% with 84k parameters. Which conclusion is correct?",
+     "options": ["A well-chosen architecture can deliver higher accuracy with fewer parameters", "More parameters mean more learning capacity, so the gap must come from measurement error or a different version of the test data", "In practice, accuracy depends only on data quality and quantity; the network architecture has no measurable effect on the final result", "The small model only won because it was evaluated on newer and faster hardware than the reference model was"],
+     "answer": 0,
+     "explain": "Both models were evaluated on the same test data with the same protocol. Extra parameters do not help if they are spent in the wrong place (say, a huge fully connected layer on a raw feature map); the architecture search found exactly that right place. This is the project's central message."},
+    {"stem": "Which statement about the role of NAS in this project is accurate?",
+     "options": ["NAS tunes the weights of an already fixed network with a stronger optimization algorithm to push the final error lower", "NAS strengthens the model's generalization to unseen drivers by generating extra synthetic training data on the side", "NAS searches over the network's structure, and every candidate is trained separately", "NAS analyzes the trained model and translates it into optimized C code for execution on the STM32 board"],
+     "answer": 2,
+     "explain": "Training finds the weights of one fixed architecture; NAS sits one level above and searches over the architecture itself. Each candidate is built and trained, and its score steers the search. Generating data and converting to C code are different jobs."},
+    {"stem": "Why is a separate regression problem defined for each direction (left and right)?",
+     "options": ["Because a neural network cannot produce more than one continuous number at its output, so the problem had to be split in two halves", "Because the label \"seconds until the maneuver\" is only meaningful on windows of that same direction; each direction has its own data", "Because the simulator's logging rate was configured differently for left and right maneuvers, so the windows come out with unequal lengths", "Because the three-class classification model already produces the maneuver time itself, and only separating the direction remains to be done"],
+     "answer": 1,
+     "explain": "The label \"2.3 seconds until a left lane change\" is only defined for a window that actually ends in a left lane change. So LCL and LCR have different datasets, and it is natural to train two separate models. A network can produce several outputs (the first option is wrong) — the issue is not a shortage of outputs, it is how the label is defined."},
+    {"stem": "Why do we put the memory cap inside the search from the very start, instead of first finding the most accurate model and then shrinking it?",
+     "options": ["Because shrinking afterwards (pruning and compression) is mathematically undefined for convolutional networks and practically impossible", "Because ST's deployment tool only accepts models that were certified during the search as staying under the memory cap", "Because an unconstrained search runs far slower and needs a number of GPUs that our lab simply did not have available", "Because an unconstrained model usually will not fit on the chip, and shrinking it afterwards sacrifices accuracy"],
+     "answer": 3,
+     "explain": "Compressing afterwards is possible but costly: the big model must be pruned or shrunk, and accuracy drains away. When the memory constraint is part of the search's scoring from the start, every candidate that comes out already fits, and its accuracy is optimized within that same space — Lesson 08 shows the exact formula."}
+  ]
+  </script>
+
+  <div class="lesson-nav">
+    <a href="index.html"><div class="dir">← Previous</div><div>Course index</div></a>
+    <a href="01-the-problem.html"><div class="dir">Next →</div><div>Lesson 01 — The problem</div></a>
+  </div>
+  <footer class="site">LC-Intention-NAS · ELIOS Lab</footer>
+</main>
+</body>
+</html>

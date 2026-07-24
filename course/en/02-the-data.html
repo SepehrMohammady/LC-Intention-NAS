@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 02 — The Data | LC-Intention-NAS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/course.css">
+<script src="../assets/course.js" defer></script>
+</head>
+<body>
+<div class="topbar">
+  <a class="home" href="index.html">↪ Course index</a>
+  <div class="spacer"></div>
+  <nav class="lang-switch" aria-label="Language">
+    <a href="../02-the-data.html" hreflang="fa">فا</a>
+    <a href="02-the-data.html" class="active" hreflang="en">EN</a>
+    <a href="../it/02-the-data.html" hreflang="it">IT</a>
+  </nav>
+  <button class="theme-toggle" onclick="toggleTheme()">🌗 Light/Dark</button>
+</div>
+<main>
+  <p class="kicker">Lesson 02</p>
+  <h1>The data: what is a <span class="en">Time Series</span>, and what does ours look like? 🎞️</h1>
+  <p class="lede">Before building any model, we need to know what it will be looking at: a 5-second "numeric movie" of how the car is doing.</p>
+
+  <div class="card callout story">
+    <p class="card-title">The story 📖</p>
+    <p>Imagine that at every moment of a drive we take a numeric snapshot of the car: what was the speed?
+    How far was the steering wheel turned? How far was the car from the lane line? Now, if we line these
+    numeric snapshots up one after another, we get a "numeric movie". That numeric movie is called a
+    <b><span class="en">time series</span></b>.</p>
+    <p>Each time, our model sees only a short clip of this movie — as if it looked at just the last 50 frames —
+    and it has to guess what happens next. That short clip is called a
+    <span class="en">window</span>.</p>
+  </div>
+
+  <h2>More precisely 🔬</h2>
+  <p>Each input sample (one <span class="en">window</span>) is really a table:</p>
+
+  <div class="tiles">
+    <div class="tile"><div class="value">50</div><div class="label">time steps (<span class="en">timestep</span>) per window</div></div>
+    <div class="tile"><div class="value">31</div><div class="label">signals (<span class="en">feature</span>) per step</div></div>
+    <div class="tile"><div class="value">10 Hz</div><div class="label">recording rate (10 snapshots per second)</div></div>
+    <div class="tile"><div class="value">5 s</div><div class="label">length of each window (50 × 0.1 seconds)</div></div>
+  </div>
+
+  <p>So each sample has shape <span class="en">(50, 31)</span>: 50 rows of time and 31 columns of signals.
+  The data also comes to us already prepared and <b><span class="en">normalize</span></b>d by the team —
+  meaning all the signals were put on a comparable scale (like writing every subject's grade out of 20)
+  so the network can learn more easily.</p>
+
+  <figure class="viz">
+    <svg viewBox="0 0 720 315" role="img" aria-label="View of one input window: a table with 50 time steps on the horizontal axis and 31 signals on the vertical axis; a few sample rows such as vehicleSpeed and steeringAngle are shown, and the data shape is 50 by 31">
+      <defs>
+        <marker id="arrT" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="var(--muted)"/>
+        </marker>
+      </defs>
+
+      <!-- shape badge -->
+      <rect x="495" y="8" width="170" height="30" rx="9" fill="none" stroke="var(--series-1)" stroke-width="2"/>
+      <text x="580" y="29" text-anchor="middle" fill="var(--series-1)" font-size="14" font-weight="700">shape = (50, 31)</text>
+
+      <!-- labels column header -->
+      <text x="115" y="30" text-anchor="middle" fill="var(--ink-2)" font-size="13" font-weight="700">Signals</text>
+
+      <!-- grid frame -->
+      <rect x="205" y="50" width="460" height="216" rx="6" fill="none" stroke="var(--baseline)" stroke-width="1.5"/>
+      <!-- vertical grid lines (a glimpse of the 50 time columns) -->
+      <g stroke="var(--grid)" stroke-width="1">
+        <line x1="225" y1="50" x2="225" y2="266"/><line x1="245" y1="50" x2="245" y2="266"/>
+        <line x1="265" y1="50" x2="265" y2="266"/><line x1="285" y1="50" x2="285" y2="266"/>
+        <line x1="305" y1="50" x2="305" y2="266"/><line x1="325" y1="50" x2="325" y2="266"/>
+        <line x1="345" y1="50" x2="345" y2="266"/><line x1="365" y1="50" x2="365" y2="266"/>
+        <line x1="385" y1="50" x2="385" y2="266"/><line x1="405" y1="50" x2="405" y2="266"/>
+        <line x1="425" y1="50" x2="425" y2="266"/><line x1="445" y1="50" x2="445" y2="266"/>
+        <line x1="465" y1="50" x2="465" y2="266"/><line x1="485" y1="50" x2="485" y2="266"/>
+        <line x1="505" y1="50" x2="505" y2="266"/><line x1="525" y1="50" x2="525" y2="266"/>
+        <line x1="545" y1="50" x2="545" y2="266"/><line x1="565" y1="50" x2="565" y2="266"/>
+        <line x1="585" y1="50" x2="585" y2="266"/><line x1="605" y1="50" x2="605" y2="266"/>
+        <line x1="625" y1="50" x2="625" y2="266"/><line x1="645" y1="50" x2="645" y2="266"/>
+      </g>
+      <!-- horizontal row separators -->
+      <g stroke="var(--grid)" stroke-width="1">
+        <line x1="205" y1="86" x2="665" y2="86"/>
+        <line x1="205" y1="122" x2="665" y2="122"/>
+        <line x1="205" y1="158" x2="665" y2="158"/>
+        <line x1="205" y1="194" x2="665" y2="194"/>
+        <line x1="205" y1="230" x2="665" y2="230"/>
+      </g>
+
+      <!-- example signal traces -->
+      <polyline points="210,72 240,70 270,66 300,60 330,58 360,62 390,68 420,72 450,70 480,64 510,60 540,62 570,66 600,70 630,72 660,70"
+        fill="none" stroke="var(--series-1)" stroke-width="1.8"/>
+      <polyline points="210,104 245,100 280,108 315,98 350,110 385,100 420,106 455,96 490,108 525,102 560,106 595,100 630,104 660,103"
+        fill="none" stroke="var(--series-2)" stroke-width="1.8"/>
+      <polyline points="210,144 260,142 310,138 360,134 410,133 460,135 510,139 560,143 610,145 660,144"
+        fill="none" stroke="var(--muted)" stroke-width="1.8"/>
+      <text x="435" y="204" text-anchor="middle" fill="var(--muted)" font-size="20">⋮</text>
+      <polyline points="210,250 260,246 310,250 360,247 410,251 460,246 510,249 560,247 610,250 660,248"
+        fill="none" stroke="var(--muted)" stroke-width="1.8"/>
+
+      <!-- row labels -->
+      <text x="115" y="66" text-anchor="middle" fill="var(--ink)" font-size="12" font-weight="600">vehicleSpeed</text>
+      <text x="115" y="81" text-anchor="middle" fill="var(--muted)" font-size="10.5">vehicle speed</text>
+      <text x="115" y="102" text-anchor="middle" fill="var(--ink)" font-size="12" font-weight="600">steeringAngle</text>
+      <text x="115" y="117" text-anchor="middle" fill="var(--muted)" font-size="10.5">steering angle</text>
+      <text x="115" y="138" text-anchor="middle" fill="var(--ink)" font-size="12" font-weight="600">curvatureDx</text>
+      <text x="115" y="153" text-anchor="middle" fill="var(--muted)" font-size="10.5">path curvature</text>
+      <text x="115" y="204" text-anchor="middle" fill="var(--muted)" font-size="18">⋮</text>
+      <text x="115" y="246" text-anchor="middle" fill="var(--ink)" font-size="12" font-weight="600">feature 31</text>
+      <text x="115" y="261" text-anchor="middle" fill="var(--muted)" font-size="10.5">signal 31</text>
+
+      <!-- time axis -->
+      <line x1="205" y1="280" x2="655" y2="280" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#arrT)"/>
+      <text x="230" y="300" text-anchor="middle" fill="var(--muted)" font-size="11">t = 1</text>
+      <text x="435" y="302" text-anchor="middle" fill="var(--ink-2)" font-size="13" font-weight="700">time (50 steps = 5 seconds)</text>
+      <text x="640" y="300" text-anchor="middle" fill="var(--muted)" font-size="11">t = 50</text>
+    </svg>
+    <figcaption>Figure 1 — One input <span class="en">window</span>: a table with 50 time steps (recorded at <span class="en">10 Hz</span>, so 5 seconds of footage) and 31 signals. The data shape is <span class="en">(50, 31)</span>.</figcaption>
+  </figure>
+
+  <h3>Where did this data come from? 🎮</h3>
+  <div class="card">
+    <p>The dataset's official name is the <b><span class="en">Lane Change Intention Recognition Dataset</span></b>.
+    The data was collected in the <span class="en">CARLA</span> driving simulator: 50 real human drivers
+    drove in the simulator, and the car's signals were recorded at <span class="en">10 Hz</span> (10 times per second).
+    That is why our 50-step window covers exactly 5 seconds of driving.
+    (The name <span class="en">DMIR</span> is just our project's internal codename, not the dataset's name.)</p>
+  </div>
+
+  <h3>Splitting the data (<span class="en">splits</span>) 📚</h3>
+  <p>To keep the model's exam honest, the data comes in three parts — just like studying for school:
+  <b><span class="en">train</span></b> is the practice workbook (the model learns from it),
+  <b><span class="en">validation</span></b> is the mid-term quizzes (we use it to tune the model and pick the best one),
+  and <b><span class="en">test</span></b> is the final exam, held <b>only once</b> at the very end.
+  If we keep tuning the model against <span class="en">test</span>, we have effectively leaked the exam answers!</p>
+
+  <figure class="viz">
+    <div class="hbar" role="img" aria-label="Size of the three data splits for the classification task: the train split with 94,620 samples, the validation split with 16,332 samples, and the test split with 19,722 samples">
+      <div class="name">train</div><div class="track"><div class="fill" style="width:100%"></div></div><div class="val">94,620</div>
+      <div class="name">validation</div><div class="track"><div class="fill" style="width:17.3%"></div></div><div class="val">16,332</div>
+      <div class="name">test</div><div class="track"><div class="fill" style="width:20.8%"></div></div><div class="val">19,722</div>
+    </div>
+    <figcaption>Figure 2 — Number of samples in each split for the <span class="en">classification</span> task. Most of the data goes to learning.</figcaption>
+  </figure>
+
+  <p>And for all three of our tasks, the split sizes are:</p>
+
+  <table>
+    <thead><tr><th>Split</th><th>Role</th><th class="num">Classification</th><th class="num">Regression LCL</th><th class="num">Regression LCR</th></tr></thead>
+    <tbody>
+      <tr><td><b><span class="en">train</span></b></td><td>Learning</td><td class="num">94,620</td><td class="num">39,313</td><td class="num">33,201</td></tr>
+      <tr><td><b><span class="en">validation</span></b></td><td>Tuning and model selection</td><td class="num">16,332</td><td class="num">7,742</td><td class="num">5,828</td></tr>
+      <tr><td><b><span class="en">test</span></b></td><td>Final exam (only once!)</td><td class="num">19,722</td><td class="num">8,097</td><td class="num">7,073</td></tr>
+    </tbody>
+  </table>
+
+  <p>Some good news: in <span class="en">classification</span>, all three classes (none, left, right) have
+  exactly the same number of samples — this is called <b><span class="en">balanced</span></b>. That is great,
+  because the model cannot score cheap points with the "always predict the biggest class" trick.</p>
+
+  <h3>Odd things we found in the data 🕵️</h3>
+  <p>This is what real research looks like: before any modeling, we put the data under a magnifying glass, and two important findings turned up:</p>
+
+  <div class="card callout" style="border-left-color: var(--critical);">
+    <p class="card-title">⚠️ Two genuine surprises in our data</p>
+    <p>1. <b>Giant values only in <span class="en">test</span></b>: a few rare samples in the
+    <span class="en">test</span> split hold values up to 5 million (<span class="en">5×10⁶</span>) — on the signal pairs
+    <span class="en">(12, 13)</span> and <span class="en">(14, 15)</span> — while the largest value in
+    <span class="en">train</span> is about 140! We later proved, by fingerprinting the channels, that these
+    values sit exactly in the <span class="en">curvatureDx</span> channel pair (the rate of change of path curvature):
+    this signal is built from a division, and when the
+    denominator gets close to zero, the result explodes. Our fix: we clamp the
+    <span class="en">val</span>/<span class="en">test</span> values to the <span class="en">train</span> range
+    (<b><span class="en">clipping</span></b>) and leave the <span class="en">train</span> data untouched.</p>
+    <p>Why <span class="en">clipping</span> rather than deleting those samples outright? Because
+    <span class="en">test</span> must remain the same <b>fixed, shared exam</b> so that comparing methods and
+    records stays fair. Deleting a sample changes the exam; <span class="en">clipping</span>
+    keeps the sample and merely pins the out-of-range value to the familiar boundary of
+    <span class="en">train</span>.</p>
+    <p>🔎 <b>A fresh clue about the "why":</b> the data team told us some drivers <b>crashed</b>
+    in the simulator, and their data was kept on purpose. The test reports
+    (<span class="en">DMIR Test Reports.xlsx</span>) confirm this: for instance,
+    <span class="en">User34</span> had four collisions and two crashes, and <span class="en">User1</span>
+    had five collisions and one crash. A crash means a sudden jump or reset in the car's position — and a
+    signal built from a "rate of change" (like <span class="en">curvatureDx</span>) explodes at that very
+    moment. This is a <b>plausible hypothesis</b>, not a proof, because with the current materials we cannot
+    say which driver each exploded window belongs to; but it also fits the fact that the giant values appear
+    <b>only in <span class="en">test</span></b>. Either way, our fix is the same <span class="en">clipping</span>.</p>
+    <p>2. <b><span class="en">Feature</span> number <span class="en">7</span> is always zero</b> (in the
+    <span class="en">classification</span> data) — a completely silent signal that gives the model essentially no information.</p>
+    <p>💡 The big lesson: <b>always inspect the data with your own eyes before modeling.</b>
+    Had we gone straight to the model, these flaws would have quietly corrupted the results.</p>
+  </div>
+
+  <h2>In our project 🧰</h2>
+  <div class="card">
+    <p>• Data loading and cleaning code: <span class="en">src/data.py</span><br>
+    • Data exploration plots (<span class="en">EDA</span>): section 4 of <span class="en">notebooks/dmir_pipeline.ipynb</span><br>
+    • All the odd findings above are documented in: <span class="en">docs/DATA.md</span></p>
+  </div>
+
+  <div id="quiz" class="quiz"></div>
+  <script type="application/json" id="quiz-data">
+  [
+    {"stem": "If this same data had been recorded at 20 Hz and we still wanted each window to cover exactly 5 seconds, what would the shape of each sample be?",
+     "options": ["(50, 31) — the number of steps sets the window length, and the recording rate has no effect on the data shape", "(50, 62) — doubling the rate means each signal is recorded twice, so the number of columns doubles", "(100, 31) — the steps double, while the signals stay at 31", "(25, 31) — at a higher rate, fewer steps are needed to cover 5 seconds, so the window becomes shorter"],
+     "answer": 2,
+     "explain": "Window length (seconds) = number of steps × interval per step. At 20 Hz each step is 0.05 seconds, so 5 seconds means 100 steps: (100, 31). The number of signals has nothing to do with the recording rate. This question checks that you know where the 50 comes from: 5s × 10Hz."},
+    {"stem": "Why do we use validation — and not test — to tune the model (pick the best epoch, compare architectures)?",
+     "options": ["Because validation is larger than test and therefore gives a statistically safer estimate of the model's true error", "Because every decision based on a set robs that set of its role as an unbiased estimate; test must stay untouched", "Because test was built only for the classification task, and for the two regression tasks we have no substitute for validation", "Because repeatedly running the model on test takes time and needlessly slows down the tune-and-select loop"],
+     "answer": 1,
+     "explain": "The problem is statistical, not technical: if we tune the model a hundred times while looking at test, we have effectively \"learned\" test, and its score is no longer an unbiased benchmark. Validation is sacrificed to exactly these decisions so that test stays pristine — and by the way, our validation (16,332) is actually smaller than test (19,722)."},
+    {"stem": "When dealing with the giant values, why did we prefer clipping to deleting those samples entirely?",
+     "options": ["Because the structure of the pickle files does not allow row deletion, and any such change corrupts the whole array", "Because clipping not only tames the values but is also guaranteed to raise model accuracy by several points on every task", "Because deleting samples changes the shared comparison test; clipping keeps the sample and only tames the exploded value", "Because the giant values were in train, so fixing them in test was beside the point; we only needed to clean up train"],
+     "answer": 2,
+     "explain": "Test is the shared exam for comparison: if we delete samples, we are no longer sitting the same exam the published record was measured on. Clipping keeps the sample and only pins the out-of-range value to the train boundary. (And note: the giant values were only in test, not train.)"},
+    {"stem": "Which option correctly describes the relationship between \"crashes in the simulator\" and \"the 5-million values\"?",
+     "options": ["It is proven beyond doubt: the test reports show that every single large value coincides exactly with the recorded moment of a crash", "A plausible hypothesis: a crash jolts the car's position, so a derivative-based signal explodes; but with no window-to-driver mapping, it stays unproven", "Unrelated: a crash merely knocks out the speed sensor, and that sensor then records a constant value of zero rather than a large one", "Since we cannot tell which window belongs to which driver, this clue carries no scientific value at all and should not be recorded anywhere"],
+     "answer": 1,
+     "explain": "The test reports show that some drivers (like User34 and User1) had crashes, and the team deliberately kept the data. The mechanism fits too: the derivative of a sudden jump produces an astronomical number. But we keep scientific claims separate from guesses: without a window-to-driver mapping, this is a \"hypothesis consistent with the evidence\" — not a definitive conclusion. The fix (clipping) is the same either way."}
+  ]
+  </script>
+
+  <div class="lesson-nav">
+    <a href="01-the-problem.html"><div class="dir">← Previous</div><div>Lesson 01 — The Problem</div></a>
+    <a href="03-neural-networks.html"><div class="dir">Next →</div><div>Lesson 03 — Neural Network</div></a>
+  </div>
+  <footer class="site">LC-Intention-NAS · ELIOS Lab</footer>
+</main>
+</body>
+</html>

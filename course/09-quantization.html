@@ -13,6 +13,11 @@
 <div class="topbar">
   <a class="home" href="index.html">↪ فهرست دوره</a>
   <div class="spacer"></div>
+  <nav class="lang-switch" aria-label="Language">
+    <a href="09-quantization.html" class="active" hreflang="fa">فا</a>
+    <a href="en/09-quantization.html" hreflang="en">EN</a>
+    <a href="it/09-quantization.html" hreflang="it">IT</a>
+  </nav>
   <button class="theme-toggle" onclick="toggleTheme()">🌗 روشن/تاریک</button>
 </div>
 <main>
@@ -210,7 +215,7 @@
 
   <h2>در پروژهٔ ما 🧰</h2>
   <figure class="viz">
-    <svg viewBox="0 0 720 170" role="img" aria-label="خط تولید ما: مدل برندهٔ NAS با فرمت float32 وارد مرحلهٔ QAT می‌شود، آموزش کوتاهی با شبیه‌سازی گردکردن می‌بیند و در پایان یک فایل INT8 TFLite آمادهٔ بورد ساخته می‌شود">
+    <svg viewBox="0 0 720 170" role="img" aria-label="خط تولید ما: مدل برندهٔ NAS با فرمت float32 وارد PTQ می‌شود — گردکردن پس از آموزش با calibration روی پنجره‌های واقعی — و در پایان دو فایل TFLite آمادهٔ بورد ساخته می‌شود: float32 و int8">
       <defs>
         <marker id="arr-p" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
           <path d="M0,0 L10,5 L0,10 z" fill="var(--muted)"/>

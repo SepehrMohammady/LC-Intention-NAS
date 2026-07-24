@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="it" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lezione 10 — STM32: eseguire il modello su hardware reale | LC-Intention-NAS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/course.css">
+<script src="../assets/course.js" defer></script>
+</head>
+<body>
+<div class="topbar">
+  <a class="home" href="index.html">↪ Indice del corso</a>
+  <div class="spacer"></div>
+  <nav class="lang-switch" aria-label="Language">
+    <a href="../10-stm32.html" hreflang="fa">فا</a>
+    <a href="../en/10-stm32.html" hreflang="en">EN</a>
+    <a href="10-stm32.html" class="active" hreflang="it">IT</a>
+  </nav>
+  <button class="theme-toggle" onclick="toggleTheme()">🌗 Chiaro/Scuro</button>
+</div>
+<main>
+  <p class="kicker">Lezione 10</p>
+  <h1><span class="en">STM32</span>: eseguire il modello su hardware reale 🧩</h1>
+  <p class="lede">Il momento della verità: il modello che abbiamo costruito per mesi su un grande computer deve ora vivere dentro un chip grande quanto un&rsquo;unghia.</p>
+
+  <div class="card callout story">
+    <p class="card-title">La storia 📖</p>
+    <p>Finora il nostro modello ha vissuto su un computer potente con una scheda grafica. Ma
+    la sua vera casa è altrove: un <b><span class="en">microcontroller</span></b> — un
+    computer completo su un chip da pochi euro. C&rsquo;è tutto lì: il processore, la
+    <span class="en">RAM</span> e la memoria permanente <span class="en">Flash</span>;
+    niente sistema operativo pesante, niente ventola, niente schermo. Lo accendi e, in una
+    frazione di secondo, esegue soltanto il suo programma.</p>
+    <p>Perché le auto sono piene di questi chip? Perché sono <b>economici</b>, <b>consumano
+    pochissima energia</b> e lavorano in <b>tempo reale</b> — rispondono sempre entro un
+    tempo prevedibile; per freni, sterzo e airbag questa affidabilità conta più di ogni
+    altra cosa. Il prezzo di questa semplicità? Memoria e velocità migliaia di volte
+    inferiori a quelle di un laptop. Il nostro modello deve stare in questa piccola casa.</p>
+  </div>
+
+  <h2>Più in dettaglio 🔬</h2>
+  <p>La nostra board target è la <span class="en">STM32H7B3I-DK</span>: un processore
+  <span class="en">Arm Cortex-M7</span> con queste specifiche:</p>
+
+  <div class="tiles">
+    <div class="tile">
+      <div class="value">280 MHz</div>
+      <div class="label">velocità del processore (<span class="en">Cortex-M7</span>)</div>
+    </div>
+    <div class="tile">
+      <div class="value">1184 KB</div>
+      <div class="label"><span class="en">SRAM</span> interna (memoria di lavoro)</div>
+    </div>
+    <div class="tile">
+      <div class="value">2 MB</div>
+      <div class="label">memoria <span class="en">Flash</span> (programma e pesi)</div>
+    </div>
+  </div>
+
+  <p>Per farsi un&rsquo;idea di cosa significhino questi numeri: un laptop con
+  <span class="en">16 GB RAM</span> ha circa <b>diecimila volte</b> la memoria di lavoro di
+  questa board! Per questo non disegniamo le due su uno stesso grafico — la barra della
+  board non si vedrebbe proprio. 😅 È esattamente questo divario a dare senso all&rsquo;intero
+  nostro progetto (modello piccolo, <span class="en">NAS</span> con tetti di memoria,
+  <span class="en">quantization</span>).</p>
+
+  <h3>Dal file del modello al chip: la toolchain 🔗</h3>
+  <p>L&rsquo;output della lezione precedente era un file <span class="en">INT8 TFLite</span> —
+  il modello compresso con pesi a 8 bit. Consegniamo questo file allo strumento ufficiale
+  di <span class="en">ST</span>: <b><span class="en">ST Edge AI</span></b> (il suo comando
+  da riga di comando si chiama <span class="en">stedgeai</span>). Lo strumento fa tre cose
+  per noi:</p>
+
+  <div class="card">
+    <p>• <b><span class="en">analyze</span></b>: senza alcun hardware, riporta quanta
+    <span class="en">flash</span> occupa il modello, quanta <span class="en">RAM</span> gli
+    serve e quante operazioni <span class="en">MACC</span> (moltiplica-e-accumula) esegue.
+    Così sappiamo se il modello ci sta prima ancora di toccare una board!<br>
+    • <b><span class="en">validate</span></b>: controlla la correttezza numerica — il
+    modello convertito dà le stesse risposte del modello di riferimento?<br>
+    • <b><span class="en">ST Edge AI Developer Cloud</span></b>: una «board farm» gratuita
+    e remota — esegue il modello su board reali e misura la <span class="en">latency</span>
+    reale (il tempo di ogni predizione), senza una sola board sulla nostra scrivania.</p>
+  </div>
+
+  <figure class="viz">
+    <svg viewBox="0 0 720 230" role="img" aria-label="Pipeline di deployment: il modello addestrato viene convertito in un file INT8 TFLite, stedgeai analyze riporta flash, RAM e MACC senza hardware, poi il modello gira su una board STM32 e la latency reale viene misurata in millisecondi">
+      <defs>
+        <marker id="arr-p" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="var(--muted)"/>
+        </marker>
+      </defs>
+      <!-- A: trained model -->
+      <rect x="600" y="85" width="114" height="70" rx="12" fill="none" stroke="var(--series-2)" stroke-width="2"/>
+      <text x="657" y="113" text-anchor="middle" fill="var(--ink)" font-size="11" font-weight="700">Modello addestrato</text>
+      <text x="657" y="137" text-anchor="middle" fill="var(--ink-2)" font-size="11.5" font-family="ui-monospace, Consolas, monospace">float32</text>
+      <line x1="600" y1="120" x2="592" y2="120" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr-p)"/>
+      <!-- B: TFLite files -->
+      <rect x="487" y="85" width="105" height="70" rx="12" fill="none" stroke="var(--series-1)" stroke-width="2"/>
+      <text x="539" y="110" text-anchor="middle" fill="var(--ink)" font-size="12.5" font-weight="700" font-family="ui-monospace, Consolas, monospace">TFLite</text>
+      <text x="539" y="132" text-anchor="middle" fill="var(--ink-2)" font-size="10.5" font-family="ui-monospace, Consolas, monospace">float32 / int8</text>
+      <text x="539" y="174" text-anchor="middle" fill="var(--muted)" font-size="11">Output della Lezione 09</text>
+      <line x1="487" y1="120" x2="467" y2="120" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr-p)"/>
+      <!-- C: stedgeai analyze + report icon -->
+      <rect x="307" y="70" width="160" height="100" rx="12" fill="none" stroke="var(--baseline)" stroke-width="2"/>
+      <text x="387" y="93" text-anchor="middle" fill="var(--ink)" font-size="12.5" font-weight="700" font-family="ui-monospace, Consolas, monospace">stedgeai analyze</text>
+      <rect x="322" y="103" width="36" height="52" rx="4" fill="none" stroke="var(--muted)" stroke-width="1.5"/>
+      <line x1="328" y1="116" x2="352" y2="116" stroke="var(--grid)" stroke-width="2"/>
+      <line x1="328" y1="129" x2="352" y2="129" stroke="var(--grid)" stroke-width="2"/>
+      <line x1="328" y1="142" x2="352" y2="142" stroke="var(--grid)" stroke-width="2"/>
+      <text x="452" y="119" text-anchor="end" fill="var(--ink-2)" font-size="11" font-family="ui-monospace, Consolas, monospace">flash: KB</text>
+      <text x="452" y="135" text-anchor="end" fill="var(--ink-2)" font-size="11" font-family="ui-monospace, Consolas, monospace">RAM: KB</text>
+      <text x="452" y="151" text-anchor="end" fill="var(--ink-2)" font-size="11" font-family="ui-monospace, Consolas, monospace">MACC</text>
+      <text x="387" y="190" text-anchor="middle" fill="var(--muted)" font-size="11">Report completo, senza hardware!</text>
+      <line x1="307" y1="120" x2="287" y2="120" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr-p)"/>
+      <!-- D: STM32 chip -->
+      <g stroke="var(--muted)" stroke-width="2">
+        <line x1="190" y1="70" x2="190" y2="78"/>
+        <line x1="210" y1="70" x2="210" y2="78"/>
+        <line x1="230" y1="70" x2="230" y2="78"/>
+        <line x1="250" y1="70" x2="250" y2="78"/>
+        <line x1="270" y1="70" x2="270" y2="78"/>
+        <line x1="190" y1="162" x2="190" y2="170"/>
+        <line x1="210" y1="162" x2="210" y2="170"/>
+        <line x1="230" y1="162" x2="230" y2="170"/>
+        <line x1="250" y1="162" x2="250" y2="170"/>
+        <line x1="270" y1="162" x2="270" y2="170"/>
+      </g>
+      <rect x="172" y="78" width="115" height="84" rx="10" fill="none" stroke="var(--series-1)" stroke-width="2.5"/>
+      <rect x="204" y="100" width="52" height="40" rx="4" fill="var(--series-1)" fill-opacity="0.12" stroke="var(--series-1)" stroke-width="1.5"/>
+      <text x="230" y="125" text-anchor="middle" fill="var(--ink)" font-size="11" font-weight="700" font-family="ui-monospace, Consolas, monospace">STM32</text>
+      <text x="229" y="190" text-anchor="middle" fill="var(--ink-2)" font-size="11">Board reale (Developer Cloud)</text>
+      <line x1="172" y1="120" x2="152" y2="120" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr-p)"/>
+      <!-- E: latency -->
+      <text x="105" y="114" text-anchor="middle" fill="var(--ink)" font-size="13" font-weight="700" font-family="ui-monospace, Consolas, monospace">latency</text>
+      <text x="105" y="136" text-anchor="middle" fill="var(--ink-2)" font-size="11.5">Tempo di esecuzione (ms)</text>
+    </svg>
+    <figcaption>Figura 1 — Pipeline di deployment: modello addestrato → file <span class="en">INT8 TFLite</span> → report di <span class="en">stedgeai analyze</span> (senza hardware) → esecuzione sulla board <span class="en">STM32</span> e misura della <span class="en">latency</span> reale.</figcaption>
+  </figure>
+
+  <p>I paper di questo settore di solito riportano quattro numeri accanto
+  all&rsquo;accuratezza — e noi faremo lo stesso:</p>
+
+  <table>
+    <thead><tr><th>Metrica</th><th>Che cosa significa?</th></tr></thead>
+    <tbody>
+      <tr><td><span class="en">flash (KB)</span></td><td>La dimensione di modello e programma nella memoria permanente — deve stare nella <span class="en">Flash</span> della board.</td></tr>
+      <tr><td><span class="en">peak RAM (KB)</span></td><td>La massima memoria temporanea richiesta a metà esecuzione — deve restare sotto la <span class="en">SRAM</span>.</td></tr>
+      <tr><td><span class="en">latency (ms)</span></td><td>Quanti millisecondi richiede una predizione? — misurata sulla board reale.</td></tr>
+      <tr><td><span class="en">MACs</span></td><td>Il numero di operazioni moltiplica-e-accumula; si calcola senza hardware ed è un ottimo predittore della <span class="en">latency</span> (nelle nostre misure su <span class="en">STM32</span>, correlazione <span class="en">r&#178; = 0.975</span> con il tempo reale).</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Un confronto reale 📏</h3>
+  <p>Il paper pubblicato da questo stesso laboratorio (<span class="en">IEEE SPL 2026</span>)
+  ha effettuato il deployment dei suoi modelli senza <span class="en">quantization</span>
+  (in puro <span class="en">float32</span>). Sulla board principale nessun problema; ma
+  sulla più economica <span class="en">STM32F401</span> (solo <span class="en">84 MHz</span>,
+  <span class="en">96 KB RAM</span> e <span class="en">512 KB flash</span>) la storia si è
+  fatta interessante:</p>
+
+  <table>
+    <thead><tr><th>Modello (dal paper pubblicato)</th><th>Sulla <span class="en">STM32F401</span></th><th class="num">latency</th></tr></thead>
+    <tbody>
+      <tr><td><span class="en">Transformer</span> (circa 54k parametri)</td><td>Non è entrato in <span class="en">RAM</span>! ❌</td><td class="num">—</td></tr>
+      <tr><td><span class="en">1DCNN</span></td><td>Ha girato ✅</td><td class="num">40.8 ms</td></tr>
+      <tr><td><span class="en">XGBoost</span></td><td>Ha girato ✅</td><td class="num">1.15 ms</td></tr>
+    </tbody>
+  </table>
+
+  <figure class="viz">
+    <div class="hbar">
+      <div class="name">1DCNN — paper pubblicato</div>
+      <div class="track"><div class="fill alt" style="width:90.7%"></div></div>
+      <div class="val">40.8 ms</div>
+      <div class="name">XGBoost — paper pubblicato</div>
+      <div class="track"><div class="fill alt" style="width:2.6%"></div></div>
+      <div class="val">1.15 ms</div>
+    </div>
+    <figcaption>Figura 2 — <span class="en">latency</span> misurata sulla <span class="en">STM32F401</span> (scala da 0 a 45 ms; più basso è meglio). Il <span class="en">Transformer</span> non ha barra perché in <span class="en">RAM</span> non è mai entrato.</figcaption>
+  </figure>
+
+  <p>Questa tabella dice esattamente perché questa lezione è importante: una buona
+  accuratezza non basta. Un modello che non sta in memoria, in pratica, non esiste; e un
+  modello troppo lento arriva in ritardo per un avviso tempestivo di cambio di corsia. Il
+  nostro obiettivo: i nostri modelli <span class="en">NAS</span>, in
+  <span class="en">int8</span>, devono <b>starci ed essere veloci allo stesso tempo</b> —
+  anche su una board economica come la <span class="en">F401</span>.</p>
+
+  <h2>Nel nostro progetto 🧰</h2>
+  <div class="card">
+    <p>• Board target: <span class="en">STM32H7B3I-DK</span>; l&rsquo;obiettivo più
+    ambizioso: la stessa <span class="en">STM32F401</span> a basso consumo.<br>
+    • I tetti della ricerca <span class="en">NAS</span> li abbiamo presi proprio dal budget
+    di questa board: al massimo <span class="en">256 KB</span> di memoria di picco
+    (<span class="en">peak RAM</span>), al massimo <span class="en">256 KB</span> di
+    dimensione del modello <span class="en">int8</span> e al massimo
+    <span class="en">2,000,000 MACs</span> — così ogni modello che esce dalla ricerca è
+    già dimensionato per questo chip.<br>
+    • Piano di misura: prima <span class="en">stedgeai analyze</span> per il report
+    <span class="en">flash/RAM/MACC</span> senza hardware, poi
+    <span class="en">ST Edge AI Developer Cloud</span> per la <span class="en">latency</span>
+    reale sulla board.</p>
+  </div>
+
+  <div class="card callout">
+    <p class="card-title">Stato di questa fase ✅ — tutto misurato!</p>
+    <p>Questa tabella non è più una stima: tutti i numeri sono stati misurati sulla board
+    reale <span class="en">STM32H7B3I-DK</span> attraverso
+    <span class="en">ST Edge AI Developer Cloud</span> (versione <span class="en">4.0.1</span>,
+    ottimizzazione <span class="en">balanced</span>, formato <span class="en">float32</span> —
+    la stessa procedura del paper di riferimento). Con le <b>stesse identiche
+    impostazioni</b> abbiamo misurato anche il modello di riferimento del team, da 441k
+    parametri, perché il confronto fosse mele-con-mele:</p>
+    <table>
+      <thead><tr><th>Modello (float32)</th><th class="num">Qualità</th><th class="num">latency</th><th class="num">flash</th><th class="num">RAM</th></tr></thead>
+      <tbody>
+        <tr><td>Modello di riferimento (441k)</td><td class="num">91.69%</td><td class="num">33.52 ms</td><td class="num">1729 KB</td><td class="num">38.3 KB</td></tr>
+        <tr><td><b>La nostra Classification (84k)</b></td><td class="num"><b>92.08%</b></td><td class="num"><b>3.63 ms</b></td><td class="num"><b>335 KB</b></td><td class="num">9.2 KB</td></tr>
+        <tr><td>La nostra Classification tiny (8k)</td><td class="num">91.30%</td><td class="num"><b>0.79 ms</b></td><td class="num"><b>37 KB</b></td><td class="num">9.2 KB</td></tr>
+        <tr><td>La nostra Regression LCR (117k)</td><td class="num">MAE 0.287</td><td class="num">14.06 ms</td><td class="num">463 KB</td><td class="num">20.3 KB</td></tr>
+        <tr><td>La nostra Regression LCL (106k)</td><td class="num">MAE 0.317</td><td class="num">28.77 ms</td><td class="num">414 KB</td><td class="num">27.6 KB</td></tr>
+      </tbody>
+    </table>
+    <p>Tradotto: il nostro modello è al tempo stesso <b>più accurato</b> (92.08 contro
+    91.69), <b><span class="en">9.2×</span> più veloce</b> e
+    <b><span class="en">5.2×</span> più piccolo</b> del modello di riferimento; e la
+    versione tiny, con <b>meno di un millisecondo</b>, è <span class="en">42×</span> più
+    veloce cedendo solo 0.4 punti di accuratezza. Anche il punto operativo
+    <span class="en">int8</span> è stato misurato: <span class="en">1.885 ms</span> e
+    <span class="en">104 KB</span> per la <span class="en">classification</span> — ma con
+    un calo di accuratezza di 5.2 punti, il cui perché e percome li ha spiegati la
+    Lezione 09.</p>
+  </div>
+
+  <div class="card">
+    <p class="card-title">E sulla minuscola board F401? Un knockout 🥊</p>
+    <p>Il nostro modello tiny ha girato sulla <span class="en">NUCLEO-F401RE</span> (la
+    stessa board economica a 84 MHz) in <b><span class="en">4.376 ms</span></b>, occupando
+    appena il <b><span class="en">7.2%</span></b> della <span class="en">flash</span> della
+    board. Il modello di riferimento? <b>Sulla board non entra proprio</b>: 1729 KB di pesi
+    contro 512 KB totali di <span class="en">flash</span> — cioè
+    <span class="en">3.4×</span> più grande dell&rsquo;intera memoria della board, e nessuna
+    impostazione può salvarlo. Qui non si parla più di «un fattore di miglioramento»; è
+    <b>essere o non essere</b>: i nostri modelli trovati dalla ricerca aprono la porta a
+    una classe di hardware davanti alla quale il modello di riferimento resta chiuso fuori.</p>
+    <p>Un numero curioso per farsi un&rsquo;intuizione: questo stesso modello tiny spende
+    circa 7 cicli per ogni moltiplica-e-accumula sull&rsquo;<span class="en">M7</span> e
+    circa 12 sull&rsquo;<span class="en">M4</span> — su processori che completano una
+    moltiplica-e-accumula in un solo ciclo! A queste dimensioni, la maggior parte del tempo
+    se ne va in movimentazione dei dati e overhead per operazione, non nella matematica in
+    sé. Ecco perché <span class="en">MACs</span> è eccellente per confrontare «modelli
+    interi» (<span class="en">r²=0.975</span>) ma non è affidabile per predire il tempo dei
+    «singoli layer».</p>
+  </div>
+
+  <div id="quiz" class="quiz"></div>
+  <script type="application/json" id="quiz-data">
+  [
+    {"stem": "Il modello di riferimento ha 12.4 volte i MACC del nostro, ma è solo 9.2 volte più lento (non 12.4). E dentro uno stesso modello, il layer con più calcolo a volte è il più veloce. Qual è la conclusione corretta?",
+     "options": ["MACs non è un indicatore valido e va tolto dai criteri di ricerca; solo la misura diretta sulla board merita davvero fiducia", "Lo scarto fra 12.4 e 9.2 è solo rumore di misura dello strumento ST; mediando su più esecuzioni i due numeri coinciderebbero", "MACs va bene per confrontare modelli interi (r²=0.975), ma il tempo dei singoli layer lo decidono overhead e movimento dei dati", "Il conteggio dei MACs è definito solo per i modelli int8, quindi applicarlo ai modelli float32 è privo di senso fin dal principio"],
+     "answer": 2,
+     "explain": "Entrambi i fatti sono veri allo stesso tempo: a livello di modello intero, MACs correla benissimo con il tempo, e per la ricerca NAS questo basta; a livello di layer dominano l'overhead per operazione e il traffico di memoria (da 7 a 12 cicli per una moltiplica-e-accumula da un ciclo!). Una buona metrica è quella di cui conosci i limiti — né idolo né spazzatura."},
+    {"stem": "Perché abbiamo rifatto noi il benchmark del modello di riferimento, sulla stessa board e con la stessa versione dello strumento, invece di copiare i numeri dal loro paper?",
+     "options": ["Perché la latency è sensibile a board, versione dello strumento e impostazioni; un confronto equo richiede condizioni identiche", "Perché ai numeri riportati negli altri paper non si può credere per principio, e ogni cifra va riprodotta di nuovo partendo da zero", "Perché il paper di riferimento riportava solo l'accuratezza e per i suoi modelli non esisteva alcun numero hardware citabile", "Perché i certificati di benchmark dello strumento ST hanno una scadenza e numeri più vecchi di un anno non sono accettati in valutazione"],
+     "answer": 0,
+     "explain": "«33.5 contro 3.6 millisecondi» ha senso solo se tutte le variabili di disturbo restano fisse: stessa H7B3I-DK, stesso Core 4.0.1, stessa balanced, stesso float32. Se ne cambia una, il numero si sposta e il confronto perde validità. È il principio «mele con mele» che i revisori controllano per primo."},
+    {"stem": "Il modello di riferimento non sta sulla F401 (1729KB di pesi, 512KB di flash). Quale soluzione avrebbe potuto davvero farlo entrare su questa board senza cambiare l'architettura?",
+     "options": ["Attivare l'ottimizzazione ram nello strumento ST; comprimendo le tabelle dei pesi, riduce di parecchie volte anche l'uso di flash", "Eseguire il modello dalla RAM invece che dalla flash; la memoria di lavoro è più veloce e il limite di 512 KB riguarda solo la flash", "Nessuna impostazione aiuta; i pesi superano l'intera flash — o si riducono i pesi (int8 ci sta a stento) o si cambia architettura", "Portare il clock del processore a 280MHz; con un'elaborazione più rapida i pesi si possono leggere a blocchi dalla memoria esterna"],
+     "answer": 2,
+     "explain": "Le impostazioni del compilatore ottimizzano dove stanno i pesi, non quanto sono grandi; la RAM della board (96KB) è ancora più piccola della flash, e il clock cambia la velocità, non lo spazio. L'unica leva reale è rimpicciolire i pesi stessi — e perfino int8 (÷4 = ~432KB) ci sta a stento. La strada solida è quella che abbiamo seguito noi: un modello cercato fin dall'inizio per questo budget (il nostro modello tiny: 7% della flash)."},
+    {"stem": "Nel report finale, quale numero DEVE venire da un'esecuzione sulla board reale e non può essere sostituito dal report offline (analyze)?",
+     "options": ["La flash richiesta dal modello insieme alla sua libreria di esecuzione", "Il numero totale di operazioni moltiplica-e-accumula (MACC) per predizione", "La latency (il tempo di ogni predizione)", "Il picco di memoria istantanea (peak RAM) raggiunto durante l'esecuzione"],
+     "answer": 2,
+     "explain": "flash, RAM e MACC si calcolano dalla struttura del modello, e analyze li fornisce senza hardware (e abbiamo visto che le sue stime combaciano con la misura a meno di frazioni di punto). Ma il tempo reale dipende da processore, cache e qualità del codice generato — vale solo il cronometro sulla board; il Developer Cloud fornisce esattamente questo."}
+  ]
+  </script>
+
+  <div class="lesson-nav">
+    <a href="09-quantization.html"><div class="dir">← Precedente</div><div>Lezione 09 — Quantization</div></a>
+    <a href="11-paper-writing.html"><div class="dir">Successiva →</div><div>Lezione 11 — Scrivere l&rsquo;articolo</div></a>
+  </div>
+  <footer class="site">LC-Intention-NAS · ELIOS Lab</footer>
+</main>
+</body>
+</html>

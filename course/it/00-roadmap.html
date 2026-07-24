@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="it" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lezione 00 — Roadmap | LC-Intention-NAS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/course.css">
+<script src="../assets/course.js" defer></script>
+</head>
+<body>
+<div class="topbar">
+  <a class="home" href="index.html">↪ Indice del corso</a>
+  <div class="spacer"></div>
+  <nav class="lang-switch" aria-label="Language">
+    <a href="../00-roadmap.html" hreflang="fa">فا</a>
+    <a href="../en/00-roadmap.html" hreflang="en">EN</a>
+    <a href="00-roadmap.html" class="active" hreflang="it">IT</a>
+  </nav>
+  <button class="theme-toggle" onclick="toggleTheme()">🌗 Chiaro/Scuro</button>
+</div>
+<main>
+  <p class="kicker">Lezione 00</p>
+  <h1>Roadmap: che cosa costruiremo? 🗺️</h1>
+  <p class="lede">Un assistente minuscolo ma intelligente che indovina l'intenzione del guidatore qualche secondo prima del cambio di corsia.</p>
+
+  <div class="card callout story">
+    <p class="card-title">La storia 📖</p>
+    <p>Immagina un assistente piccolissimo e velocissimo seduto accanto al guidatore. Il suo compito è uno solo:
+    indovinare, qualche secondo prima che il guidatore cambi corsia, che sta per farlo.
+    Se l'assistente se ne accorge in tempo, l'auto può avvisare o prepararsi, e molti incidenti si possono evitare.</p>
+    <p>Il problema è questo: l'assistente deve vivere dentro un chip piccolissimo ed economico
+    (si chiama <span class="en">microcontroller</span> — come <span class="en">STM32</span>),
+    non dentro un grande computer. Chip piccolo significa poca memoria e velocità limitata.
+    Quindi il nostro assistente deve essere insieme <b>intelligente</b> e <b>minuscolo</b>.</p>
+  </div>
+
+  <h2>Più in dettaglio 🔬</h2>
+  <p>Questo assistente si chiama <span class="en">model</span> (una <span class="en">neural network</span>).
+  Il suo input sono i segnali dell'auto nel tempo (<span class="en">time series</span>) e svolge tre compiti:</p>
+
+  <figure class="viz">
+    <svg viewBox="0 0 760 260" role="img" aria-label="Panoramica del sistema: i segnali del veicolo entrano nella finestra temporale, il modello gira su STM32 e produce tre output">
+      <defs>
+        <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="var(--muted)"/>
+        </marker>
+      </defs>
+      <!-- sensors -->
+      <rect x="615" y="90" width="130" height="80" rx="12" fill="none" stroke="var(--series-2)" stroke-width="2"/>
+      <text x="680" y="120" text-anchor="middle" fill="var(--ink)" font-size="14.5" font-weight="700">Sensori veicolo</text>
+      <text x="680" y="145" text-anchor="middle" fill="var(--ink-2)" font-size="10.5">velocità, sterzo, distanze…</text>
+      <!-- window -->
+      <line x1="615" y1="130" x2="580" y2="130" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr)"/>
+      <rect x="440" y="90" width="140" height="80" rx="12" fill="none" stroke="var(--baseline)" stroke-width="2"/>
+      <text x="510" y="120" text-anchor="middle" fill="var(--ink)" font-size="13.5" font-weight="700">Finestra temporale</text>
+      <text x="510" y="145" text-anchor="middle" fill="var(--ink-2)" font-size="12">50 × 31</text>
+      <!-- model on MCU -->
+      <line x1="440" y1="130" x2="405" y2="130" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr)"/>
+      <rect x="265" y="75" width="140" height="110" rx="12" fill="none" stroke="var(--series-1)" stroke-width="2.5"/>
+      <text x="335" y="108" text-anchor="middle" fill="var(--ink)" font-size="15" font-weight="700" font-family="ui-monospace, Consolas, monospace">Model</text>
+      <text x="335" y="133" text-anchor="middle" fill="var(--ink-2)" font-size="12">piccola rete neurale</text>
+      <text x="335" y="163" text-anchor="middle" fill="var(--series-1)" font-size="12" font-weight="700">su STM32 🧩</text>
+      <!-- outputs -->
+      <line x1="265" y1="100" x2="200" y2="50" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr)"/>
+      <line x1="265" y1="130" x2="200" y2="130" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr)"/>
+      <line x1="265" y1="160" x2="200" y2="210" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr)"/>
+      <text x="98" y="47" text-anchor="middle" fill="var(--ink)" font-size="13" font-weight="700">Cambio corsia? (3 classi)</text>
+      <text x="98" y="134" text-anchor="middle" fill="var(--ink)" font-size="13" font-weight="700">Secondi a sinistra? (LCL)</text>
+      <text x="98" y="217" text-anchor="middle" fill="var(--ink)" font-size="13" font-weight="700">Secondi a destra? (LCR)</text>
+    </svg>
+    <figcaption>Figura 1 — Panoramica: i segnali del veicolo entrano nel modello in finestre di 5 secondi e il modello risponde a tre domande.</figcaption>
+  </figure>
+
+  <p>I nostri tre problemi:</p>
+  <div class="card">
+    <p>1. <b><span class="en">Classification</span></b>: il guidatore intende cambiare corsia oppure no?
+    Tre casi: nessuno, destra (<span class="en">LCR</span> = Lane Change Right), sinistra (<span class="en">LCL</span> = Lane Change Left).<br>
+    2. <b><span class="en">Regression</span> per LCL</b>: tra quanti secondi andrà a sinistra? (da 0 a 4 secondi, passo 0.1)<br>
+    3. <b><span class="en">Regression</span> per LCR</b>: la stessa domanda per la destra.</p>
+    <p>Un dettaglio sottile: l'etichetta «quanti secondi alla manovra?» ha senso solo per le finestre
+    che arrivano davvero a un cambio in quella direzione. Per questo <span class="en">LCL</span> e
+    <span class="en">LCR</span> sono due dataset diversi e ciascuno ha il proprio modello separato.</p>
+  </div>
+
+  <p>E invece di progettare noi stessi l'architettura della rete per tentativi, usiamo
+  <b><span class="en">NAS (Neural Architecture Search)</span></b>:
+  un algoritmo che prova da solo migliaia di design e trova il migliore — con il vincolo che
+  stia nella memoria del <span class="en">microcontroller</span> (l'approccio <span class="en">µNAS</span>).
+  Perché mettiamo questo vincolo dentro la ricerca <b>fin dall'inizio</b>? Perché se prima costruiamo il modello
+  più accurato e poi cerchiamo di rimpicciolirlo per farlo entrare (pruning o compressione), di solito
+  l'accuratezza cala; la ricerca vincolata invece esplora fin dall'inizio solo i modelli che ci stanno
+  e ottimizza l'accuratezza in quello stesso spazio.</p>
+
+  <h2>L'obiettivo finale 🎯</h2>
+  <p>Battere un record scientifico! Il miglior risultato pubblicato su questi dati
+  (l'articolo <span class="en">IEEE SPL 2026</span> di questo stesso laboratorio) e i riferimenti interni del team sono questi:</p>
+
+  <table>
+    <thead><tr><th>Compito</th><th>Metrica</th><th class="num">Obiettivo</th><th class="num">Il nostro primo modello (senza tuning!)</th></tr></thead>
+    <tbody>
+      <tr><td>Classification</td><td><span class="en">accuracy</span></td><td class="num">92%</td><td class="num">91.5%</td></tr>
+      <tr><td>Regression LCR</td><td><span class="en">RMSE</span></td><td class="num">0.42 s</td><td class="num">0.439 s</td></tr>
+      <tr><td>Regression LCL</td><td><span class="en">RMSE</span></td><td class="num">0.44 s</td><td class="num">0.459 s</td></tr>
+      <tr><td>TTLC unico (pubblicato, Transformer)</td><td><span class="en">RMSE</span></td><td class="num">0.51 s</td><td class="num">—</td></tr>
+    </tbody>
+  </table>
+
+  <p>Vogliamo superare questi risultati con un modello <b>più piccolo e più veloce</b>, eseguire
+  davvero il modello sulla board <span class="en">STM32H7B3I-DK</span> e pubblicare il risultato come
+  <span class="en">paper</span> su una rivista prestigiosa (<span class="en">Q1</span>).</p>
+
+  <div class="card callout">
+    <p class="card-title">Lo stato di oggi 🏁 (queste cose sono già fatte!)</p>
+    <p>• Il <span class="en">NAS</span> è concluso: il nostro miglior modello, con 84 mila parametri, ha raggiunto
+    un'accuratezza del <b><span class="en">92.08%</span></b> (obiettivo: 92%) e in <span class="en">regression</span>
+    il record pubblicato (<span class="en">RMSE 0.51</span>) è stato battuto con <span class="en">RMSE 0.447</span>.
+    (Gli obiettivi interni <span class="en">0.42/0.44</span> non sono ancora battuti — lo diciamo onestamente!)<br>
+    • I modelli sono stati <b>misurati</b> sulla board reale: il nostro modello è <span class="en">9.2×</span> più veloce e
+    <span class="en">5.2×</span> più piccolo del modello di riferimento — con accuratezza superiore.<br>
+    • Sulla board economica <span class="en">F401</span> il modello di riferimento <b>non ci sta affatto</b>, mentre il nostro
+    modello minuscolo gira in <span class="en">4.4 ms</span>. Dettagli nelle lezioni da 07 a 10.</p>
+  </div>
+
+  <h2>Nel nostro progetto 🧰</h2>
+  <div class="card">
+    <p>• Codice principale: la cartella <span class="en">src/</span> e il notebook principale <span class="en">notebooks/dmir_pipeline.ipynb</span><br>
+    • Tutti gli esperimenti vengono registrati in <span class="en">logs/experiments.jsonl</span>, così al momento di scrivere il paper nessun numero va perso.<br>
+    • Bozza dell'articolo: <span class="en">paper/main.tex</span> (dopo ogni modifica viene ricompilato il PDF.)</p>
+  </div>
+
+  <div id="quiz" class="quiz"></div>
+  <script type="application/json" id="quiz-data">
+  [
+    {"stem": "Il modello di riferimento, con 441 mila parametri, ha un'accuratezza del 91.7%; il nostro, con 84 mila parametri, ha raggiunto il 92.1%. Quale conclusione è corretta?",
+     "options": ["Un'architettura adatta può ottenere più accuratezza con meno parametri", "Più parametri significano più capacità di apprendimento; quindi la differenza viene per forza da un errore di misura o da una versione diversa dei dati di test", "In pratica l'accuratezza dipende solo dalla qualità e dalla quantità dei dati e l'architettura della rete non ha un effetto misurabile sul risultato finale", "Il modello piccolo ha vinto soltanto perché è stato valutato su hardware più nuovo e più veloce"],
+     "answer": 0,
+     "explain": "Entrambi i modelli sono stati valutati sugli stessi dati di test e con lo stesso protocollo. Tanti parametri non aiutano se sono spesi nel posto sbagliato (per esempio un enorme layer fully-connected sulla feature map grezza); la ricerca di architettura ha trovato proprio quel «posto giusto». È esattamente il messaggio principale del progetto."},
+    {"stem": "Quale affermazione sul ruolo del NAS in questo progetto è precisa?",
+     "options": ["Il NAS regola i pesi di una rete già fissata con un algoritmo di ottimizzazione più potente, per abbassare l'errore finale", "Il NAS genera dati di training sintetici aggiuntivi per rafforzare la generalizzazione del modello su guidatori mai visti", "Il NAS cerca la struttura della rete e ogni candidato viene addestrato separatamente", "Il NAS analizza il modello addestrato e lo traduce in codice C ottimizzato per l'esecuzione sulla board STM32"],
+     "answer": 2,
+     "explain": "Il training trova i pesi di «una» architettura fissata; il NAS sta un gradino più in alto e cerca l'architettura stessa. Ogni candidato viene costruito e addestrato, e il suo punteggio guida il percorso di ricerca. Generare dati e tradurre in codice C sono compiti diversi."},
+    {"stem": "Perché per ogni direzione (sinistra e destra) è definito un problema di regression separato?",
+     "options": ["Perché una rete neurale non può produrre in output più di un valore continuo ed è quindi inevitabile dividere il problema in due metà", "Perché l'etichetta «quanti secondi alla manovra?» ha senso solo sulle finestre di quella direzione; ogni direzione ha i propri dati", "Perché la frequenza di registrazione del simulatore era impostata in modo diverso per le manovre a sinistra e a destra e le finestre non risultano della stessa lunghezza", "Perché il modello di classification a tre classi produce già anche il tempo della manovra e resta solo da separare la direzione"],
+     "answer": 1,
+     "explain": "L'etichetta «2.3 secondi al cambio di corsia a sinistra» è definita solo per una finestra che arriva davvero a un cambio di corsia a sinistra. Quindi LCL e LCR hanno dataset diversi ed è naturale addestrare due modelli separati. Una rete può avere più output (la prima opzione è falsa) — il problema non è la mancanza di output, è la definizione dell'etichetta."},
+    {"stem": "Perché mettiamo il limite di memoria dentro la ricerca fin dall'inizio, invece di trovare prima il modello più accurato e poi rimpicciolirlo?",
+     "options": ["Perché la riduzione a posteriori (pruning e compressione) non è definita matematicamente per le reti convoluzionali ed è in pratica impossibile", "Perché in fase di deployment i tool di ST accettano solo modelli che durante la ricerca hanno ottenuto una certificazione di rispetto del limite di memoria", "Perché la ricerca senza vincoli è molto più lenta e richiede un numero di GPU che nel nostro laboratorio non era disponibile", "Perché il modello senza vincoli di solito non entra nel chip e la riduzione successiva sacrifica l'accuratezza"],
+     "answer": 3,
+     "explain": "La compressione a posteriori è possibile ma costosa: il modello grande va potato o ridotto e l'accuratezza cala. Quando il vincolo di memoria è nel punteggio della ricerca fin dall'inizio, ogni candidato che ne esce è già in grado di entrare nel chip e la sua accuratezza è ottimizzata in quello stesso spazio — la lezione 08 ne mostra la formula esatta."}
+  ]
+  </script>
+
+  <div class="lesson-nav">
+    <a href="index.html"><div class="dir">← Precedente</div><div>Indice del corso</div></a>
+    <a href="01-the-problem.html"><div class="dir">Successiva →</div><div>Lezione 01 — Il problema</div></a>
+  </div>
+  <footer class="site">LC-Intention-NAS · ELIOS Lab</footer>
+</main>
+</body>
+</html>

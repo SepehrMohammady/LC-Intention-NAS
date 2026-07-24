@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 11 — Paper Writing | LC-Intention-NAS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/course.css">
+<script src="../assets/course.js" defer></script>
+</head>
+<body>
+<div class="topbar">
+  <a class="home" href="index.html">↪ Course index</a>
+  <div class="spacer"></div>
+  <nav class="lang-switch" aria-label="Language">
+    <a href="../11-paper-writing.html" hreflang="fa">فا</a>
+    <a href="11-paper-writing.html" class="active" hreflang="en">EN</a>
+    <a href="../it/11-paper-writing.html" hreflang="it">IT</a>
+  </nav>
+  <button class="theme-toggle" onclick="toggleTheme()">🌗 Light/Dark</button>
+</div>
+<main>
+  <p class="kicker">Lesson 11</p>
+  <h1>Paper writing: how results turn into a <span class="en">paper</span> 📝</h1>
+  <p class="lede">We have spent months running experiments and collecting good numbers; now we have to turn all of it into a document a few pages long that convinces the strictest reviewers in the world.</p>
+
+  <div class="card callout story">
+    <p class="card-title">The story 📖</p>
+    <p>Science is like a big courtroom. We have a <b>claim</b>: &ldquo;Our small model predicts
+    the time of a lane change more accurately than the previous record, and it also runs on a
+    real chip.&rdquo; The paper is our case file: every claim we write in it must have its
+    evidence right there — a table, a chart, a reproducible experiment.</p>
+    <p>The judges of this court are the reviewers: anonymous scientists who read the case file
+    and hunt for the smallest hole. If a single number appears without evidence, or a weakness
+    is hidden, the case comes back. That is why our rule is simple:
+    <b>no claim without evidence, and no weakness hidden.</b></p>
+  </div>
+
+  <h2>More precisely 🔬</h2>
+  <p><span class="en">IEEE</span> papers almost always share a fixed skeleton. Once you know
+  this skeleton, you can read any paper quickly:</p>
+
+  <table>
+    <thead><tr><th>Section</th><th>What does it say, in one sentence?</th></tr></thead>
+    <tbody>
+      <tr><td><span class="en">Abstract</span></td><td>The whole story in a few sentences: what we did and what numbers we got.</td></tr>
+      <tr><td><span class="en">Introduction</span></td><td>Why this problem matters and exactly what new thing we add.</td></tr>
+      <tr><td><span class="en">Related Work</span></td><td>What others have done so far and where the gap for our work is.</td></tr>
+      <tr><td><span class="en">Method</span></td><td>The complete recipe: precise enough that anyone could repeat the work.</td></tr>
+      <tr><td><span class="en">Experiments</span></td><td>The evidence: tables and figures that prove every single claim.</td></tr>
+      <tr><td><span class="en">Conclusion</span></td><td>The wrap-up: what we learned and what the next step is.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Every number must be traceable 🔎</h3>
+  <p>When a reviewer asks &ldquo;where did this <span class="en">0.287</span> come from?&rdquo;,
+  we must be able to answer within seconds. That is why we have kept three habits from day one:
+  every run is recorded with all its details (settings, runtime environment, results) in
+  <span class="en">logs/experiments.jsonl</span>; the reason behind every decision is written
+  in <span class="en">LOGBOOK.md</span>; and after every change to the paper text
+  (<span class="en">paper/main.tex</span>), the <span class="en">PDF</span> is rebuilt so the
+  text and the numbers never drift apart. We also have one golden rule: no number enters the
+  paper unless we have re-measured the saved model ourselves with
+  <span class="en">verify_models.py</span> on the <span class="en">test</span> data.</p>
+
+  <figure class="viz">
+    <svg viewBox="0 0 760 300" role="img" aria-label="The paper production cycle: experiments are logged in experiments.jsonl, decisions go into LOGBOOK, the text is written in main.tex and turned into a PDF, submitted to a journal, peer-reviewed, and finally published; if the reviewers request changes, the return arrow leads back to the paper text">
+      <defs>
+        <marker id="arr-p" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="var(--muted)"/>
+        </marker>
+      </defs>
+      <!-- row 1: right to left -->
+      <rect x="600" y="48" width="140" height="64" rx="12" fill="none" stroke="var(--series-2)" stroke-width="2"/>
+      <text x="670" y="76" text-anchor="middle" fill="var(--ink)" font-size="14.5" font-weight="700">Experiment 🧪</text>
+      <text x="670" y="98" text-anchor="middle" fill="var(--ink-2)" font-size="10.5" font-family="ui-monospace, Consolas, monospace">experiments.jsonl</text>
+      <line x1="600" y1="80" x2="552" y2="80" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr-p)"/>
+
+      <rect x="405" y="48" width="145" height="64" rx="12" fill="none" stroke="var(--series-2)" stroke-width="2"/>
+      <text x="477" y="76" text-anchor="middle" fill="var(--ink)" font-size="14.5" font-weight="700">Decisions 📓</text>
+      <text x="477" y="98" text-anchor="middle" fill="var(--ink-2)" font-size="11" font-family="ui-monospace, Consolas, monospace">LOGBOOK.md</text>
+      <line x1="405" y1="80" x2="357" y2="80" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr-p)"/>
+
+      <rect x="210" y="48" width="145" height="64" rx="12" fill="none" stroke="var(--series-1)" stroke-width="2.5"/>
+      <text x="282" y="76" text-anchor="middle" fill="var(--ink)" font-size="14.5" font-weight="700">Paper text ✍️</text>
+      <text x="282" y="98" text-anchor="middle" fill="var(--ink-2)" font-size="11" font-family="ui-monospace, Consolas, monospace">main.tex</text>
+      <line x1="210" y1="80" x2="162" y2="80" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr-p)"/>
+
+      <rect x="30" y="48" width="130" height="64" rx="12" fill="none" stroke="var(--series-1)" stroke-width="2"/>
+      <text x="95" y="76" text-anchor="middle" fill="var(--ink)" font-size="14.5" font-weight="700">PDF 📄</text>
+      <text x="95" y="98" text-anchor="middle" fill="var(--ink-2)" font-size="11">after every change</text>
+
+      <!-- down to row 2 -->
+      <line x1="95" y1="112" x2="95" y2="186" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr-p)"/>
+
+      <!-- row 2: left to right -->
+      <rect x="30" y="192" width="130" height="64" rx="12" fill="none" stroke="var(--baseline)" stroke-width="2"/>
+      <text x="95" y="220" text-anchor="middle" fill="var(--ink)" font-size="14.5" font-weight="700">Submit 🚀</text>
+      <text x="95" y="242" text-anchor="middle" fill="var(--ink-2)" font-size="11" font-family="ui-monospace, Consolas, monospace">submit</text>
+      <line x1="160" y1="224" x2="204" y2="224" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr-p)"/>
+
+      <rect x="210" y="192" width="145" height="64" rx="12" fill="none" stroke="var(--baseline)" stroke-width="2"/>
+      <text x="282" y="220" text-anchor="middle" fill="var(--ink)" font-size="14.5" font-weight="700">Review 🕵️</text>
+      <text x="282" y="242" text-anchor="middle" fill="var(--ink-2)" font-size="11" font-family="ui-monospace, Consolas, monospace">review</text>
+      <line x1="355" y1="224" x2="399" y2="224" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr-p)"/>
+
+      <rect x="405" y="192" width="145" height="64" rx="12" fill="none" stroke="var(--series-2)" stroke-width="2.5"/>
+      <text x="477" y="220" text-anchor="middle" fill="var(--ink)" font-size="14.5" font-weight="700">Published 🎉</text>
+      <text x="477" y="242" text-anchor="middle" fill="var(--ink-2)" font-size="11" font-family="ui-monospace, Consolas, monospace">publish</text>
+      <text x="655" y="228" text-anchor="middle" fill="var(--muted)" font-size="11.5">available to everyone 🌍</text>
+
+      <!-- revision loop -->
+      <line x1="282" y1="192" x2="282" y2="118" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="5 5" marker-end="url(#arr-p)"/>
+      <text x="296" y="148" text-anchor="start" fill="var(--ink-2)" font-size="12" font-weight="700">revise and resubmit 🔁</text>
+      <text x="296" y="168" text-anchor="start" fill="var(--muted)" font-size="11" font-family="ui-monospace, Consolas, monospace">revision</text>
+    </svg>
+    <figcaption>Figure 1 — The paper pipeline: every number starts from a logged experiment, and its trail is preserved all the way to the <span class="en">PDF</span>. If the reviewers ask for changes (<span class="en">revision</span>), the return arrow leads back to the paper text and the cycle continues.</figcaption>
+  </figure>
+
+  <p>And the case's main claim already has its evidence — our best
+  <span class="en">NAS</span>-searched model (which we independently verified on
+  <span class="en">test</span> ourselves) against the published record:</p>
+
+  <div class="tiles">
+    <div class="tile"><div class="value">0.287</div><div class="label">Our model's <span class="en">MAE</span> (seconds, independently verified)</div></div>
+    <div class="tile"><div class="value">0.298</div><div class="label">Published record's <span class="en">MAE</span></div></div>
+    <div class="tile"><div class="value">0.447</div><div class="label">Our model's <span class="en">RMSE</span> (seconds)</div></div>
+    <div class="tile"><div class="value">0.510</div><div class="label">Published record's <span class="en">RMSE</span></div></div>
+  </div>
+
+  <p>The second pillar of the case is real execution on hardware — all measured, not estimated:
+  <span class="en">92.08%</span> accuracy versus <span class="en">91.69%</span> for the
+  reference model, with <span class="en">9.2×</span> the speed and <span class="en">5.2×</span>
+  less memory on the same board with the same toolchain; and on the cheap
+  <span class="en">F401</span> board, the reference model does not fit at all while our tiny
+  model runs (Lesson 10).</p>
+
+  <h2>Peer review: the strict inspectors 🕵️</h2>
+  <p>Reviewers are anonymous, they do not do pleasantries, and this is precisely their job:
+  finding weaknesses. The best defense? <b>State the weakness ourselves, first.</b> The real
+  example in our project is the turn-signal leak: the two <span class="en">turn signal</span>
+  channels alone — with no other intelligence at all — reach <span class="en">81.5%</span>
+  accuracy on <span class="en">test</span> in the <span class="en">classification</span> task.
+  Why? Because the turn signal almost always gives the game away:</p>
+
+  <figure class="viz">
+    <div class="hbar" role="img" aria-label="Percentage of windows in each class where the turn signal is on: 92 percent in right lane changes, 71 percent in left lane changes, and only 6.5 percent in windows with no intention">
+      <div class="name">Right lane change (<span class="en">LCR</span>)</div><div class="track"><div class="fill" style="width:92%"></div></div><div class="val">92%</div>
+      <div class="name">Left lane change (<span class="en">LCL</span>)</div><div class="track"><div class="fill" style="width:71%"></div></div><div class="val">71%</div>
+      <div class="name">No lane-change intention</div><div class="track"><div class="fill" style="width:6.5%"></div></div><div class="val">6.5%</div>
+    </div>
+    <figcaption>Figure 2 — How often the turn signal is on in each class's windows (scale 0 to 100%). This large gap is exactly what lets the <span class="en">classification</span> model &ldquo;cheat&rdquo;.</figcaption>
+  </figure>
+
+  <p>The good news: the <span class="en">regression</span> task is clean. Using the turn signal
+  alone, <span class="en">MAE</span> only reaches <span class="en">0.72</span> and
+  <span class="en">0.90</span> seconds, while our baseline model gets
+  <span class="en">0.318</span> and <span class="en">0.333</span> — meaning the model truly
+  learns from driver behavior, not from the turn signal. That is why our paper moves forward
+  with <span class="en">regression</span> and the real on-board deployment, and for
+  <span class="en">classification</span> it <b>openly</b> reports a with/without
+  <span class="en">turn signal</span> comparison experiment (called an
+  <span class="en">ablation</span>). A reviewer who sees that we have been the strictest
+  inspectors of our own work will also trust the rest of the numbers more.</p>
+
+  <p>The turn-signal leak is not our only act of honesty; we also state two other weaknesses
+  explicitly: first, some <b>internal <span class="en">RMSE</span> targets</b> (the team's
+  reference results) are still unbeaten, and we do not hide it; second,
+  <b><span class="en">int16×8</span></b> quantization is <b>not deployable</b> with the
+  <span class="en">ST</span> toolchain (it silently falls back to
+  <span class="en">float32</span>), so we report it only as an offline accuracy bound, not as a
+  deployed configuration.</p>
+
+  <h2>Which journal? ⚖️</h2>
+  <p>We have two main options, and the choice is genuinely hard:</p>
+
+  <table>
+    <thead><tr><th>Journal</th><th class="num">Rank</th><th class="num">Page limit</th><th class="num">IF</th><th class="num">First response (weeks)</th></tr></thead>
+    <tbody>
+      <tr><td><span class="en">IEEE Signal Processing Letters</span></td><td class="num">Q1</td><td class="num">4</td><td class="num">4.6</td><td class="num">≈6</td></tr>
+      <tr><td><span class="en">IEEE Internet of Things Journal</span></td><td class="num">Q1</td><td class="num">8</td><td class="num">8.7</td><td class="num">≈7</td></tr>
+    </tbody>
+  </table>
+
+  <p><span class="en">SPL</span> is the very journal where the current record (this lab's 2026
+  work) was published — so our comparison will be seen exactly where it belongs. But its 4-page
+  limit is <b>tough</b>: our story (<span class="en">NAS</span> +
+  <span class="en">quantization</span> + real on-board execution + the
+  <span class="en">turn signal</span> honesty experiment) barely fits into 4 pages, and things
+  would have to be sacrificed. <span class="en">IoT-J</span>, with 8 pages, gives room to
+  breathe, has a high <span class="en">IF</span> (<span class="en">8.7</span>), and its first
+  response also takes about 7 weeks — but its audience is slightly different. Now that the
+  final results (the searches and the on-board measurements) are in, this decision will be
+  finalized with the supervisor: the size of the story determines the size of the journal.</p>
+
+  <h2>The style guard: numbers instead of adjectives ✍️</h2>
+  <p>There is one amusing danger, too: text that reads as &ldquo;robot-written&rdquo;. Some
+  words have been repeated so often in AI-generated text that reviewers raise an eyebrow the
+  moment they see them. That is why <span class="en">paper/STYLE.md</span> keeps a blocklist:
+  <span class="en">delve</span>, <span class="en">leverage</span>, <span class="en">robust</span>,
+  <span class="en">seamless</span>, and their friends.</p>
+
+  <div class="card callout">
+    <p class="card-title">The golden rule of style 🏅</p>
+    <p>Do not hand the reviewer adjectives; hand them numbers and tables.</p>
+    <p>❌ &ldquo;Our model outperforms prior work in a <span class="en">seamless</span> and amazing way.&rdquo;<br>
+    ✅ &ldquo;Our model's <span class="en">MAE</span> is <span class="en">0.287</span> seconds versus
+    <span class="en">0.298</span> for the previous record (Table <span class="en">III</span>).&rdquo;</p>
+    <p>The first sentence is debatable; the second is checkable. In science, only the second one counts.</p>
+  </div>
+
+  <h2>In our project 🧰</h2>
+  <div class="card">
+    <p>• <span class="en">logs/experiments.jsonl</span>: every run is recorded with settings + environment + results — no number ever gets lost.<br>
+    • <span class="en">LOGBOOK.md</span>: the reason behind every decision, for the day someone asks &ldquo;why this way?&rdquo;<br>
+    • <span class="en">paper/main.tex</span>: the paper draft; after every change, the <span class="en">PDF</span> is rebuilt.<br>
+    • <span class="en">paper/STYLE.md</span>: the list of banned words and the &ldquo;numbers instead of adjectives&rdquo; rule.<br>
+    • <span class="en">verify_models.py</span>: no number enters the paper without independent verification on <span class="en">test</span>.<br>
+    • The honesty rule: the <span class="en">turn signal</span> leak is openly reported with a with/without experiment.<br>
+    • The journal choice (<span class="en">SPL</span> or <span class="en">IoT-J</span>) is made after the full searches are finished.</p>
+  </div>
+
+  <div id="quiz" class="quiz"></div>
+  <script type="application/json" id="quiz-data">
+  [
+    {"stem": "A reviewer asks: “Why did you re-measure the reference model yourselves? The numbers in the original paper were already available.” What is the best defense?",
+     "options": ["Accuracy was reproduced on the same test set and hardware was measured with the same setup; a superiority claim only holds under equal conditions", "Numbers reported in other papers cannot be relied on by default, and using them without reproducing them yourself is considered scientific misconduct", "Because re-measuring the reference model makes the Experiments section richer and the paper look more serious and thorough in the reviewer's eyes", "Because under the dataset license, the team's models were only allowed to be used if they were re-evaluated and the result was recorded in the log"],
+     "answer": 0,
+     "explain": "Two defensible reasons: (1) latency and memory are sensitive to the board and the toolchain version, so a fair comparison means measuring both models with a single configuration; (2) reproducing the reference number shows that our evaluation protocol matches theirs. This is respect for prior work, not distrust — and exactly what a reviewer wants to see."},
+    {"stem": "Besides the “result”, experiments.jsonl also records the settings and the runtime environment (library versions, GPU, ...). Which scenario is the one where this saves us?",
+     "options": ["When we want to make training faster; by comparing the run times in the log we can identify the best GPU and the best settings", "When the journal, during peer review, requires the complete experiment log file from the authors as a mandatory attachment", "Six months later, a number no longer matches a fresh run; only by comparing the logged environment can we tell what changed", "When another group wants to reproduce the results and we have to hand over the exact hardware and library versions we used"],
+     "answer": 2,
+     "explain": "The classic research nightmare: “this 0.287 won't come out anymore!” If the environment was not logged, the culprit could be anything — the TensorFlow version, seed randomness, or the data itself. With a complete log, the difference between two runs is found in minutes. The logging is not for the journal; it is for our own six-months-later selves."},
+    {"stem": "Which item is an example of “state the weakness ourselves, first” in our paper?",
+     "options": ["Removing the int8 results from the paper entirely, since their accuracy drop is large and reporting them would only weaken our case", "Reporting the unbeaten internal RMSE targets + the with/without turn signal experiment + declaring int16×8 non-deployable", "Not naming the exact board and toolchain version, so the reviewer cannot compare our numbers with other papers and question them", "Using stronger, more confident wording in the text, so that small numerical weaknesses stay hidden in the shadow of a firm tone"],
+     "answer": 1,
+     "explain": "Three real instances of one principle: whatever the reviewer will eventually find, it is better that we report it ourselves, with careful measurement. The turn-signal leak was quantified with an ablation, falling short of the internal target is stated plainly, and the ST toolchain limitation is documented. Honesty buys credibility for all the other numbers."},
+    {"stem": "Which sentence would our “style guard” accept for the paper?",
+     "options": ["“Our proposed approach deploys seamlessly and without any hassle whatsoever on edge hardware”", "“Our results were remarkably robust across all experiments and show a truly significant superiority”", "“Our model outperforms every known competitor in this field by a very wide and decisive margin”", "“The 84k-parameter model, measured on the H7B3I-DK, ran in 3.63ms (Table IV)”"],
+     "answer": 3,
+     "explain": "Only the sentence with the measured number gives the value, the measurement conditions, and a table reference — the three things that make a claim “checkable”. The others either use STYLE.md's banned adjectives (seamless, robust) or make vague claims with no evidence. The golden rule: do not hand the reviewer adjectives; hand them numbers and tables."}
+  ]
+  </script>
+
+  <div class="lesson-nav">
+    <a href="10-stm32.html"><div class="dir">← Previous</div><div>Lesson 10 — STM32</div></a>
+    <a href="index.html"><div class="dir">Next →</div><div>Course index</div></a>
+  </div>
+  <footer class="site">LC-Intention-NAS · ELIOS Lab</footer>
+</main>
+</body>
+</html>

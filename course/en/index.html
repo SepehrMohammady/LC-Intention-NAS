@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>From Zero to Paper — LC-Intention-NAS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/course.css">
+<script src="../assets/course.js" defer></script>
+</head>
+<body>
+<div class="topbar">
+  <a class="home" href="https://github.com/SepehrMohammady/LC-Intention-NAS">GitHub ↗</a>
+  <div class="spacer"></div>
+  <nav class="lang-switch" aria-label="Language">
+    <a href="../index.html" hreflang="fa">فا</a>
+    <a href="index.html" class="active" hreflang="en">EN</a>
+    <a href="../it/index.html" hreflang="it">IT</a>
+  </nav>
+  <button class="theme-toggle" onclick="toggleTheme()">🌗 Light/Dark</button>
+</div>
+<main>
+  <p class="kicker">ELIOS Lab · University of Genoa</p>
+  <h1>From Zero to Paper 🚗🧠</h1>
+  <p class="lede">The whole journey of a real research project, step by step and in plain language: from driving data to a neural network, from
+  <span class="en">NAS</span> to running the model on an <span class="en">STM32</span> chip — and, at the end, a
+  <span class="en">paper</span> for a reputable journal.</p>
+
+  <div class="card callout">
+    <p class="card-title">The course's golden rule 📏</p>
+    <p>Everything you read here really happened in this very <a href="https://github.com/SepehrMohammady/LC-Intention-NAS">repository</a>:
+    the code is there, the results are logged (<span class="en">logs/experiments.jsonl</span>), and it is reproducible. There are no made-up numbers.</p>
+  </div>
+
+  <h2>Lessons</h2>
+  <div class="syllabus">
+    <a class="lesson-card" href="00-roadmap.html">
+      <div class="num">00</div>
+      <div><div class="t">The roadmap: what are we going to build?</div>
+      <div class="d">The problem, the goal, and the record that has to be broken</div></div>
+      <div class="spacer"></div><span class="badge">Ready</span>
+    </a>
+    <a class="lesson-card" href="01-the-problem.html">
+      <div class="num">01</div>
+      <div><div class="t">The problem: how can the car tell the driver wants to change lanes?</div>
+      <div class="d">Lane change intention, and why speed and memory matter</div></div>
+      <div class="spacer"></div><span class="badge">Ready</span>
+    </a>
+    <a class="lesson-card" href="02-the-data.html">
+      <div class="num">02</div>
+      <div><div class="t">The data: what is a <span class="en">Time Series</span>?</div>
+      <div class="d">50×31 windows, the train/val/test split, and the strange things we found</div></div>
+      <div class="spacer"></div><span class="badge">Ready</span>
+    </a>
+    <a class="lesson-card" href="03-neural-networks.html">
+      <div class="num">03</div>
+      <div><div class="t"><span class="en">Neural Networks</span> in plain language</div>
+      <div class="d">neurons, weights, loss, and the learning cycle</div></div>
+      <div class="spacer"></div><span class="badge">Ready</span>
+    </a>
+    <a class="lesson-card" href="04-1d-cnn.html">
+      <div class="num">04</div>
+      <div><div class="t">1D <span class="en">CNN</span>: a network that sees temporal patterns</div>
+      <div class="d">convolution, our baseline model, and the first real results</div></div>
+      <div class="spacer"></div><span class="badge">Ready</span>
+    </a>
+    <a class="lesson-card" href="05-training.html">
+      <div class="num">05</div>
+      <div><div class="t">Training: how the network learns</div>
+      <div class="d">loss, optimizer, epochs, early stopping</div></div>
+      <div class="spacer"></div><span class="badge">Ready</span>
+    </a>
+    <a class="lesson-card" href="06-validation-overfitting.html">
+      <div class="num">06</div>
+      <div><div class="t">Validation and Overfitting</div>
+      <div class="d">why the network must not see the exam answers — and the turn-signal story</div></div>
+      <div class="spacer"></div><span class="badge">Ready</span>
+    </a>
+    <a class="lesson-card" href="07-nas.html">
+      <div class="num">07</div>
+      <div><div class="t"><span class="en">NAS</span>: when the computer designs the network itself</div>
+      <div class="d">search space, aging evolution, the Pareto front — with our real results</div></div>
+      <div class="spacer"></div><span class="badge">Ready</span>
+    </a>
+    <a class="lesson-card" href="08-munas-constraints.html">
+      <div class="num">08</div>
+      <div><div class="t">µNAS and constraints: a brain in a tiny chip</div>
+      <div class="d">RAM, flash, MACs, and our board's thresholds</div></div>
+      <div class="spacer"></div><span class="badge">Ready</span>
+    </a>
+    <a class="lesson-card" href="09-quantization.html">
+      <div class="num">09</div>
+      <div><div class="t"><span class="en">Quantization</span>: shrinking the numbers</div>
+      <div class="d">int8, int16×8 — and the tool that silently converts the model back</div></div>
+      <div class="spacer"></div><span class="badge">Ready</span>
+    </a>
+    <a class="lesson-card" href="10-stm32.html">
+      <div class="num">10</div>
+      <div><div class="t"><span class="en">STM32</span>: running the model on real hardware</div>
+      <div class="d">Real measurements on the H7B3I-DK and F401 — the reference model did not fit on the latter!</div></div>
+      <div class="spacer"></div><span class="badge">Ready</span>
+    </a>
+    <a class="lesson-card" href="11-paper-writing.html">
+      <div class="num">11</div>
+      <div><div class="t">Paper writing: how results become a paper</div>
+      <div class="d">IEEE structure, peer review, and scientific honesty</div></div>
+      <div class="spacer"></div><span class="badge">Ready</span>
+    </a>
+  </div>
+
+  <h2>What does each lesson look like?</h2>
+  <div class="card">
+    <p>1. <b>The story</b> — an explanation through an everyday example;<br>
+    2. <b>More precisely</b> — the same idea in technical terms;<br>
+    3. <b>In our project</b> — exactly where this concept sits in our code and results;<br>
+    4. <b>Quiz 🎯</b> — a few short questions with answers and explanations.</p>
+  </div>
+
+  <footer class="site">LC-Intention-NAS · ELIOS Lab · The course is updated as the project progresses</footer>
+</main>
+</body>
+</html>

@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="it" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lezione 08 — µNAS e i vincoli | LC-Intention-NAS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/course.css">
+<script src="../assets/course.js" defer></script>
+</head>
+<body>
+<div class="topbar">
+  <a class="home" href="index.html">↪ Indice del corso</a>
+  <div class="spacer"></div>
+  <nav class="lang-switch" aria-label="Language">
+    <a href="../08-munas-constraints.html" hreflang="fa">فا</a>
+    <a href="../en/08-munas-constraints.html" hreflang="en">EN</a>
+    <a href="08-munas-constraints.html" class="active" hreflang="it">IT</a>
+  </nav>
+  <button class="theme-toggle" onclick="toggleTheme()">🌗 Chiaro/Scuro</button>
+</div>
+<main>
+  <p class="kicker">Lezione 08</p>
+  <h1><span class="en">µNAS</span> e i vincoli: far entrare un cervello in un chip minuscolo 🎒</h1>
+  <p class="lede">La ricerca di architetture ha senso solo se ogni modello candidato, prima di tutto, entra nel budget del chip — e questo si può misurare senza il chip stesso.</p>
+
+  <div class="card callout story">
+    <p class="card-title">La storia 📖</p>
+    <p>Immagina di avere un solo zaino piccolo per un&rsquo;escursione di un giorno. Hai tre vincoli seri:
+    <b>lo spazio dentro lo zaino</b> (quanta attrezzatura puoi tenere aperta e a portata di mano in ogni momento),
+    <b>il peso totale del carico</b> (quanto riesci a trasportare) e <b>la tua velocità di marcia</b>
+    (più faccende lungo il percorso, più tardi arrivi).</p>
+    <p>Il punto ingegnoso è questo: non serve salire fino in vetta per provare ogni configurazione!
+    Con un metro e una bilancia misuri tutto <b>a casa, prima di partire</b>.
+    <span class="en">µNAS</span> fa esattamente la stessa cosa con ogni modello candidato:
+    prima ancora che il modello giri una sola volta sul chip, calcola su carta
+    quanta memoria di lavoro gli serve, quanti byte occupano i suoi pesi e quante moltiplicazioni-accumulazioni deve eseguire.
+    Spazio nello zaino = <span class="en">RAM</span>, peso del carico = dimensione del modello in <span class="en">flash</span>,
+    e velocità di marcia = numero di moltiplicazioni-accumulazioni.</p>
+  </div>
+
+  <h2>Più in dettaglio 🔬</h2>
+  <p>Per ogni architettura candidata, <span class="en">µNAS</span> calcola tre metriche di «efficienza»
+  <b>senza alcun hardware</b> — solo a partire dalla struttura della rete:</p>
+
+  <div class="card">
+    <p>1. <b><span class="en">peak RAM</span></b>: durante l&rsquo;esecuzione, l&rsquo;output di ogni layer
+    (le <span class="en">activations</span>) deve essere conservato temporaneamente da qualche parte.
+    Il carico di memoria istantaneo più grande durante l&rsquo;esecuzione è il <span class="en">peak RAM</span>,
+    e deve stare nella <span class="en">SRAM</span> del chip.<br>
+    2. <b><span class="en">model size</span></b>: la somma dei pesi della rete in byte,
+    assumendo <span class="en">int8</span> (un byte per peso). Questi vengono memorizzati in
+    <span class="en">flash</span>.<br>
+    3. <b><span class="en">MACs</span></b>: il numero di moltiplicazioni-accumulazioni
+    (<span class="en">multiply-accumulate</span>) per una singola predizione — il predittore della velocità.
+    Questo numero correla con la latenza reale sull&rsquo;<span class="en">STM32</span> con
+    <span class="en">r&#178;=0.975</span>; in pratica è un cronometro, senza la scheda!</p>
+  </div>
+
+  <p>Perché questa proprietà «senza hardware» è così importante? Perché la ricerca deve valutare
+  centinaia di architetture. Se per ognuna fosse necessario caricare il modello sulla scheda e
+  cronometrarlo, la ricerca durerebbe settimane. Con queste tre metriche su carta, valutare ogni candidato è quasi istantaneo.</p>
+
+  <figure class="viz">
+    <svg viewBox="0 0 720 320" role="img" aria-label="Metafora dello zaino: due chip con tre scomparti per RAM, Flash e velocità. Nel chip di destra il modello piccolo resta sotto la linea del tetto in tutti e tre gli scomparti e viene accettato; nel chip di sinistra il modello grande sfora i tetti di RAM e Flash e viene penalizzato">
+      <line x1="360" y1="24" x2="360" y2="300" stroke="var(--grid)" stroke-width="1.5" stroke-dasharray="5 5"/>
+
+      <!-- ===== right panel: small model fits ===== -->
+      <text x="540" y="22" text-anchor="middle" fill="var(--series-2)" font-size="14" font-weight="800">Modello piccolo — entra ✓</text>
+      <rect x="440" y="58" width="200" height="192" rx="12" fill="none" stroke="var(--ink-2)" stroke-width="2"/>
+      <g stroke="var(--muted)" stroke-width="4" opacity="0.7">
+        <line x1="470" y1="250" x2="470" y2="262"/>
+        <line x1="505" y1="250" x2="505" y2="262"/>
+        <line x1="540" y1="250" x2="540" y2="262"/>
+        <line x1="575" y1="250" x2="575" y2="262"/>
+        <line x1="610" y1="250" x2="610" y2="262"/>
+      </g>
+      <!-- bound line -->
+      <text x="540" y="78" text-anchor="middle" fill="var(--muted)" font-size="10.5">Tetto di ogni metrica (<tspan font-family="ui-monospace, Consolas, monospace">bound</tspan>)</text>
+      <line x1="450" y1="85" x2="630" y2="85" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="4 4"/>
+      <!-- compartments -->
+      <rect x="576" y="85" width="48" height="130" fill="none" stroke="var(--baseline)" stroke-width="1.5"/>
+      <rect x="516" y="85" width="48" height="130" fill="none" stroke="var(--baseline)" stroke-width="1.5"/>
+      <rect x="456" y="85" width="48" height="130" fill="none" stroke="var(--baseline)" stroke-width="1.5"/>
+      <!-- green fills, all under the cap -->
+      <rect x="579" y="133" width="42" height="82" fill="var(--series-2)"/>
+      <rect x="519" y="147" width="42" height="68" fill="var(--series-2)"/>
+      <rect x="459" y="125" width="42" height="90" fill="var(--series-2)"/>
+      <!-- compartment labels -->
+      <text x="600" y="234" text-anchor="middle" fill="var(--ink-2)" font-size="11.5" font-family="ui-monospace, Consolas, monospace">RAM</text>
+      <text x="540" y="234" text-anchor="middle" fill="var(--ink-2)" font-size="11.5" font-family="ui-monospace, Consolas, monospace">Flash</text>
+      <text x="480" y="234" text-anchor="middle" fill="var(--ink-2)" font-size="11.5">Velocità</text>
+      <text x="480" y="246" text-anchor="middle" fill="var(--muted)" font-size="9.5" font-family="ui-monospace, Consolas, monospace">MACs</text>
+      <text x="540" y="288" text-anchor="middle" fill="var(--ink-2)" font-size="12.5">Tutte e tre sotto il tetto → nessuna penalità</text>
+
+      <!-- ===== left panel: big model overflows ===== -->
+      <text x="180" y="22" text-anchor="middle" fill="var(--critical)" font-size="14" font-weight="800">Modello grande — sfora ✗</text>
+      <rect x="80" y="58" width="200" height="192" rx="12" fill="none" stroke="var(--ink-2)" stroke-width="2"/>
+      <g stroke="var(--muted)" stroke-width="4" opacity="0.7">
+        <line x1="110" y1="250" x2="110" y2="262"/>
+        <line x1="145" y1="250" x2="145" y2="262"/>
+        <line x1="180" y1="250" x2="180" y2="262"/>
+        <line x1="215" y1="250" x2="215" y2="262"/>
+        <line x1="250" y1="250" x2="250" y2="262"/>
+      </g>
+      <line x1="90" y1="85" x2="270" y2="85" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="4 4"/>
+      <!-- compartments -->
+      <rect x="216" y="85" width="48" height="130" fill="none" stroke="var(--baseline)" stroke-width="1.5"/>
+      <rect x="156" y="85" width="48" height="130" fill="none" stroke="var(--baseline)" stroke-width="1.5"/>
+      <rect x="96" y="85" width="48" height="130" fill="none" stroke="var(--baseline)" stroke-width="1.5"/>
+      <!-- RAM & Flash overflow (red), speed stays under (green) -->
+      <rect x="219" y="45" width="42" height="170" fill="var(--critical)"/>
+      <rect x="159" y="65" width="42" height="150" fill="var(--critical)"/>
+      <rect x="99" y="125" width="42" height="90" fill="var(--series-2)"/>
+      <text x="240" y="40" text-anchor="middle" fill="var(--critical)" font-size="10.5" font-weight="700">✗ sfora</text>
+      <!-- compartment labels -->
+      <text x="240" y="234" text-anchor="middle" fill="var(--ink-2)" font-size="11.5" font-family="ui-monospace, Consolas, monospace">RAM</text>
+      <text x="180" y="234" text-anchor="middle" fill="var(--ink-2)" font-size="11.5" font-family="ui-monospace, Consolas, monospace">Flash</text>
+      <text x="120" y="234" text-anchor="middle" fill="var(--ink-2)" font-size="11.5">Velocità</text>
+      <text x="120" y="246" text-anchor="middle" fill="var(--muted)" font-size="9.5" font-family="ui-monospace, Consolas, monospace">MACs</text>
+      <text x="180" y="288" text-anchor="middle" fill="var(--ink-2)" font-size="12.5">Un solo sforamento viene penalizzato per primo</text>
+    </svg>
+    <figcaption>Figura 1 — La metafora dello zaino: il chip ha tre «scomparti» (<span class="en">RAM</span>, <span class="en">flash</span>, velocità). Il modello piccolo (a destra) resta sotto la linea del tetto in tutti e tre; il modello grande (a sinistra) sfora i tetti di <span class="en">RAM</span> e <span class="en">flash</span> — la sua velocità va bene, ma non serve a nulla.</figcaption>
+  </figure>
+
+  <h3>I tetti e la formula del punteggio</h3>
+  <p>Questi tetti sono definiti in una configurazione chiamata <span class="en">BoundConfig</span>:
+  <span class="en">error_bound</span> (l&rsquo;errore massimo accettabile),
+  <span class="en">peak_mem_bound</span>, <span class="en">model_size_bound</span> e
+  <span class="en">mac_bound</span>. Ogni candidato riceve poi un punteggio con questa formula:</p>
+
+  <div class="card">
+    <p><code>fitness = &minus;max&#8342;( min(feature&#8342; / bound&#8342;, 10) / &lambda;&#8342; )</code></p>
+    <p>Questa formula è presa direttamente dal codice di <span class="en">µNAS</span>
+    (<span class="en">aging_evolution.py</span>) e ha tre pezzi:</p>
+    <p>1. <b><span class="en">feature/bound</span></b>: ogni metrica viene divisa per il proprio tetto,
+    così che tutte condividano la stessa scala: sotto il tetto significa meno di 1, oltre il tetto significa più di 1.<br>
+    2. <b><span class="en">min(…, 10)</span></b>: i rapporti vengono limitati a 10
+    (<span class="en">cap</span>). Perché? Se un candidato produce un errore astronomico (diciamo 500 volte il tetto),
+    non vogliamo che quel numero renda insensato l&rsquo;intero punteggio — «pessimo» e «catastrofico» ricevono entrambi lo stesso 10.<br>
+    3. <b><span class="en">max</span> con segno meno</b>: la metrica <b>peggiore</b> è il punteggio del modello.
+    Se una metrica supera il proprio tetto, il suo rapporto diventa maggiore di 1, vince il <span class="en">max</span>
+    e rovina il punteggio: <b>sforare un tetto viene sempre penalizzato per primo.</b></p>
+  </div>
+
+  <p>E cosa sono quei <span class="en">lambda</span>? A <b>ogni selezione del genitore</b> vengono estratti
+  quattro nuovi numeri casuali tra 0 e 1. In altre parole, l&rsquo;algoritmo pesa le metriche ogni volta con una
+  <b>lente diversa</b>: una volta più severo sulla memoria, la volta dopo più severo sulla velocità (dividere per un
+  <span class="en">&lambda;</span> piccolo fa risaltare quella metrica nel <span class="en">max</span>).
+  Il risultato è che la ricerca non resta bloccata su un unico compromesso fisso e trova invece una famiglia
+  variegata di buoni modelli (<span class="en">Pareto</span>). Ma poiché uno sforamento del tetto vince sempre nel
+  <span class="en">max</span>, nessuna lente può ignorare una violazione del budget.</p>
+
+  <h2>Il nostro budget reale 📏</h2>
+  <p>La nostra scheda target è la <span class="en">STM32H7B3I-DK</span>:</p>
+
+  <div class="tiles">
+    <div class="tile">
+      <div class="value">280 MHz</div>
+      <div class="label">Processore — <span class="en">Arm Cortex-M7</span></div>
+    </div>
+    <div class="tile">
+      <div class="value">1184 KB</div>
+      <div class="label"><span class="en">SRAM</span> interna (memoria di lavoro)</div>
+    </div>
+    <div class="tile">
+      <div class="value">2 MB</div>
+      <div class="label"><span class="en">flash</span> (memoria permanente)</div>
+    </div>
+  </div>
+
+  <p>E questi sono i tetti che abbiamo impostato in <span class="en">BoundConfig</span> — volutamente molto
+  più stretti della capacità della scheda, per mantenere i modelli compatti:</p>
+
+  <table>
+    <thead><tr><th>Metrica</th><th class="num">Il nostro tetto</th><th>Perché questo numero?</th></tr></thead>
+    <tbody>
+      <tr><td><span class="en">peak RAM</span> (activations)</td><td class="num">256 KB</td><td>Molto meno della <span class="en">SRAM</span> della scheda; resta spazio per il resto dell&rsquo;applicazione</td></tr>
+      <tr><td><span class="en">model size</span> (int8)</td><td class="num">256 KB</td><td>Molto meno della <span class="en">flash</span> della scheda; puntiamo anche a schede più piccole</td></tr>
+      <tr><td><span class="en">MACs</span></td><td class="num">2,000,000</td><td>Un sostituto della velocità (correlazione <span class="en">r&#178;=0.975</span> con la latenza reale)</td></tr>
+      <tr><td>Errore — <span class="en">MAE</span></td><td class="num">&le; 0.30 s</td><td>Allo stesso livello del record pubblicato (<span class="en">MAE 0.2978</span>); essere piccoli non deve diventare una scusa per essere imprecisi</td></tr>
+    </tbody>
+  </table>
+
+  <p>Perché tanta severità? Perché abbiamo anche un obiettivo ambizioso: la scheda economica
+  <span class="en">STM32F401</span>, con soli <span class="en">96 KB</span> di
+  <span class="en">RAM</span> e <span class="en">512 KB</span> di <span class="en">flash</span>.
+  Nell&rsquo;articolo pubblicato proprio da questo laboratorio, il loro modello <span class="en">Transformer</span>
+  <b>non entrava</b> affatto nella <span class="en">RAM</span> di questa scheda, e il loro
+  <span class="en">1DCNN</span> impiegava <span class="en">40.8 ms</span>.
+  E la scommessa ha pagato — ormai non è più «fortuna», è <b>misurazione</b>: il nostro modello minuscolo
+  ha girato proprio su questa <span class="en">F401</span> in <span class="en">4.376 ms</span> occupando solo
+  il <span class="en">7.2%</span> della <span class="en">flash</span> della scheda; il modello di riferimento
+  da 441 mila parametri <b>non entra</b> affatto in questa scheda (3.4 volte l&rsquo;intera
+  <span class="en">flash</span>!). Dettagli nella Lezione 10.</p>
+
+  <p>Una sottigliezza: perché calcoliamo la <span class="en">model size</span> assumendo
+  <span class="en">int8</span>? Perché il nostro piano è fare la <span class="en">quantization</span>
+  del modello finale (prossima lezione!). Guarda cosa succede con un candidato reale della nostra prima
+  ricerca — un modello con <span class="en">72,729</span> parametri:</p>
+
+  <figure class="viz">
+    <div class="legend">
+      <span class="key"><span class="swatch" style="background:var(--series-1)"></span> <span class="en">float32</span> — oggi</span>
+      <span class="key"><span class="swatch" style="background:var(--series-2)"></span> <span class="en">int8</span> — dopo la <span class="en">quantization</span></span>
+    </div>
+    <div class="hbar">
+      <div class="name">float32</div>
+      <div class="track"><div class="fill" style="width:94.7%"></div></div>
+      <div class="val">284 KB</div>
+      <div class="name">int8</div>
+      <div class="track"><div class="fill alt" style="width:23.7%"></div></div>
+      <div class="val">&asymp;71 KB</div>
+    </div>
+    <figcaption>Figura 2 — La dimensione dello stesso modello con due formati di memorizzazione; scala condivisa da 0 a 300 KB. La versione <span class="en">float32</span> (4 byte per peso) supera il nostro tetto di 256 KB, mentre la versione <span class="en">int8</span> (1 byte per peso) entra con ampio margine — ecco perché misuriamo il tetto di dimensione in <span class="en">int8</span>.</figcaption>
+  </figure>
+
+  <h2>Nel nostro progetto 🧰</h2>
+  <div class="card">
+    <p>• La ricerca gira sulla versione del laboratorio <span class="en">ELIOS</span> di
+    <span class="en">µNAS</span> (su <span class="en">TensorFlow</span>);
+    i tetti della tabella qui sopra sono scritti direttamente in <span class="en">BoundConfig</span>.<br>
+    • Questo budget ha già dato risultati: un candidato da <span class="en">72,729</span> parametri ha raggiunto
+    <span class="en">val MAE 0.41</span> dopo appena 3 <span class="en">epoch</span>, e il modello migliore
+    di una breve ricerca, dopo una valutazione indipendente sul <span class="en">test</span> set, ha raggiunto
+    <span class="en">MAE 0.287</span> — meglio del record pubblicato
+    (<span class="en">0.298</span>).<br>
+    • Non accettiamo alcun numero dalla ricerca stessa: rivalutiamo noi stessi ogni modello salvato con
+    <span class="en">verify_models.py</span> sul <span class="en">test</span> set,
+    e ogni esecuzione viene registrata in <span class="en">logs/experiments.jsonl</span>.</p>
+  </div>
+
+  <div id="quiz" class="quiz"></div>
+  <script type="application/json" id="quiz-data">
+  [
+    {"stem": "Candidato A: errore 0.28 (tetto 0.30), memoria 200KB (tetto 256KB). Candidato B: errore 0.10, memoria 300KB. Con λ uguali, quale preferisce la formula di fitness?",
+     "options": ["Il candidato B; il suo errore è quasi tre volte migliore e, nello scoring multi-metrica, un grande vantaggio su una metrica pesa più di tutto il resto", "I due ricevono punteggi quasi uguali, perché la somma dei loro quattro rapporti risulta più o meno identica e la formula è costruita su una somma", "Il candidato A; il suo rapporto peggiore (0.93) resta sotto 1, mentre B con il rapporto di memoria 1.17 ha sforato il tetto e il max valuta proprio quello", "Il candidato B; a parità di condizioni la formula preferisce sempre il modello più accurato, perché l'errore è il primo elemento del vettore delle metriche"],
+     "answer": 2,
+     "explain": "Facciamo i conti: A → max(0.28/0.30, 200/256) = max(0.93, 0.78) = 0.93. B → max(0.33, 1.17) = 1.17. Poiché il punteggio è il max cambiato di segno, vince A. È esattamente la filosofia della formula: il brillante errore di B non può coprire il suo sforamento di memoria — i punti di forza non compensano le debolezze."},
+    {"stem": "Perché nella formula i rapporti vengono limitati con min(…, 10) (cap)?",
+     "options": ["Perché i numeri maggiori di 10 perdono precisione nell'aritmetica float32 e rendono numericamente instabili i confronti tra i candidati", "Perché un modello a 500 volte il tetto conti come «bocciato» quanto uno a 10 volte; i numeri astronomici non devono stravolgere la scala del punteggio", "Perché dopo la normalizzazione tutte le metriche seguano una distribuzione uniforme esattamente tra zero e dieci e siano confrontate con lo stesso peso", "Perché l'algoritmo accetta al massimo dieci metriche diverse e il cap garantisce che il loro numero non attraversi mai questa soglia prefissata"],
+     "answer": 1,
+     "explain": "Alcuni candidati sono davvero catastrofici (per esempio divergono e producono errori astronomici). Senza il cap, un numero simile metterebbe in ombra tutto il resto nei confronti. Con il cap, «bocciato» ha un pavimento comune: oltre 10 volte il tetto non cambia più nulla — la ricerca spende le sue energie a distinguere tra loro i candidati ragionevoli."},
+    {"stem": "In quale momento vengono estratti i λ casuali, e perché questa tempistica è importante?",
+     "options": ["Solo una volta all'inizio dell'intera ricerca, così che il punteggio resti fisso per tutta la durata e i confronti tra i round siano equi", "Ogni volta che un candidato sfora uno dei tetti, così che la metrica violata riceva un peso maggiore nei round successivi e lo sforo venga compensato", "A ogni selezione del genitore, quattro estrazioni nuove; ogni piccolo torneo indossa una lente diversa ed esplora un altro angolo della frontiera", "L'utente li imposta a mano in BoundConfig prima dell'esecuzione, scegliendo valori adeguati al budget della scheda di deployment prevista"],
+     "answer": 2,
+     "explain": "Se i λ fossero estratti una volta per tutte, l'intera ricerca convergerebbe verso un unico compromesso fisso — per esempio solo i modelli più piccoli. Estrazioni nuove a ogni selezione significano che round diversi incoronano campioni diversi (una volta il modello con meno memoria, la volta dopo quello con meno errore), e il risultato è una famiglia Pareto invece di un solo modello. Uno sforamento del tetto non si nasconde sotto nessuna lente, perché vince sempre nel max."},
+    {"stem": "Il tetto sui MACs fa da sostituto di quale grandezza reale, e con quale evidenza?",
+     "options": ["Del tempo di esecuzione (latency); le misurazioni effettuate su STM32 mostrano una correlazione di r²=0.975 con il tempo reale", "Della memoria di lavoro RAM; ogni operazione di multiply-accumulate occupa un byte di memoria temporanea mentre viene eseguita", "Dell'accuratezza finale del modello; un modello che esegue più calcoli è quasi sempre anche quello più accurato tra i due", "Della dimensione del file del modello in flash; il numero di moltiplicazioni-accumulazioni è pari al numero dei pesi salvati"],
+     "answer": 0,
+     "explain": "I MACs contano le moltiplicazioni-accumulazioni e si calcolano dalla sola architettura, senza hardware; poiché correlano con la latency reale a r²=0.975, la ricerca può penalizzare la «velocità» su carta. La memoria di lavoro e la dimensione del file hanno le proprie metriche separate (peak RAM e model size) — i tre scomparti dello zaino sono distinti."}
+  ]
+  </script>
+
+  <div class="lesson-nav">
+    <a href="07-nas.html"><div class="dir">← Precedente</div><div>Lezione 07 — NAS</div></a>
+    <a href="09-quantization.html"><div class="dir">Successiva →</div><div>Lezione 09 — Quantization</div></a>
+  </div>
+  <footer class="site">LC-Intention-NAS · ELIOS Lab</footer>
+</main>
+</body>
+</html>

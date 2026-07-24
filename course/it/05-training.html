@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="it" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lezione 05 — Training | LC-Intention-NAS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/course.css">
+<script src="../assets/course.js" defer></script>
+</head>
+<body>
+<div class="topbar">
+  <a class="home" href="index.html">↪ Indice del corso</a>
+  <div class="spacer"></div>
+  <nav class="lang-switch" aria-label="Language">
+    <a href="../05-training.html" hreflang="fa">فا</a>
+    <a href="../en/05-training.html" hreflang="en">EN</a>
+    <a href="05-training.html" class="active" hreflang="it">IT</a>
+  </nav>
+  <button class="theme-toggle" onclick="toggleTheme()">🌗 Chiaro/Scuro</button>
+</div>
+<main>
+  <p class="kicker">Lezione 05</p>
+  <h1><span class="en">Training</span>: come impara la rete 🚴</h1>
+  <p class="lede">La rete impara per tentativi ed errori: fai una stima, guarda quanto era sbagliata, correggi un po&rsquo; i pesi — e ripeti questo ciclo migliaia di volte.</p>
+
+  <div class="card callout story">
+    <p class="card-title">La storia 📖</p>
+    <p>Ti ricordi come hai imparato ad andare in bicicletta? Nessuno è diventato ciclista
+    leggendo un libro! Sali, ti inclini, cadi. Ogni caduta è un messaggio doloroso ma utile:
+    «così no!» E dopo ogni errore il tuo corpo si aggiusta un po&rsquo; da solo — piegati un
+    po&rsquo; di più a sinistra, gira il manubrio un po&rsquo; più dolcemente — finché, poco
+    a poco, le cadute diventano più rare e più brevi.</p>
+    <p>Una rete neurale impara esattamente allo stesso modo. Ogni caduta è la
+    <b><span class="en">loss</span></b>: un numero che dice quanto era sbagliata la stima della rete.
+    E quei micro-aggiustamenti del corpo sono il lavoro dell&rsquo;<b><span class="en">optimizer</span></b>:
+    dopo ogni errore, spinge un po&rsquo; i pesi della rete nella direzione giusta.
+    C&rsquo;è anche un punto sottile: se dopo ogni errore ti correggi <b>troppo bruscamente</b>,
+    cadi dall&rsquo;altra parte! E se ti correggi <b>troppo poco</b>, non impari nemmeno entro
+    la fine dell&rsquo;estate. L&rsquo;ampiezza di questa correzione si chiama
+    <b><span class="en">learning rate</span></b>.</p>
+  </div>
+
+  <h2>Più in dettaglio 🔬</h2>
+  <p>Prima la <b><span class="en">loss</span></b>: un numero che dice «quanto hai sbagliato la stima».
+  Si calcola in modo diverso per ogni tipo di problema:</p>
+  <div class="card">
+    <p>• Per la <b><span class="en">regression</span></b> (quanti secondi al cambio di corsia?) usiamo il
+    <b><span class="en">MAE (Mean Absolute Error)</span></b>:
+    la media del valore assoluto dell&rsquo;errore, espressa in secondi. Per esempio, se la rete dice
+    «2.0 secondi» e la risposta corretta è «2.3 secondi», l&rsquo;errore su questo campione è di
+    0.3 secondi; la media di questi errori su tutti i campioni è il
+    <span class="en">MAE</span>. Poiché la sua unità è il secondo, il suo significato è facile da capire.<br>
+    • Per la <b><span class="en">classification</span></b> (nessuna / destra / sinistra) si usa la
+    <b><span class="en">cross-entropy</span></b>: la rete assegna a ogni classe una probabilità;
+    se ha dato una probabilità alta alla classe corretta la <span class="en">loss</span> è piccola,
+    e se sbaglia <b>con grande sicurezza</b>, la penalità diventa molto pesante.</p>
+  </div>
+
+  <p>Ora l&rsquo;apprendimento: immagina che la <span class="en">loss</span> sia una valle e che i pesi
+  della rete indichino la posizione attuale di una palla su questa valle. La matematica ci dice
+  la pendenza del terreno (si chiama <span class="en">gradient</span>) e noi facciamo rotolare la palla
+  passo dopo passo lungo la discesa, fino al fondo della valle — cioè alla
+  <span class="en">loss</span> minima. Questo metodo si chiama
+  <b><span class="en">gradient descent</span></b>:</p>
+
+  <figure class="viz">
+    <svg viewBox="0 0 720 340" role="img" aria-label="Schema del gradient descent: una palla sulla curva della loss rotola passo dopo passo verso il fondo della valle; i passi si accorciano vicino al fondo e l'ampiezza di ogni passo è il learning rate">
+      <defs>
+        <marker id="arr-gd" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="var(--muted)"/>
+        </marker>
+      </defs>
+      <!-- axis labels -->
+      <text x="420" y="30" text-anchor="middle" fill="var(--ink)" font-size="13" font-weight="700">↑ più in alto = loss maggiore (stima peggiore)</text>
+      <text x="370" y="328" text-anchor="middle" fill="var(--muted)" font-size="12">valore dei pesi della rete (weights)</text>
+      <!-- floor -->
+      <line x1="50" y1="302" x2="690" y2="302" stroke="var(--baseline)" stroke-width="1.5"/>
+      <!-- loss valley -->
+      <path d="M60,245 C130,272 190,283 262,283 C335,283 415,232 480,172 C545,112 605,72 672,56"
+            fill="none" stroke="var(--ink-2)" stroke-width="2"/>
+      <!-- gradient hint -->
+      <text x="160" y="70" text-anchor="middle" fill="var(--ink-2)" font-size="12.5">la palla rotola sempre in discesa</text>
+      <text x="160" y="92" text-anchor="middle" fill="var(--series-1)" font-size="12" font-weight="700" font-family="ui-monospace, Consolas, monospace">gradient descent</text>
+      <!-- balls, later = more solid -->
+      <circle cx="625" cy="58" r="9" fill="var(--series-1)" fill-opacity="0.2" stroke="var(--series-1)" stroke-width="1.5"/>
+      <circle cx="514" cy="129" r="9" fill="var(--series-1)" fill-opacity="0.35" stroke="var(--series-1)" stroke-width="1.5"/>
+      <circle cx="431" cy="204" r="9" fill="var(--series-1)" fill-opacity="0.55" stroke="var(--series-1)" stroke-width="1.5"/>
+      <circle cx="364" cy="247" r="9" fill="var(--series-1)" fill-opacity="0.75" stroke="var(--series-1)" stroke-width="1.5"/>
+      <circle cx="284" cy="271" r="9" fill="var(--series-1)"/>
+      <!-- steps: arrows get shorter near the bottom -->
+      <g stroke="var(--muted)" stroke-width="2">
+        <line x1="610" y1="70" x2="528" y2="122" marker-end="url(#arr-gd)"/>
+        <line x1="500" y1="142" x2="444" y2="196" marker-end="url(#arr-gd)"/>
+        <line x1="418" y1="215" x2="378" y2="242" marker-end="url(#arr-gd)"/>
+        <line x1="350" y1="255" x2="302" y2="268" marker-end="url(#arr-gd)"/>
+      </g>
+      <!-- learning-rate label with leader to the first step -->
+      <line x1="598" y1="184" x2="572" y2="102" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="4 4"/>
+      <text x="598" y="204" text-anchor="middle" fill="var(--ink)" font-size="12.5" font-weight="700">ampiezza di ogni passo</text>
+      <text x="598" y="226" text-anchor="middle" fill="var(--series-1)" font-size="12" font-weight="700" font-family="ui-monospace, Consolas, monospace">learning rate</text>
+      <!-- valley bottom -->
+      <text x="190" y="222" text-anchor="middle" fill="var(--ink)" font-size="12.5" font-weight="700">🎯 fondo valle: loss minima, pesi migliori</text>
+    </svg>
+    <figcaption>Figura 1 — <span class="en">gradient descent</span>: ogni passo è un aggiornamento dei pesi; l&rsquo;ampiezza del passo è il <span class="en">learning rate</span> e vicino al fondo della valle i passi diventano più piccoli.</figcaption>
+  </figure>
+
+  <p>Chi compie questi passi? L&rsquo;<b><span class="en">optimizer</span></b>.
+  Il più famoso è <b><span class="en">Adam</span></b> (e la sua versione migliorata,
+  <b><span class="en">AdamW</span></b>): come un allenatore esperto, calcola per ogni peso,
+  separatamente, quanto e in quale direzione spingerlo, e ha anche un po&rsquo; di «memoria del
+  movimento» per non perdersi nei percorsi tortuosi.</p>
+
+  <p>Sentirai spesso anche altre due parole:</p>
+  <div class="card">
+    <p>• <b><span class="en">batch</span></b>: invece di aggiornare i pesi dopo ogni singolo campione
+    (rumoroso) o dopo l&rsquo;intero dataset (troppo lento), diamo i campioni a gruppi.
+    Noi usiamo batch di 256 finestre: la <span class="en">loss</span> viene mediata su
+    ogni batch e si compie un passo.<br>
+    • <b><span class="en">epoch</span></b>: un giro completo su tutti i dati di
+    <span class="en">train</span>. Come una sessione completa di allenamento in bici al parco;
+    di solito servono diversi <span class="en">epoch</span>.</p>
+  </div>
+
+  <p>E l&rsquo;ultimo trucco: l&rsquo;<b><span class="en">early stopping</span></b>. Dopo ogni
+  <span class="en">epoch</span>, mettiamo alla prova il modello sui dati di <span class="en">validation</span>
+  (guidatori che non erano nell&rsquo;allenamento). Se per alcuni <span class="en">epoch</span>
+  consecutivi — questo numero si chiama <b><span class="en">patience</span></b> — non si vede alcun
+  miglioramento, interrompiamo l&rsquo;allenamento e torniamo ai migliori pesi che avevamo visto.
+  Questo previene la memorizzazione a pappagallo (prossima lezione!) e in più libera parecchio tempo:</p>
+
+  <figure class="viz">
+    <div class="legend">
+      <span class="key"><span class="swatch" style="background:var(--series-1)"></span> loss su train</span>
+      <span class="key"><span class="swatch" style="background:var(--series-2)"></span> loss su validation</span>
+    </div>
+    <svg viewBox="0 0 720 360" role="img" aria-label="Curva di training: l'errore su train e validation scende lungo gli epoch; il miglior epoch è il terzo, dopo dieci epoch senza miglioramento l'early stopping ferma l'allenamento e i pesi migliori vengono conservati">
+      <defs>
+        <marker id="arr-es" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="var(--muted)"/>
+        </marker>
+      </defs>
+      <!-- grid -->
+      <g stroke="var(--grid)" stroke-width="1">
+        <line x1="80" y1="100" x2="670" y2="100"/>
+        <line x1="80" y1="160" x2="670" y2="160"/>
+        <line x1="80" y1="220" x2="670" y2="220"/>
+      </g>
+      <!-- axes -->
+      <line x1="80" y1="280" x2="670" y2="280" stroke="var(--baseline)" stroke-width="1.5"/>
+      <text x="70" y="46" text-anchor="end" fill="var(--muted)" font-size="12" font-family="ui-monospace, Consolas, monospace">loss</text>
+      <text x="676" y="300" text-anchor="start" fill="var(--muted)" font-size="12" font-family="ui-monospace, Consolas, monospace">epoch</text>
+      <!-- x ticks -->
+      <g stroke="var(--baseline)" stroke-width="1">
+        <line x1="90" y1="280" x2="90" y2="286"/>
+        <line x1="204" y1="280" x2="204" y2="286"/>
+        <line x1="280" y1="280" x2="280" y2="286"/>
+        <line x1="470" y1="280" x2="470" y2="286"/>
+        <line x1="584" y1="280" x2="584" y2="286"/>
+      </g>
+      <g fill="var(--muted)" font-size="11.5" text-anchor="middle" font-variant-numeric="tabular-nums">
+        <text x="90" y="300">0</text>
+        <text x="204" y="300">3</text>
+        <text x="280" y="300">5</text>
+        <text x="470" y="300">10</text>
+        <text x="584" y="300">13</text>
+      </g>
+      <!-- best-epoch marker -->
+      <line x1="204" y1="60" x2="204" y2="280" stroke="var(--series-2)" stroke-width="1.5" stroke-dasharray="5 5"/>
+      <text x="204" y="50" text-anchor="middle" fill="var(--series-2)" font-size="12" font-weight="700">miglior epoch (qui: 3)</text>
+      <!-- stop marker -->
+      <line x1="584" y1="60" x2="584" y2="280" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="5 5"/>
+      <text x="584" y="50" text-anchor="middle" fill="var(--ink)" font-size="12" font-weight="700">stop ✋</text>
+      <!-- train curve -->
+      <path d="M90,70 C120,150 160,210 204,236 C250,258 330,266 420,270 C480,273 550,275 584,276"
+            fill="none" stroke="var(--series-1)" stroke-width="2"/>
+      <!-- validation curve -->
+      <path d="M90,85 C125,165 168,222 204,238 C250,236 310,228 380,222 C450,216 530,212 584,210"
+            fill="none" stroke="var(--series-2)" stroke-width="2"/>
+      <circle cx="204" cy="238" r="5" fill="var(--series-2)"/>
+      <!-- direct series labels -->
+      <text x="592" y="280" text-anchor="start" fill="var(--series-1)" font-size="12" font-weight="700" font-family="ui-monospace, Consolas, monospace">train</text>
+      <text x="592" y="208" text-anchor="start" fill="var(--series-2)" font-size="12" font-weight="700" font-family="ui-monospace, Consolas, monospace">validation</text>
+      <!-- patience span -->
+      <line x1="212" y1="322" x2="576" y2="322" stroke="var(--muted)" stroke-width="1.5" marker-start="url(#arr-es)" marker-end="url(#arr-es)"/>
+      <text x="394" y="348" text-anchor="middle" fill="var(--ink-2)" font-size="12">patience: 10 epoch senza miglioramento su validation → stop e ritorno ai pesi migliori</text>
+    </svg>
+    <figcaption>Figura 2 — la curva di <span class="en">training</span> (schema con i numeri reali dell&rsquo;esecuzione del nostro modello base): la <span class="en">loss</span> su <span class="en">train</span> continua a scendere, ma quella su <span class="en">validation</span> raggiunge il suo minimo al terzo <span class="en">epoch</span>; dopo 10 <span class="en">epoch</span> senza miglioramento, l&rsquo;<span class="en">early stopping</span> ferma il lavoro intorno al tredicesimo <span class="en">epoch</span>.</figcaption>
+  </figure>
+
+  <h2>Nel nostro progetto 🧰</h2>
+  <p>Proprio questo semplice ciclo — stima, <span class="en">loss</span>, passo
+  dell&rsquo;<span class="en">optimizer</span> — ha costruito il nostro modello base.
+  Guarda che velocità:</p>
+
+  <div class="tiles">
+    <div class="tile">
+      <div class="value">27 s</div>
+      <div class="label">tempo totale di <span class="en">training</span> su <span class="en">RTX 5070</span></div>
+    </div>
+    <div class="tile">
+      <div class="value">3</div>
+      <div class="label">miglior <span class="en">epoch</span> (su un massimo di 60)</div>
+    </div>
+    <div class="tile">
+      <div class="value">256</div>
+      <div class="label">dimensione del <span class="en">batch</span></div>
+    </div>
+  </div>
+
+  <table>
+    <thead><tr><th>Configurazione di training del modello base</th><th class="num">Valore</th></tr></thead>
+    <tbody>
+      <tr><td>Dimensione del <span class="en">batch</span></td><td class="num">256</td></tr>
+      <tr><td>Numero massimo di <span class="en">epoch</span></td><td class="num">60</td></tr>
+      <tr><td><span class="en">early stopping patience</span></td><td class="num">10</td></tr>
+      <tr><td>Miglior <span class="en">epoch</span></td><td class="num">3</td></tr>
+      <tr><td>Tempo totale di <span class="en">training</span></td><td class="num">27 s</td></tr>
+      <tr><td><span class="en">MAE</span> finale su <span class="en">test</span> (LCR / LCL)</td><td class="num">0.318 s / 0.333 s</td></tr>
+    </tbody>
+  </table>
+
+  <div class="card">
+    <p>• Il modello migliore è stato trovato al terzo <span class="en">epoch</span>;
+    l&rsquo;<span class="en">early stopping</span> con <span class="en">patience</span> = 10
+    non ha lasciato sprecare tutti i 60 <span class="en">epoch</span>.<br>
+    • Questo diventa cruciale nel <span class="en">NAS</span>: lì <b>centinaia</b> di modelli candidati
+    vengono addestrati uno a uno — ciascuno fino a 100–120 <span class="en">epoch</span>
+    con <span class="en">patience</span> = 20. Senza <span class="en">early stopping</span>,
+    la ricerca durerebbe giorni in più.<br>
+    • Come sempre, la configurazione e il risultato di ogni esecuzione vengono registrati in
+    <span class="en">logs/experiments.jsonl</span>, così nessun numero va perso.</p>
+  </div>
+
+  <div id="quiz" class="quiz"></div>
+  <script type="application/json" id="quiz-data">
+  [
+    {"stem": "Abbiamo due modelli: il modello A con loss di training 0.05 e il modello B con loss di training 0.20. Quale affermazione è corretta?",
+     "options": ["Il modello A è sicuramente migliore; una loss più bassa su train significa un apprendimento più profondo, e questo vantaggio si trasferisce anche ai dati mai visti", "Non si può ancora giudicare; la loss su train è solo il voto dell'allenamento, non l'esame sui dati mai visti", "Il modello B è sicuramente migliore; una loss molto bassa è sempre segno di memorizzazione e il modello A andrebbe scartato subito", "I due numeri non sono affatto confrontabili, perché la loss è una quantità senza unità e solo il suo andamento nel tempo ha un significato"],
+     "answer": 1,
+     "explain": "La loss di training è il voto dell'«allenamento»; A potrebbe semplicemente aver memorizzato meglio (overfitting — prossima lezione). Il giudizio vero si fa sui dati di validation/test che il modello non ha visto. Per questo anche l'early stopping non guarda la loss di training, ma quella di validation."},
+    {"stem": "Con un learning rate molto piccolo, che forma assume la curva della loss lungo gli epoch?",
+     "options": ["Invece di scendere, rimbalza su e giù intorno al minimo e nel caso peggiore diverge del tutto", "Si comporta esattamente come con un learning rate grande; l'ampiezza del passo influisce solo sul consumo di memoria, non sul percorso di apprendimento", "Scende molto lentamente e in modo uniforme; il budget di epoch potrebbe esaurirsi prima di arrivare al fondo della valle", "Arriva a zero nei primi epoch e poi risale a causa dell'accumulo degli errori di arrotondamento"],
+     "answer": 2,
+     "explain": "Un passo minuscolo significa un cammino sicuro ma da tartaruga verso il fondo della valle — l'opposto del passo troppo grande, che salta oltre il minimo e fa oscillare la loss su e giù (quella è la descrizione della prima opzione). Entrambi gli estremi sono dannosi; è proprio per questo che nel nostro progetto ReduceLROnPlateau riduce il learning rate a metà strada."},
+    {"stem": "Il nostro train ha 94,620 finestre e il batch è di 256. In ogni epoch, all'incirca quante volte vengono aggiornati i pesi?",
+     "options": ["Solo una volta; per definizione un epoch è un unico passo di aggiornamento sulla media dell'intero dataset", "Circa 370 volte; un passo per ogni batch (94,620 ÷ 256)", "Esattamente 256 volte; tante quanti sono gli elementi di ogni batch, perché ogni elemento genera un aggiornamento separato", "Circa 94 mila volte; un passo per ogni campione, e il batch cambia solo l'ordine in cui i campioni vengono visti"],
+     "answer": 1,
+     "explain": "Un passo per ogni batch: passi per epoch = numero di campioni ÷ dimensione del batch ≈ 370. Un epoch è «un giro completo su tutti i dati», non un singolo passo; e un passo per ogni campione si avrebbe solo con batch=1."},
+    {"stem": "Il modello base ha ottenuto il miglior risultato di validation all'epoch 3 e il training si è fermato intorno all'epoch 13. A quale momento appartengono i pesi finali riportati, e perché?",
+     "options": ["All'epoch 13; si consegnano sempre gli ultimi pesi, perché sono quelli che hanno visto il maggior numero di aggiornamenti", "Alla media dei pesi dall'epoch 3 al 13; la media elimina le oscillazioni finali e restituisce il modello più stabile", "All'epoch 3; l'early stopping, con il restore, ripristina la migliore versione salvata, non l'ultima", "All'epoch 1; il modello meno addestrato è il più semplice, e il modello più semplice ha il minimo overfitting"],
+     "answer": 2,
+     "explain": "Gli ultimi dieci epoch (dal 4 al 13) non hanno portato alcun miglioramento — hanno solo riempito il contatore di patience. Dopo lo stop, l'early stopping torna ai migliori pesi mai visti (epoch 3); altrimenti avremmo consegnato dieci epoch di «memorizzazione». Nel NAS, con centinaia di candidati, proprio questo meccanismo ha risparmiato giorni di tempo."}
+  ]
+  </script>
+
+  <div class="lesson-nav">
+    <a href="04-1d-cnn.html"><div class="dir">← Precedente</div><div>Lezione 04 — CNN monodimensionale</div></a>
+    <a href="06-validation-overfitting.html"><div class="dir">Successiva →</div><div>Lezione 06 — Validation e Overfitting</div></a>
+  </div>
+  <footer class="site">LC-Intention-NAS · ELIOS Lab</footer>
+</main>
+</body>
+</html>

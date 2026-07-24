@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 06 — Validation and Overfitting | LC-Intention-NAS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/course.css">
+<script src="../assets/course.js" defer></script>
+</head>
+<body>
+<div class="topbar">
+  <a class="home" href="index.html">↪ Course index</a>
+  <div class="spacer"></div>
+  <nav class="lang-switch" aria-label="Language">
+    <a href="../06-validation-overfitting.html" hreflang="fa">فا</a>
+    <a href="06-validation-overfitting.html" class="active" hreflang="en">EN</a>
+    <a href="../it/06-validation-overfitting.html" hreflang="it">IT</a>
+  </nav>
+  <button class="theme-toggle" onclick="toggleTheme()">🌗 Light/Dark</button>
+</div>
+<main>
+  <p class="kicker">Lesson 06</p>
+  <h1><span class="en">Validation</span> and <span class="en">Overfitting</span>: why the network must never see the exam answers 🕵️</h1>
+  <p class="lede">If a student has already seen the exam questions, their perfect score means nothing — and exactly the same is true for a neural network.</p>
+
+  <div class="card callout story">
+    <p class="card-title">The story 📖</p>
+    <p>Picture two students. The first has memorized the solutions manual word for word;
+    in class exercises he always gets full marks. But on exam day, the teacher writes one <b>brand-new</b> question,
+    and the first student freezes — because he had memorized the answers, not the method.
+    The second student memorized less but understood the <b>rule</b>; a new question holds no terror for her.</p>
+    <p>A neural network can turn into that first student too: instead of learning the real pattern,
+    it memorizes irrelevant details of the training data. This is called <span class="en">overfitting</span>.
+    The only way to find out whether the model has "understood" or merely "memorized" is to
+    <b>never show it the exam questions while teaching</b>.</p>
+  </div>
+
+  <h2>More precisely 🔬</h2>
+  <p>That is why we split the data into three separate sets — and in our project the split
+  is <b>by driver</b>, not by individual windows:</p>
+
+  <table>
+    <thead><tr><th>Set</th><th>Role</th><th class="num">Drivers</th></tr></thead>
+    <tbody>
+      <tr><td><span class="en">train</span></td><td>Lessons and practice — the model learns from these only</td><td class="num">36</td></tr>
+      <tr><td><span class="en">validation</span></td><td>Mock exam — for decisions during training (like <span class="en">early stopping</span>)</td><td class="num">7</td></tr>
+      <tr><td><span class="en">test</span></td><td>Final exam — once, at the very end, only to report the result</td><td class="num">7</td></tr>
+    </tbody>
+  </table>
+
+  <p>Now <span class="en">overfitting</span> becomes visible to the naked eye: the model's error on the training data
+  (<span class="en">train loss</span>) keeps falling, because memorizing never stops.
+  But its error on data it has never seen (<span class="en">validation loss</span>) first goes down and,
+  past a certain point, <b>turns back up</b> — precisely the moment when "understanding" ends and "memorizing" begins:</p>
+
+  <figure class="viz">
+    <div class="legend">
+      <span class="key"><span class="swatch" style="background:var(--series-1)"></span> <span class="en">train</span> loss</span>
+      <span class="key"><span class="swatch" style="background:var(--series-2)"></span> <span class="en">validation</span> loss</span>
+    </div>
+    <svg viewBox="0 0 720 300" role="img" aria-label="Overfitting chart: the train loss keeps falling, but the validation loss turns back up after a point; the vertical dashed line marks the early-stopping point">
+      <!-- grid -->
+      <line x1="60" y1="105" x2="690" y2="105" stroke="var(--grid)" stroke-width="1"/>
+      <line x1="60" y1="182" x2="690" y2="182" stroke="var(--grid)" stroke-width="1"/>
+      <!-- axes -->
+      <line x1="60" y1="260" x2="690" y2="260" stroke="var(--baseline)" stroke-width="1.5"/>
+      <line x1="60" y1="42" x2="60" y2="260" stroke="var(--baseline)" stroke-width="1.5"/>
+      <text x="375" y="290" text-anchor="middle" fill="var(--muted)" font-size="12.5">training time (epochs)</text>
+      <text x="68" y="58" fill="var(--muted)" font-size="12.5">error (loss)</text>
+      <!-- zones -->
+      <text x="205" y="86" text-anchor="middle" fill="var(--ink-2)" font-size="12.5" font-weight="700">understanding</text>
+      <text x="525" y="54" text-anchor="middle" fill="var(--ink-2)" font-size="12.5" font-weight="700">memorizing</text>
+      <text x="525" y="72" text-anchor="middle" fill="var(--muted)" font-size="11.5">overfitting</text>
+      <!-- train loss -->
+      <path d="M75,70 C170,165 280,210 380,225 C480,238 590,244 680,247" fill="none" stroke="var(--series-1)" stroke-width="2.5"/>
+      <!-- validation loss -->
+      <path d="M75,88 C170,175 260,202 345,205 C450,208 570,152 680,90" fill="none" stroke="var(--series-2)" stroke-width="2.5"/>
+      <!-- early stopping marker -->
+      <line x1="360" y1="42" x2="360" y2="260" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="6 5"/>
+      <circle cx="360" cy="206" r="4.5" fill="var(--series-2)"/>
+      <text x="360" y="16" text-anchor="middle" fill="var(--ink)" font-size="13" font-weight="700">Stop here!</text>
+      <text x="360" y="34" text-anchor="middle" fill="var(--muted)" font-size="11.5">early stopping</text>
+      <!-- direct series labels -->
+      <text x="686" y="238" text-anchor="end" fill="var(--series-1)" font-size="12.5" font-weight="700">train</text>
+      <text x="686" y="82" text-anchor="end" fill="var(--series-2)" font-size="12.5" font-weight="700">validation</text>
+    </svg>
+    <figcaption>Figure 1 — The <span class="en">train</span> loss always keeps falling, but the <span class="en">validation</span> loss turns back up after a certain point. <span class="en">Early stopping</span> means halting training exactly at that minimum.</figcaption>
+  </figure>
+
+  <p><b><span class="en">Early stopping</span></b> is the "anti-memorization guard":
+  after every <span class="en">epoch</span>, we measure the model's error on the <span class="en">validation</span> set.
+  If it fails to improve for several <span class="en">epochs</span> in a row (in our project: <span class="en">patience</span> = 10),
+  we cut training short and roll back to the best saved version.
+  Amusingly, although our baseline model was allowed to train for 60 <span class="en">epochs</span>,
+  it found its best state at <span class="en">epoch</span> 3 — and the whole training took just 27 seconds.</p>
+
+  <h2>True story 1: an exam with unfamiliar drivers 🚗</h2>
+  <p>Our data was collected from 50 human drivers in the <span class="en">CARLA</span> simulator.
+  Every driver has habits of their own: one turns the wheel gently, another overtakes aggressively.
+  If windows from <b>one and the same driver</b> appear both in training and in the exam, the model can
+  memorize <b>that driver's style</b> instead of understanding "lane-change intention" — and the exam loses all validity.</p>
+  <p>The fix: split by driver. Users <span class="en">5, 8, 10, 12, 16, 19, 27</span> appear only in
+  <span class="en">validation</span>, users <span class="en">2, 7, 13, 18, 25, 31, 36</span> only in
+  <span class="en">test</span>, and the remaining 36 drivers only in <span class="en">train</span>:</p>
+
+  <figure class="viz">
+    <svg viewBox="0 0 720 290" role="img" aria-label="Fifty drivers split into three fully separate groups: 36 drivers for training, 7 drivers for validation and 7 drivers for the final exam; no driver appears in two groups">
+      <defs>
+        <g id="drv">
+          <circle cx="0" cy="-5" r="3.4"/>
+          <path d="M-5.5,7 a5.5,5.5 0 0 1 11,0 z"/>
+        </g>
+      </defs>
+      <!-- train box (right) -->
+      <text x="500" y="22" text-anchor="middle" fill="var(--ink)" font-size="14" font-weight="700">Training</text>
+      <text x="500" y="40" text-anchor="middle" fill="var(--ink-2)" font-size="12">train · 36</text>
+      <rect x="300" y="52" width="400" height="175" rx="12" fill="none" stroke="var(--series-1)" stroke-width="2"/>
+      <g fill="var(--series-1)">
+        <use href="#drv" x="330" y="86"/><use href="#drv" x="370" y="86"/><use href="#drv" x="410" y="86"/><use href="#drv" x="450" y="86"/><use href="#drv" x="490" y="86"/><use href="#drv" x="530" y="86"/><use href="#drv" x="570" y="86"/><use href="#drv" x="610" y="86"/><use href="#drv" x="650" y="86"/>
+        <use href="#drv" x="330" y="122"/><use href="#drv" x="370" y="122"/><use href="#drv" x="410" y="122"/><use href="#drv" x="450" y="122"/><use href="#drv" x="490" y="122"/><use href="#drv" x="530" y="122"/><use href="#drv" x="570" y="122"/><use href="#drv" x="610" y="122"/><use href="#drv" x="650" y="122"/>
+        <use href="#drv" x="330" y="158"/><use href="#drv" x="370" y="158"/><use href="#drv" x="410" y="158"/><use href="#drv" x="450" y="158"/><use href="#drv" x="490" y="158"/><use href="#drv" x="530" y="158"/><use href="#drv" x="570" y="158"/><use href="#drv" x="610" y="158"/><use href="#drv" x="650" y="158"/>
+        <use href="#drv" x="330" y="194"/><use href="#drv" x="370" y="194"/><use href="#drv" x="410" y="194"/><use href="#drv" x="450" y="194"/><use href="#drv" x="490" y="194"/><use href="#drv" x="530" y="194"/><use href="#drv" x="570" y="194"/><use href="#drv" x="610" y="194"/><use href="#drv" x="650" y="194"/>
+      </g>
+      <!-- validation box (middle) -->
+      <text x="220" y="22" text-anchor="middle" fill="var(--ink)" font-size="14" font-weight="700">Validation</text>
+      <text x="220" y="40" text-anchor="middle" fill="var(--ink-2)" font-size="12">validation · 7</text>
+      <rect x="160" y="52" width="120" height="175" rx="12" fill="none" stroke="var(--series-2)" stroke-width="2"/>
+      <g fill="var(--series-2)">
+        <use href="#drv" x="195" y="86"/><use href="#drv" x="245" y="86"/>
+        <use href="#drv" x="195" y="122"/><use href="#drv" x="245" y="122"/>
+        <use href="#drv" x="195" y="158"/><use href="#drv" x="245" y="158"/>
+        <use href="#drv" x="220" y="194"/>
+      </g>
+      <!-- test box (left) -->
+      <text x="80" y="22" text-anchor="middle" fill="var(--ink)" font-size="14" font-weight="700">Final exam</text>
+      <text x="80" y="40" text-anchor="middle" fill="var(--ink-2)" font-size="12">test · 7</text>
+      <rect x="20" y="52" width="120" height="175" rx="12" fill="none" stroke="var(--muted)" stroke-width="2"/>
+      <g fill="var(--muted)">
+        <use href="#drv" x="55" y="86"/><use href="#drv" x="105" y="86"/>
+        <use href="#drv" x="55" y="122"/><use href="#drv" x="105" y="122"/>
+        <use href="#drv" x="55" y="158"/><use href="#drv" x="105" y="158"/>
+        <use href="#drv" x="80" y="194"/>
+      </g>
+      <text x="360" y="266" text-anchor="middle" fill="var(--ink)" font-size="14" font-weight="700">✋ No driver appears in two boxes</text>
+    </svg>
+    <figcaption>Figure 2 — Splitting the 50 drivers into three fully separate groups: 36 for training, 7 for validation, 7 for the final exam. The model never sees the exam drivers during training.</figcaption>
+  </figure>
+
+  <p>And because in science "trust me" is not enough, we <b>proved</b> it: we matched the raw windows from each
+  driver's sessions against the prepared training windows, one by one, using the correlation coefficient
+  (<span class="en">correlation</span>) — with matches at <span class="en">r &gt; 0.9999</span> — and saw that the
+  <span class="en">test</span> drivers appear in <span class="en">test</span> and nowhere else.
+  Our exam really is an exam.</p>
+
+  <div class="card">
+    <p class="card-title">First, the basics: what exactly is <span class="en">correlation</span>? 📐</p>
+    <p>The Pearson correlation coefficient (<span class="en">Pearson r</span>) is a number between <span class="en">−1</span> and
+    <span class="en">+1</span> that says how <b>similarly</b> two sequences of numbers rise and fall:
+    <span class="en">+1</span> means perfectly in step, <span class="en">0</span> means unrelated,
+    <span class="en">−1</span> means mirror opposites. Two of its properties were golden for our job:</p>
+    <p>1. <b>It ignores scale</b>: if a signal is <span class="en">normalized</span>
+    (multiplied by a constant or shifted by one), its <span class="en">r</span> with the raw version stays exactly
+    <span class="en">1</span>. That is why we could match the <b>raw</b> windows from the drivers' original files against the
+    <b>normalized</b> windows in the pickle — without ever knowing the normalization formula!<br>
+    2. <b>Getting it by chance is virtually impossible</b>: two unrelated 50-sample windows might give an <span class="en">r</span>
+    around <span class="en">0.3</span> or even <span class="en">0.8</span>, but
+    <span class="en">r &gt; 0.9999</span> over 50 points means "this is exactly the same window".
+    So when a window from driver 7 finds its <span class="en">r &gt; 0.9999</span> partner only in
+    <span class="en">test</span> and never in <span class="en">train</span>,
+    we know for certain that driver 7 was not in training.</p>
+  </div>
+
+  <div class="card">
+    <p class="card-title">Why didn't we use <span class="en">k-fold cross-validation</span>? 🤔</p>
+    <p>A smart question: on small datasets, instead of one fixed <span class="en">validation</span> set,
+    people usually split the data into <span class="en">k</span> parts and train <span class="en">k</span> times
+    (each part takes a turn as the exam), so all of the data serves both learning and evaluation.
+    We deliberately chose not to, for three reasons:</p>
+    <p>1. <b>Head-to-head comparison</b>: the published record and the team's reference results are all reported on
+    <b>this exact fixed split</b> of drivers. If we change the split, our numbers are no longer comparable to theirs —
+    and the whole claim of "we improved" becomes meaningless.<br>
+    2. <b>Cost inside NAS</b>: our search trains hundreds of candidates. With
+    <span class="en">k=7</span> that means <b>multiplying by seven</b> several days and nights of GPU time — for each of the four searches.<br>
+    3. <b>The data is not that small</b>: our scarcity is not at the "window" level (we have 94 thousand
+    <span class="en">train</span> windows); it is at the "driver" level (50 people). And the driver-based split measures
+    exactly that.</p>
+    <p>Honestly: for the <b>final model</b> (not the search), a driver-based <span class="en">cross-validation</span>
+    could show that the result is not sensitive to the particular choice of the 7 <span class="en">test</span> drivers.
+    We have recorded this as a possible supplementary experiment in the paper notes.</p>
+  </div>
+
+  <h2>True story 2: cheating with the turn signal 💡</h2>
+  <p>Now for a sneakier kind of cheating: imagine an exam sheet where the answer is written in the corner of every question!
+  In our data, two of the 31 channels are the <b>turn signal</b> (<span class="en">turn indicator / blinker</span>) state.
+  Drivers usually signal before changing lanes — so these channels practically give away the "announced answer".
+  This problem is called a <span class="en">label leak</span>.</p>
+
+  <div class="card">
+    <p class="card-title">How did we know the turn signal was suspicious? (No, we did not test all 31 signals one by one!) 🔍</p>
+    <p>The brute-force way would have been to build 31 models, one signal at a time — or worse, to try every combination
+    (<span class="en">2³¹</span>, more than two billion of them!). The real way was four cheap steps:</p>
+    <p>1. <b>First we recovered the channel names</b>: the pickle columns were unnamed; with the same
+    <span class="en">correlation</span> trick (matching against the drivers' raw files, which do carry column names) we found that
+    channels 28 and 29 are the left and right turn signals.<br>
+    2. <b>Driving knowledge</b>: the turn signal is the only signal a driver uses to <b>formally announce</b> their intention —
+    prime suspect, before running a single experiment.<br>
+    3. <b>One simple count</b> (not even a model!): in what percentage of each class's windows is the turn signal on?
+    Answer: <span class="en">92%</span> in LCR and <span class="en">71%</span> in LCL versus only
+    <span class="en">6.5%</span> in "no intention". That tiny table exposed the leak.<br>
+    4. <b>Only then, two targeted experiments</b>: a "turn-signal-only" model (how far does the leaked answer alone take you?)
+    and a full "no-turn-signal" search (how far can you get without cheating?).</p>
+    <p>The methodology lesson: first <b>think cheap</b> (naming, domain knowledge, counting), then <b>experiment expensive</b> —
+    and spend the experiment only on a specific hypothesis.</p>
+  </div>
+
+  <p>The results of those experiments:</p>
+
+  <div class="tiles">
+    <div class="tile"><div class="value">81.5%</div><div class="label">Accuracy from the <span class="en">turn signal</span> channels alone — with no other signal at all!</div></div>
+    <div class="tile"><div class="value">91.5%</div><div class="label">Accuracy of our baseline model (at the time) with all 31 channels</div></div>
+    <div class="tile"><div class="value">6.5%</div><div class="label">Turn signal on in "no intention" windows</div></div>
+  </div>
+
+  <figure class="viz">
+    <div class="hbar">
+      <div class="name"><span class="en">LCR</span> windows</div><div class="track"><div class="fill" style="width:92%"></div></div><div class="val">92%</div>
+      <div class="name"><span class="en">LCL</span> windows</div><div class="track"><div class="fill" style="width:71%"></div></div><div class="val">71%</div>
+      <div class="name">No-intention windows</div><div class="track"><div class="fill" style="width:6.5%"></div></div><div class="val">6.5%</div>
+    </div>
+    <figcaption>Figure 3 — In what percentage of each class's windows is the turn signal on? The turn signal almost always accompanies a lane change and by itself yields 81.5% <span class="en">classification</span> accuracy.</figcaption>
+  </figure>
+
+  <p>In other words, a "model" that only reads the turn signal, with no intelligence whatsoever, gets a good grade on the
+  <span class="en">classification</span> exam — but that is not <b>intention prediction</b>; it is reading an answer the
+  driver announced themselves.</p>
+  <p>The good news: the <span class="en">regression</span> problem (how many seconds until the lane change?) is clean.
+  The turn signal only says "a lane change is coming", but never <b>when</b>. Compare:</p>
+
+  <table>
+    <thead><tr><th>Problem</th><th class="num">Turn signal only — MAE</th><th class="num">Our model — MAE</th><th class="num">Our model — RMSE</th></tr></thead>
+    <tbody>
+      <tr><td><span class="en">Regression LCR</span></td><td class="num">0.72 s</td><td class="num">0.318 s</td><td class="num">0.439 s</td></tr>
+      <tr><td><span class="en">Regression LCL</span></td><td class="num">0.90 s</td><td class="num">0.333 s</td><td class="num">0.459 s</td></tr>
+    </tbody>
+  </table>
+
+  <div class="card">
+    <p class="card-title">What does <span class="en">ablation</span> mean? 🧪</p>
+    <p>The word comes from surgery: "removing" a part. In machine learning, an <span class="en">ablation study</span>
+    means <b>deliberately remove one piece of the system, retrain from scratch, and measure the drop</b> —
+    so the true contribution of that piece becomes clear. Crucial detail: the model must be <b>retrained</b>;
+    if we merely zero out an input of the old model, the model is caught off guard and we overestimate the drop.</p>
+    <p>Our triplet (final results, after the full NAS search):</p>
+    <table>
+      <thead><tr><th>Experiment</th><th class="num">Accuracy</th><th>What does it measure?</th></tr></thead>
+      <tbody>
+        <tr><td>All 31 channels</td><td class="num">92.1%</td><td>The ceiling with everything available</td></tr>
+        <tr><td>Without the two turn signal channels</td><td class="num">91.1%</td><td>Real "intelligence" — no leaked answer</td></tr>
+        <tr><td>Only the two turn signal channels</td><td class="num">81.5%</td><td>The share of "reading the answer" alone</td></tr>
+      </tbody>
+    </table>
+    <p>How to read it: the turn signal alone reaches <span class="en">81.5%</span> (a real leak!) yet removing it costs the
+    full model only <b>one percentage point</b> — meaning our model performs almost the same without cheating.
+    Without the <span class="en">ablation</span>, neither of those two statements would have been defensible.</p>
+  </div>
+
+  <p>Our remedy is twofold. First, our paper leads with <span class="en">regression</span> and real execution on hardware,
+  because no cheating is possible there. Second, for <span class="en">classification</span> we report exactly this
+  <span class="en">ablation</span> —
+  so the reader sees precisely how much of the accuracy is "intelligence" and how much is "reading the answer".
+  That is <b>scientific honesty</b>: we do not hide the dataset's flaw; we measure it and write it up transparently.</p>
+
+  <h2>In our project 🧰</h2>
+  <div class="card">
+    <p>• Split by driver: <span class="en">36 / 7 / 7</span> users for <span class="en">train / validation / test</span>;
+    we proved its correctness by window matching (<span class="en">r &gt; 0.9999</span>).<br>
+    • <span class="en">early stopping</span> with <span class="en">patience</span> = 10; our baseline model found its best state at <span class="en">epoch</span> 3 (out of a cap of 60).<br>
+    • We accept no number without re-checking: we re-evaluate every saved model ourselves on the <span class="en">test</span> set with <span class="en">verify_models.py</span>.<br>
+    • The turn signal leak (<span class="en">label leak</span>) is not hidden in the <span class="en">paper</span>: the <span class="en">classification</span> results with and without the <span class="en">turn signal</span> are both reported.</p>
+  </div>
+
+  <div id="quiz" class="quiz"></div>
+  <script type="application/json" id="quiz-data">
+  [
+    {"stem": "A model's train loss keeps falling to the very end, but its validation loss starts rising after epoch 10. What is the best description?",
+     "options": ["From epoch 10, 'understanding' gave way to 'memorizing'; we should return to the weights from around that epoch", "The model's learning has stalled at epoch 10, and we should increase the learning rate to push it out of this situation", "The validation data must be faulty; in a healthy training run, the two curves should always move downward together", "The situation is completely normal; training should continue to the last epoch so the train loss reaches zero and learning completes"],
+     "answer": 0,
+     "explain": "The two curves separating is the signature of overfitting: the model keeps memorizing the exercises ever better while getting worse on unseen data. The fix is returning to the best validation point (what early stopping with restore does) — not pressing on, and not blindly fiddling with the learning rate."},
+    {"stem": "If we had distributed the windows randomly (instead of by driver) between train and test, how would we expect the reported accuracy to change, and why?",
+     "options": ["It would drop, because the train data becomes more diverse and learning the pattern shared across drivers gets harder", "It would not change; the total number of windows stays the same, so the model sees the same overall information either way", "It would drop, because with random shuffling early stopping triggers later in training and the model overfits much more", "It would rise, but spuriously: one driver's overlapping windows land on both sides, and the exam shows a 'familiar style'"],
+     "answer": 3,
+     "explain": "Consecutive windows from one driver look alike; a random split puts near-duplicate copies of the same moment in both practice and exam — the score climbs without the model ever understanding an 'unfamiliar driver'. The driver-based split closes exactly this leak, and our r>0.9999 matching proved it was respected."},
+    {"stem": "In the window matching, why did we take r > 0.9999 as proof of 'this is the same window', even though the pickle held the normalized version, not the raw file?",
+     "options": ["Because before matching, we obtained the exact normalization formula from the data team and applied its effect to the raw windows", "Because Pearson r ignores constant scaling and shifting; raw and normalized still give r=1, and r>0.9999 never arises by chance", "Because driving signals inherently correlate above 0.99, and any pair of windows of the same kind produces a value in that range", "Because normalization had been applied only to the train data, while the test windows had been left untouched in their raw form"],
+     "answer": 1,
+     "explain": "That is correlation's golden property: it is invariant to linear transforms (scale and shift). So the drivers' raw windows could be matched against the pickle without knowing the normalization formula. And the 0.9999 threshold is so strict that random pairs never clear it."},
+    {"stem": "In the ablation, why did we retrain the 'no-turn-signal' model from scratch instead of simply zeroing the two turn signal channels in the full model?",
+     "options": ["Because zeroing part of the input in TensorFlow breaks the structure of the computation graph and raises a runtime error", "Because retraining from scratch is, on the whole, faster and cheaper than manipulating the input channels of an existing model", "Because the 31-channel model has grown 'used to' the turn signal; zeroing it makes the drop look larger than it really is", "Because without retraining, contamination from the turn signal channels would spread through shared weights into the regression result too"],
+     "answer": 2,
+     "explain": "A fair ablation means fully building 'the world without that piece' — search and training both run without the turn signal. Result: 91.1% versus the full 92.1%; only one point of accuracy was truly 'reading the answer', even though the turn signal alone scores 81.5%."},
+    {"stem": "What is the best reason we did not run k-fold cross-validation?",
+     "options": ["The published record is reported on this very fixed split; changing it voids the comparison — and it multiplies NAS cost by k", "Cross-validation is defined only for regression problems and simply cannot be applied to a three-class classification task like ours", "k-fold always yields worse results than a fixed split, because the training data shrinks in every fold, so it is generally discouraged", "With 94 thousand training windows, even one complete training run was practically impossible here, let alone repeating it k times over"],
+     "answer": 0,
+     "explain": "Two reasons at once: head-to-head comparability (we must sit the same exam as the record holder) and the k-fold multiplication of the search cost. Our real scarcity is at the driver level, not the window level — and the driver-based split measures exactly that. For the final model, a driver-based CV is a reasonable supplementary experiment and is recorded in the notes."}
+  ]
+  </script>
+
+  <div class="lesson-nav">
+    <a href="05-training.html"><div class="dir">← Previous</div><div>Lesson 05 — Training</div></a>
+    <a href="07-nas.html"><div class="dir">Next →</div><div>Lesson 07 — NAS</div></a>
+  </div>
+  <footer class="site">LC-Intention-NAS · ELIOS Lab</footer>
+</main>
+</body>
+</html>

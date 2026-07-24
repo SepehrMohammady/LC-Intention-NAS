@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 08 — µNAS and Constraints | LC-Intention-NAS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/course.css">
+<script src="../assets/course.js" defer></script>
+</head>
+<body>
+<div class="topbar">
+  <a class="home" href="index.html">↪ Course index</a>
+  <div class="spacer"></div>
+  <nav class="lang-switch" aria-label="Language">
+    <a href="../08-munas-constraints.html" hreflang="fa">فا</a>
+    <a href="08-munas-constraints.html" class="active" hreflang="en">EN</a>
+    <a href="../it/08-munas-constraints.html" hreflang="it">IT</a>
+  </nav>
+  <button class="theme-toggle" onclick="toggleTheme()">🌗 Light/Dark</button>
+</div>
+<main>
+  <p class="kicker">Lesson 08</p>
+  <h1><span class="en">µNAS</span> and Constraints: Fitting a Brain into a Tiny Chip 🎒</h1>
+  <p class="lede">Architecture search only makes sense if every candidate model fits the chip's budget first — and that can be measured without the chip itself.</p>
+
+  <div class="card callout story">
+    <p class="card-title">The story 📖</p>
+    <p>Imagine you have just one small backpack for a one-day hike. You face three serious constraints:
+    <b>space inside the pack</b> (how much gear you can keep unpacked and within reach at any moment),
+    <b>total load weight</b> (how much you can carry), and <b>your walking speed</b>
+    (the more chores along the way, the later you arrive).</p>
+    <p>Here is the clever part: you don't have to climb to the summit to test each packing arrangement!
+    With a tape measure and a scale, you check everything <b>at home, before setting off</b>.
+    <span class="en">µNAS</span> does exactly the same with every candidate model:
+    before the model ever runs on the chip, it works out on paper
+    how much working memory it needs, how many bytes its weights take, and how many multiply-adds it must perform.
+    Pack space = <span class="en">RAM</span>, load weight = model size in <span class="en">flash</span>,
+    and walking speed = the number of multiply-adds.</p>
+  </div>
+
+  <h2>More precisely 🔬</h2>
+  <p>For every candidate architecture, <span class="en">µNAS</span> computes three "efficiency" metrics
+  <b>with no hardware at all</b> — purely from the network's structure:</p>
+
+  <div class="card">
+    <p>1. <b><span class="en">peak RAM</span></b>: at run time, each layer's output
+    (<span class="en">activations</span>) must be held somewhere temporarily.
+    The largest instantaneous memory load during execution is the <span class="en">peak RAM</span>,
+    and it has to fit in the chip's <span class="en">SRAM</span>.<br>
+    2. <b><span class="en">model size</span></b>: the sum of the network's weights in bytes,
+    assuming <span class="en">int8</span> (one byte per weight). These are stored in
+    <span class="en">flash</span>.<br>
+    3. <b><span class="en">MACs</span></b>: the number of multiply-accumulate operations
+    (<span class="en">multiply-accumulate</span>) for one prediction — the speed predictor.
+    This number correlates with real latency on the <span class="en">STM32</span> at
+    <span class="en">r&#178;=0.975</span>; it is practically a stopwatch, without the board!</p>
+  </div>
+
+  <p>Why does this "no hardware needed" property matter so much? Because the search has to evaluate
+  hundreds of architectures. If each one had to be flashed onto the board and timed with a stopwatch,
+  the search would take weeks. With these three paper metrics, scoring a candidate is nearly instant.</p>
+
+  <figure class="viz">
+    <svg viewBox="0 0 720 320" role="img" aria-label="Backpack metaphor: two chips, each with three compartments for RAM, Flash, and speed. In the right chip, the small model stays below the cap line in all three compartments and is accepted; in the left chip, the big model overflows the RAM and Flash caps and is penalized">
+      <line x1="360" y1="24" x2="360" y2="300" stroke="var(--grid)" stroke-width="1.5" stroke-dasharray="5 5"/>
+
+      <!-- ===== right panel: small model fits ===== -->
+      <text x="540" y="22" text-anchor="middle" fill="var(--series-2)" font-size="14" font-weight="800">Small model — fits ✓</text>
+      <rect x="440" y="58" width="200" height="192" rx="12" fill="none" stroke="var(--ink-2)" stroke-width="2"/>
+      <g stroke="var(--muted)" stroke-width="4" opacity="0.7">
+        <line x1="470" y1="250" x2="470" y2="262"/>
+        <line x1="505" y1="250" x2="505" y2="262"/>
+        <line x1="540" y1="250" x2="540" y2="262"/>
+        <line x1="575" y1="250" x2="575" y2="262"/>
+        <line x1="610" y1="250" x2="610" y2="262"/>
+      </g>
+      <!-- bound line -->
+      <text x="540" y="78" text-anchor="middle" fill="var(--muted)" font-size="10.5">Cap for each metric (<tspan font-family="ui-monospace, Consolas, monospace">bound</tspan>)</text>
+      <line x1="450" y1="85" x2="630" y2="85" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="4 4"/>
+      <!-- compartments -->
+      <rect x="576" y="85" width="48" height="130" fill="none" stroke="var(--baseline)" stroke-width="1.5"/>
+      <rect x="516" y="85" width="48" height="130" fill="none" stroke="var(--baseline)" stroke-width="1.5"/>
+      <rect x="456" y="85" width="48" height="130" fill="none" stroke="var(--baseline)" stroke-width="1.5"/>
+      <!-- green fills, all under the cap -->
+      <rect x="579" y="133" width="42" height="82" fill="var(--series-2)"/>
+      <rect x="519" y="147" width="42" height="68" fill="var(--series-2)"/>
+      <rect x="459" y="125" width="42" height="90" fill="var(--series-2)"/>
+      <!-- compartment labels -->
+      <text x="600" y="234" text-anchor="middle" fill="var(--ink-2)" font-size="11.5" font-family="ui-monospace, Consolas, monospace">RAM</text>
+      <text x="540" y="234" text-anchor="middle" fill="var(--ink-2)" font-size="11.5" font-family="ui-monospace, Consolas, monospace">Flash</text>
+      <text x="480" y="234" text-anchor="middle" fill="var(--ink-2)" font-size="11.5">Speed</text>
+      <text x="480" y="246" text-anchor="middle" fill="var(--muted)" font-size="9.5" font-family="ui-monospace, Consolas, monospace">MACs</text>
+      <text x="540" y="288" text-anchor="middle" fill="var(--ink-2)" font-size="12.5">All three under the cap → no penalty</text>
+
+      <!-- ===== left panel: big model overflows ===== -->
+      <text x="180" y="22" text-anchor="middle" fill="var(--critical)" font-size="14" font-weight="800">Big model — overflow ✗</text>
+      <rect x="80" y="58" width="200" height="192" rx="12" fill="none" stroke="var(--ink-2)" stroke-width="2"/>
+      <g stroke="var(--muted)" stroke-width="4" opacity="0.7">
+        <line x1="110" y1="250" x2="110" y2="262"/>
+        <line x1="145" y1="250" x2="145" y2="262"/>
+        <line x1="180" y1="250" x2="180" y2="262"/>
+        <line x1="215" y1="250" x2="215" y2="262"/>
+        <line x1="250" y1="250" x2="250" y2="262"/>
+      </g>
+      <line x1="90" y1="85" x2="270" y2="85" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="4 4"/>
+      <!-- compartments -->
+      <rect x="216" y="85" width="48" height="130" fill="none" stroke="var(--baseline)" stroke-width="1.5"/>
+      <rect x="156" y="85" width="48" height="130" fill="none" stroke="var(--baseline)" stroke-width="1.5"/>
+      <rect x="96" y="85" width="48" height="130" fill="none" stroke="var(--baseline)" stroke-width="1.5"/>
+      <!-- RAM & Flash overflow (red), speed stays under (green) -->
+      <rect x="219" y="45" width="42" height="170" fill="var(--critical)"/>
+      <rect x="159" y="65" width="42" height="150" fill="var(--critical)"/>
+      <rect x="99" y="125" width="42" height="90" fill="var(--series-2)"/>
+      <text x="240" y="40" text-anchor="middle" fill="var(--critical)" font-size="10.5" font-weight="700">✗ overflow</text>
+      <!-- compartment labels -->
+      <text x="240" y="234" text-anchor="middle" fill="var(--ink-2)" font-size="11.5" font-family="ui-monospace, Consolas, monospace">RAM</text>
+      <text x="180" y="234" text-anchor="middle" fill="var(--ink-2)" font-size="11.5" font-family="ui-monospace, Consolas, monospace">Flash</text>
+      <text x="120" y="234" text-anchor="middle" fill="var(--ink-2)" font-size="11.5">Speed</text>
+      <text x="120" y="246" text-anchor="middle" fill="var(--muted)" font-size="9.5" font-family="ui-monospace, Consolas, monospace">MACs</text>
+      <text x="180" y="288" text-anchor="middle" fill="var(--ink-2)" font-size="12.5">A single overflow gets penalized first</text>
+    </svg>
+    <figcaption>Figure 1 — The backpack metaphor: the chip has three "compartments" (<span class="en">RAM</span>, <span class="en">flash</span>, speed). The small model (right) stays below the cap line in all three; the big model (left) overflows the <span class="en">RAM</span> and <span class="en">flash</span> caps — its speed is fine, but that doesn't help.</figcaption>
+  </figure>
+
+  <h3>Caps and the scoring formula</h3>
+  <p>These caps are defined in a configuration called <span class="en">BoundConfig</span>:
+  <span class="en">error_bound</span> (the largest acceptable error),
+  <span class="en">peak_mem_bound</span>, <span class="en">model_size_bound</span> and
+  <span class="en">mac_bound</span>. Each candidate is then scored with this formula:</p>
+
+  <div class="card">
+    <p><code>fitness = &minus;max&#8342;( min(feature&#8342; / bound&#8342;, 10) / &lambda;&#8342; )</code></p>
+    <p>We took this formula straight from the <span class="en">µNAS</span> code
+    (<span class="en">aging_evolution.py</span>), and it has three pieces:</p>
+    <p>1. <b><span class="en">feature/bound</span></b>: each metric is divided by its cap so they all
+    share one scale: under the cap means less than 1, exceeding the cap means greater than 1.<br>
+    2. <b><span class="en">min(…, 10)</span></b>: the ratios are capped at 10
+    (<span class="en">cap</span>). Why? If a candidate produces an astronomical error (say 500 times the cap),
+    we don't want that number to make the whole scoring meaningless — "really awful" and "catastrophic" both get the same 10.<br>
+    3. <b><span class="en">max</span> with a minus sign</b>: the <b>worst</b> metric is the model's score.
+    If a metric exceeds its cap, its ratio grows past 1, wins the <span class="en">max</span>,
+    and wrecks the score: <b>exceeding a cap is always penalized first.</b></p>
+  </div>
+
+  <p>And what are those <span class="en">lambda</span>s? At <b>every parent selection</b>, four fresh
+  random numbers are drawn between 0 and 1. In other words, the algorithm weighs the metrics through a
+  <b>different lens</b> each time: stricter on memory once, stricter on speed the next (dividing by a small
+  <span class="en">&lambda;</span> makes that metric stand out in the <span class="en">max</span>).
+  The result is that the search doesn't get stuck on one fixed trade-off and instead finds a diverse
+  family of good models (<span class="en">Pareto</span>). But because a cap overflow always wins the
+  <span class="en">max</span>, no lens can ever look past a budget violation.</p>
+
+  <h2>Our actual budget 📏</h2>
+  <p>Our target board is the <span class="en">STM32H7B3I-DK</span>:</p>
+
+  <div class="tiles">
+    <div class="tile">
+      <div class="value">280 MHz</div>
+      <div class="label">Processor — <span class="en">Arm Cortex-M7</span></div>
+    </div>
+    <div class="tile">
+      <div class="value">1184 KB</div>
+      <div class="label">On-chip <span class="en">SRAM</span> (working memory)</div>
+    </div>
+    <div class="tile">
+      <div class="value">2 MB</div>
+      <div class="label"><span class="en">flash</span> (permanent storage)</div>
+    </div>
+  </div>
+
+  <p>And the caps we set in <span class="en">BoundConfig</span> — deliberately much
+  tighter than the board's capacity, to keep the models compact:</p>
+
+  <table>
+    <thead><tr><th>Metric</th><th class="num">Our cap</th><th>Why this number?</th></tr></thead>
+    <tbody>
+      <tr><td><span class="en">peak RAM</span> (activations)</td><td class="num">256 KB</td><td>Far below the board's <span class="en">SRAM</span>; leaves room for the rest of the application</td></tr>
+      <tr><td><span class="en">model size</span> (int8)</td><td class="num">256 KB</td><td>Far below the board's <span class="en">flash</span>; we also have our eye on smaller boards</td></tr>
+      <tr><td><span class="en">MACs</span></td><td class="num">2,000,000</td><td>A stand-in for speed (correlation <span class="en">r&#178;=0.975</span> with real latency)</td></tr>
+      <tr><td>Error — <span class="en">MAE</span></td><td class="num">&le; 0.30 s</td><td>On par with the published record (<span class="en">MAE 0.2978</span>); being small is no excuse for being sloppy</td></tr>
+    </tbody>
+  </table>
+
+  <p>Why so strict? Because we also have a stretch goal: the low-cost
+  <span class="en">STM32F401</span> board with only <span class="en">96 KB</span> of
+  <span class="en">RAM</span> and <span class="en">512 KB</span> of <span class="en">flash</span>.
+  In this very lab's published paper, their <span class="en">Transformer</span> model
+  <b>did not fit</b> in this board's <span class="en">RAM</span> at all, and their
+  <span class="en">1DCNN</span> took <span class="en">40.8 ms</span>.
+  And the gamble paid off — by now it is not "luck" anymore, it is <b>measurement</b>: our tiny model
+  ran on this same <span class="en">F401</span> in <span class="en">4.376 ms</span> and took only
+  <span class="en">7.2%</span> of the board's <span class="en">flash</span>; the 441k-parameter
+  reference model <b>does not fit</b> on this board at all (3.4 times the entire
+  <span class="en">flash</span>!). Details in Lesson 10.</p>
+
+  <p>One subtle point: why do we compute <span class="en">model size</span> assuming
+  <span class="en">int8</span>? Because our plan is to
+  <span class="en">quantize</span> the final model (next lesson!). See what happens with a real
+  candidate from our very first search — a model with <span class="en">72,729</span> parameters:</p>
+
+  <figure class="viz">
+    <div class="legend">
+      <span class="key"><span class="swatch" style="background:var(--series-1)"></span> <span class="en">float32</span> — today</span>
+      <span class="key"><span class="swatch" style="background:var(--series-2)"></span> <span class="en">int8</span> — after <span class="en">quantization</span></span>
+    </div>
+    <div class="hbar">
+      <div class="name">float32</div>
+      <div class="track"><div class="fill" style="width:94.7%"></div></div>
+      <div class="val">284 KB</div>
+      <div class="name">int8</div>
+      <div class="track"><div class="fill alt" style="width:23.7%"></div></div>
+      <div class="val">&asymp;71 KB</div>
+    </div>
+    <figcaption>Figure 2 — The same model's size under two storage formats; shared scale 0 to 300 KB. The <span class="en">float32</span> version (4 bytes per weight) exceeds our 256 KB cap, while the <span class="en">int8</span> version (1 byte per weight) fits with plenty of room to spare — which is why we measure the size cap in <span class="en">int8</span>.</figcaption>
+  </figure>
+
+  <h2>In our project 🧰</h2>
+  <div class="card">
+    <p>• The search runs on the <span class="en">ELIOS</span> lab's version of
+    <span class="en">µNAS</span> (on <span class="en">TensorFlow</span>);
+    the caps in the table above are written directly into <span class="en">BoundConfig</span>.<br>
+    • This budget has already delivered: a <span class="en">72,729</span>-parameter candidate reached
+    <span class="en">val MAE 0.41</span> after only 3 <span class="en">epoch</span>s, and the best
+    model of one short search, after independent evaluation on the <span class="en">test</span> set, reached
+    <span class="en">MAE 0.287</span> — better than the published record
+    (<span class="en">0.298</span>).<br>
+    • We accept no number from the search itself: we re-evaluate every saved model ourselves with
+    <span class="en">verify_models.py</span> on the <span class="en">test</span> set,
+    and every run is logged in <span class="en">logs/experiments.jsonl</span>.</p>
+  </div>
+
+  <div id="quiz" class="quiz"></div>
+  <script type="application/json" id="quiz-data">
+  [
+    {"stem": "Candidate A: error 0.28 (cap 0.30), memory 200KB (cap 256KB). Candidate B: error 0.10, memory 300KB. With equal λs, which one does the fitness formula prefer?",
+     "options": ["Candidate B; its error is roughly three times better, and in multi-metric scoring a big lead on one metric outweighs everything else", "Both get nearly equal scores, because the sums of their four ratios come out about the same and the formula is built around a sum", "Candidate A; its worst ratio (0.93) stays below 1, while B's memory ratio of 1.17 exceeds the cap and the max scores exactly that", "Candidate B; when conditions are close the formula always prefers the more accurate model, since error is the first entry in the metric vector"],
+     "answer": 2,
+     "explain": "Let's compute: A → max(0.28/0.30, 200/256) = max(0.93, 0.78) = 0.93. B → max(0.33, 1.17) = 1.17. Since the score is minus the max, A wins. That is exactly the formula's philosophy: B's brilliant error cannot cover for its memory overflow — strengths do not compensate for weaknesses."},
+    {"stem": "Why does the formula cap the ratios with min(…, 10)?",
+     "options": ["Because numbers larger than 10 lose precision in float32 arithmetic and make the comparisons between candidates numerically unstable", "So a model at 500 times the cap counts as exactly as \"failed\" as one at 10 times; astronomical numbers must not distort the scoring scale", "So that after normalization all the metrics follow a uniform distribution between exactly zero and ten and can be compared with equal weight", "Because the algorithm accepts at most ten metrics, and the cap guarantees that the number of metrics never crosses that limit"],
+     "answer": 1,
+     "explain": "Some candidates are genuinely catastrophic (they diverge and produce astronomical error, for example). Without the cap, such a number would overshadow everything in the comparisons. With the cap, \"failed\" has a shared floor: beyond 10 times the cap nothing changes anymore — the search spends its energy telling reasonable candidates apart."},
+    {"stem": "At what moment are the λs randomly drawn, and why does this timing matter?",
+     "options": ["Only once at the start of the whole search, so the scoring stays fixed throughout and comparisons across rounds remain fair", "Each time a candidate exceeds one of the caps, so the violated metric gets a larger weight in later rounds and the miss is compensated", "At every parent selection, four fresh draws; each little tournament wears a different lens and probes another corner of the frontier", "The user sets them manually in BoundConfig before the run, choosing values matched to the budget of the target deployment board"],
+     "answer": 2,
+     "explain": "If the λs were drawn once and for all, the whole search would drift toward a single fixed trade-off — say, only the smallest models. Fresh draws at every selection mean different rounds crown different champions (lowest-memory once, lowest-error the next), and the output is a Pareto family instead of one model. A cap overflow hides under no lens, because it always wins the max."},
+    {"stem": "The MACs cap stands in for which real quantity, and on what evidence?",
+     "options": ["A stand-in for run time (latency); STM32 measurements show a correlation of r²=0.975 with the real execution time", "A stand-in for working RAM; every multiply-accumulate operation occupies one byte of temporary memory while it executes", "A stand-in for the model's final accuracy; a model that performs more computation is almost always the more accurate one too", "A stand-in for the model file's size in flash; the number of multiply-adds is equal to the number of stored weights"],
+     "answer": 0,
+     "explain": "MACs count multiply-accumulates and are computed from the architecture alone, with no hardware; because they correlate with real latency at r²=0.975, the search can penalize \"speed\" on paper. Working memory and file size have their own separate metrics (peak RAM and model size) — the backpack's three compartments are distinct."}
+  ]
+  </script>
+
+  <div class="lesson-nav">
+    <a href="07-nas.html"><div class="dir">← Previous</div><div>Lesson 07 — NAS</div></a>
+    <a href="09-quantization.html"><div class="dir">Next →</div><div>Lesson 09 — Quantization</div></a>
+  </div>
+  <footer class="site">LC-Intention-NAS · ELIOS Lab</footer>
+</main>
+</body>
+</html>

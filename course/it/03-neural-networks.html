@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="it" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lezione 03 — La Neural Network in parole povere | LC-Intention-NAS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/course.css">
+<script src="../assets/course.js" defer></script>
+</head>
+<body>
+<div class="topbar">
+  <a class="home" href="index.html">↪ Indice del corso</a>
+  <div class="spacer"></div>
+  <nav class="lang-switch" aria-label="Language">
+    <a href="../03-neural-networks.html" hreflang="fa">فا</a>
+    <a href="../en/03-neural-networks.html" hreflang="en">EN</a>
+    <a href="03-neural-networks.html" class="active" hreflang="it">IT</a>
+  </nav>
+  <button class="theme-toggle" onclick="toggleTheme()">🌗 Chiaro/Scuro</button>
+</div>
+<main>
+  <p class="kicker">Lezione 03</p>
+  <h1>La <span class="en">Neural Network</span> in parole povere 🧠</h1>
+  <p class="lede">Una macchina che tira a indovinare: all'inizio risponde completamente a caso, ma dopo ogni errore si corregge un po'.</p>
+
+  <div class="card callout story">
+    <p class="card-title">La storia 📖</p>
+    <p>Immagina di voler insegnare a un amico a riconoscere gli strumenti musicali a orecchio,
+    ma senza poter enunciare alcuna regola: non puoi dire «la chitarra ha un suono di corde» o
+    «il pianoforte ha un suono percussivo». Puoi solo fargli ascoltare migliaia di brani e dirgli
+    «questa era una chitarra», «questo era un pianoforte». A poco a poco il cervello del tuo amico
+    trova gli schemi da solo — senza riuscire a spiegare esattamente come.</p>
+    <p>Una <b><span class="en">neural network</span></b> fa la stessa cosa con i numeri:
+    una macchina che tira a indovinare, all'inizio completamente a caso, ma che dopo ogni errore si corregge un po'.
+    Dopo milioni di piccole correzioni, le sue previsioni diventano eccellenti.</p>
+  </div>
+
+  <h2>Più in dettaglio 🔬</h2>
+  <p>La rete è costruita a strati di <span class="en">neuron</span>.
+  Ogni <span class="en">neuron</span> è una creatura molto semplice: riceve alcuni numeri in ingresso,
+  moltiplica ciascuno per un <b><span class="en">weight</span></b> (peso), somma tutto
+  e fa passare il risultato attraverso una semplice funzione non lineare chiamata <b><span class="en">activation</span></b>.
+  L'<span class="en">activation</span> più famosa è la <b><span class="en">ReLU</span></b>, che ha una sola regola:
+  «se è negativo, azzeralo; altrimenti non toccarlo».</p>
+  <p>Immagina i pesi come le manopole del volume di un mixer: ogni manopola decide quanto forte
+  si sente un ingresso nella risposta finale. <b>«Imparare» significa trovare la regolazione giusta proprio di queste manopole.</b></p>
+
+  <figure class="viz">
+    <svg viewBox="0 0 720 315" role="img" aria-label="Struttura di un neuron: tre ingressi con pesi da w1 a w3 confluiscono in un nodo di somma, poi passano per la ReLU e producono l'output">
+      <defs>
+        <marker id="arr-n" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="var(--muted)"/>
+        </marker>
+      </defs>
+      <!-- inputs (right) -->
+      <text x="630" y="26" text-anchor="middle" fill="var(--ink-2)" font-size="12.5">Ingressi</text>
+      <circle cx="630" cy="70" r="26" fill="none" stroke="var(--series-2)" stroke-width="2"/>
+      <text x="630" y="76" text-anchor="middle" fill="var(--ink)" font-size="16" font-weight="700">x₁</text>
+      <circle cx="630" cy="155" r="26" fill="none" stroke="var(--series-2)" stroke-width="2"/>
+      <text x="630" y="161" text-anchor="middle" fill="var(--ink)" font-size="16" font-weight="700">x₂</text>
+      <circle cx="630" cy="240" r="26" fill="none" stroke="var(--series-2)" stroke-width="2"/>
+      <text x="630" y="246" text-anchor="middle" fill="var(--ink)" font-size="16" font-weight="700">x₃</text>
+      <!-- weighted arrows -->
+      <line x1="606" y1="80" x2="450" y2="143" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#arr-n)"/>
+      <line x1="604" y1="155" x2="452" y2="155" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#arr-n)"/>
+      <line x1="606" y1="230" x2="450" y2="167" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#arr-n)"/>
+      <text x="533" y="100" text-anchor="middle" fill="var(--series-1)" font-size="15" font-weight="700">w₁</text>
+      <text x="530" y="147" text-anchor="middle" fill="var(--series-1)" font-size="15" font-weight="700">w₂</text>
+      <text x="533" y="218" text-anchor="middle" fill="var(--series-1)" font-size="15" font-weight="700">w₃</text>
+      <text x="528" y="290" text-anchor="middle" fill="var(--ink-2)" font-size="12">ogni ingresso è moltiplicato per il suo peso</text>
+      <!-- sum node -->
+      <circle cx="420" cy="155" r="30" fill="none" stroke="var(--series-1)" stroke-width="2.5"/>
+      <text x="420" y="164" text-anchor="middle" fill="var(--ink)" font-size="24" font-weight="700">Σ</text>
+      <text x="420" y="212" text-anchor="middle" fill="var(--ink-2)" font-size="12.5">somma pesata</text>
+      <!-- ReLU -->
+      <line x1="390" y1="155" x2="318" y2="155" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#arr-n)"/>
+      <rect x="205" y="125" width="110" height="60" rx="10" fill="none" stroke="var(--series-2)" stroke-width="2.5"/>
+      <text x="260" y="152" text-anchor="middle" fill="var(--ink)" font-size="16" font-weight="700">ReLU</text>
+      <text x="260" y="172" text-anchor="middle" fill="var(--ink-2)" font-size="11">activation</text>
+      <text x="260" y="212" text-anchor="middle" fill="var(--ink-2)" font-size="12">se è negativo, azzeralo</text>
+      <!-- output -->
+      <line x1="205" y1="155" x2="132" y2="155" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#arr-n)"/>
+      <circle cx="97" cy="155" r="30" fill="none" stroke="var(--baseline)" stroke-width="2.5"/>
+      <text x="97" y="160" text-anchor="middle" fill="var(--ink)" font-size="12.5" font-weight="700">output</text>
+      <text x="97" y="212" text-anchor="middle" fill="var(--ink-2)" font-size="12">output: la stima della rete</text>
+    </svg>
+    <figcaption>Figura 1 — Un <span class="en">neuron</span>: ogni ingresso viene moltiplicato per il proprio <span class="en">weight</span>, il tutto viene sommato e il risultato passa attraverso la <span class="en">ReLU</span>. Imparare significa trovare i valori giusti proprio di questi pesi.</figcaption>
+  </figure>
+
+  <h3>Il ciclo di apprendimento: quattro passi, milioni di volte 🔁</h3>
+  <p>Ma come fa la rete a trovare la regolazione giusta dei pesi? Con un ciclo semplice che si ripete di continuo:</p>
+  <div class="card">
+    <p>1. La rete fa una previsione per un campione (questa fase si chiama <span class="en">forward</span>);<br>
+    2. Una funzione chiamata <b><span class="en">loss</span></b> misura quanto era sbagliata la previsione — come un insegnante che si limita a dare i voti;<br>
+    3. L'algoritmo di <b><span class="en">backpropagation</span></b> calcola quanta colpa dell'errore ha ciascun <span class="en">weight</span>;<br>
+    4. L'<b><span class="en">optimizer</span></b> (come <b><span class="en">AdamW</span></b>, quello che usiamo noi) spinge ogni <span class="en">weight</span> un po' nella direzione giusta.</p>
+  </div>
+
+  <figure class="viz">
+    <svg viewBox="0 0 720 440" role="img" aria-label="Il ciclo di apprendimento in quattro fasi: fai una previsione, misura l'errore, trova i responsabili, correggi un po' i pesi — e si ricomincia">
+      <defs>
+        <marker id="arr-l" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="var(--muted)"/>
+        </marker>
+      </defs>
+      <!-- stage 1: top -->
+      <rect x="250" y="22" width="220" height="62" rx="12" fill="none" stroke="var(--series-1)" stroke-width="2"/>
+      <text x="360" y="50" text-anchor="middle" fill="var(--ink)" font-size="15" font-weight="700">1) Fai una previsione</text>
+      <text x="360" y="71" text-anchor="middle" fill="var(--series-1)" font-size="12">forward</text>
+      <!-- stage 2: left -->
+      <rect x="15" y="189" width="225" height="62" rx="12" fill="none" stroke="var(--series-1)" stroke-width="2"/>
+      <text x="127" y="214" text-anchor="middle" fill="var(--ink)" font-size="14.5" font-weight="700">2) Misura l'errore</text>
+      <text x="127" y="236" text-anchor="middle" fill="var(--series-1)" font-size="12">loss</text>
+      <!-- stage 3: bottom -->
+      <rect x="235" y="356" width="250" height="62" rx="12" fill="none" stroke="var(--series-1)" stroke-width="2"/>
+      <text x="360" y="381" text-anchor="middle" fill="var(--ink)" font-size="14.5" font-weight="700">3) Trova i responsabili</text>
+      <text x="360" y="403" text-anchor="middle" fill="var(--series-1)" font-size="12">backpropagation</text>
+      <!-- stage 4: right -->
+      <rect x="480" y="189" width="225" height="62" rx="12" fill="none" stroke="var(--series-1)" stroke-width="2"/>
+      <text x="592" y="214" text-anchor="middle" fill="var(--ink)" font-size="14" font-weight="700">4) Correggi un po' i pesi</text>
+      <text x="592" y="236" text-anchor="middle" fill="var(--series-1)" font-size="12">optimizer · AdamW</text>
+      <!-- arrows, counterclockwise (RTL) -->
+      <path d="M 250 53 Q 140 65 127 185" fill="none" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr-l)"/>
+      <path d="M 127 251 Q 138 375 231 385" fill="none" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr-l)"/>
+      <path d="M 485 385 Q 582 375 592 255" fill="none" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr-l)"/>
+      <path d="M 592 189 Q 580 65 474 53" fill="none" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr-l)"/>
+      <!-- center note -->
+      <text x="360" y="185" text-anchor="middle" fill="var(--ink)" font-size="14" font-weight="700">Questo ciclo si ripete</text>
+      <text x="360" y="208" text-anchor="middle" fill="var(--ink)" font-size="14" font-weight="700">milioni di volte 🔁</text>
+      <text x="360" y="242" text-anchor="middle" fill="var(--ink-2)" font-size="12.5">un giro completo su tutti i dati</text>
+      <text x="360" y="264" text-anchor="middle" fill="var(--ink-2)" font-size="12.5">= un epoch</text>
+    </svg>
+    <figcaption>Figura 2 — Il ciclo di apprendimento: previsione, misura dell'errore, attribuzione delle colpe, piccola correzione dei pesi — e si ricomincia. Un giro completo su tutti i dati di <span class="en">train</span> si chiama <span class="en">epoch</span>.</figcaption>
+  </figure>
+
+  <p>Il punto importante: nessuna di queste correzioni fa miracoli da sola; ogni volta i pesi
+  migliorano soltanto «un po'». La magia della <span class="en">neural network</span> sta nella
+  ripetizione — milioni di piccole correzioni che si accumulano.</p>
+
+  <div class="card">
+    <p class="card-title">Un epoch è fatto di «passi» 👣</p>
+    <p>Abbiamo visto che un giro completo su tutti i dati di <span class="en">train</span> si chiama
+    <b><span class="en">epoch</span></b>. Ma la rete non guarda i dati un campione alla volta,
+    né tutti in una volta: i dati vengono divisi in piccoli gruppi chiamati <b><span class="en">batch</span></b>,
+    e dopo <b>ogni batch</b> i pesi vengono aggiornati una volta. Quindi:</p>
+    <p style="text-align:center"><b>Passi per epoch = numero di campioni ÷ dimensione del batch</b></p>
+    <p>Per esempio, con 94.620 campioni e un batch da 256, ogni epoch fa circa 370 passi. Perché a gruppi?
+    Se aggiorniamo dopo <b>ogni singolo campione</b> (batch = 1), la direzione di ogni passo riflette
+    l'opinione di un solo campione e il percorso di apprendimento diventa instabile e lento;
+    se aggiorniamo dopo <b>l'intero dataset</b>, ogni passo costa moltissimo.
+    Un <span class="en">batch</span> di dimensione media dà una media più stabile e tiene anche la
+    <span class="en">GPU</span> meglio occupata — nel nostro progetto <span class="en">batch = 256</span>.</p>
+  </div>
+
+  <h3>Che aspetto ha l'output della rete? 🎯</h3>
+  <div class="card">
+    <p>• Per la <b><span class="en">classification</span></b>, l'output della rete è composto da tre numeri (uno per classe)
+    e il più grande è la previsione della rete.<br>
+    • Per la <b><span class="en">regression</span></b>, l'output è un solo numero: quanti secondi mancano al cambio di corsia.</p>
+  </div>
+
+  <h3>Ma come si misura l'«errore»? Due tipi di loss 📏</h3>
+  <p>Abbiamo detto che la <span class="en">loss</span> dice quanto era sbagliata la previsione — ma
+  «essere sbagliata» <b>non significa la stessa cosa</b> per questi due tipi di output, quindi
+  servono due formule diverse:</p>
+  <div class="card">
+    <p>• Per la <b><span class="en">regression</span></b> (un output continuo, come «2.3 secondi»)
+    usiamo la <b><span class="en">MAE</span></b> (errore assoluto medio): la distanza tra la previsione
+    e la risposta giusta. Se la rete dice «2.0» e la risposta è «2.3», l'errore di questo campione è
+    0.3 <b>secondi</b> — e siccome l'unità è il secondo, il significato si capisce subito.<br>
+    • Per la <b><span class="en">classification</span></b> (una probabilità per ogni classe)
+    usiamo la <b><span class="en">cross-entropy</span></b>: questa formula misura quanto la rete è
+    sicura della classe giusta e penalizza pesantemente le risposte «sbagliate con sicurezza».
+    «2.0 al posto di 2.3» è una distanza, non una classe — ecco perché lì la MAE non serve.</p>
+  </div>
+  <p>Quindi il tipo di <span class="en">loss</span> deve essere della stessa natura del problema.
+  I dettagli dell'apprendimento e di queste due <span class="en">loss</span> arrivano nella
+  Lezione 05; qui bastava sapere perché abbiamo due formule separate.</p>
+
+  <h2>Nel nostro progetto 🧰</h2>
+  <div class="card">
+    <p>• Il nostro modello di base è una piccola <b><span class="en">CNN</span> monodimensionale</b> (la Lezione 04 la spiega in dettaglio)
+    in <span class="en">src/models/baseline.py</span>.<br>
+    • Il ciclo di apprendimento è implementato in <span class="en">src/train.py</span>:
+    <span class="en">AdamW</span> + <span class="en">early stopping</span>
+    (se per alcuni <span class="en">epoch</span> di fila non ci sono miglioramenti, fermati).<br>
+    • Prima esecuzione: solo 27 secondi di <span class="en">training</span> su <span class="en">GPU</span>
+    e accuratezza del 91.5% sui dati di <span class="en">test</span> —
+    registrato in <span class="en">logs/experiments.jsonl</span>.</p>
+  </div>
+
+  <div class="tiles">
+    <div class="tile">
+      <div class="value">27 s</div>
+      <div class="label">Tempo di <span class="en">training</span> della prima esecuzione su <span class="en">GPU</span></div>
+    </div>
+    <div class="tile">
+      <div class="value">91.5%</div>
+      <div class="label">Accuratezza (<span class="en">accuracy</span>) sui dati di <span class="en">test</span></div>
+    </div>
+  </div>
+
+  <div id="quiz" class="quiz"></div>
+  <script type="application/json" id="quiz-data">
+  [
+    {"stem": "Se azzeriamo tutti i weight di una rete e non la addestriamo più, che cosa succede?",
+     "options": ["La rete torna al suo stato predefinito e generico e, grazie alla conoscenza innata dell'architettura, fa previsioni mediocri ma ragionevoli", "Diminuisce solo la velocità di esecuzione della rete, ma le risposte restano le stesse, perché la struttura degli strati è rimasta intatta", "L'output della rete non dipende più da nessun ingresso; tutta la conoscenza stava proprio in quei weight", "La rete dà errori nelle prime esecuzioni, ma col tempo genera da sola nuovi weight e li sostituisce a quelli azzerati"],
+     "answer": 2,
+     "explain": "Tutta la «conoscenza» di una rete è nei valori dei suoi weight — non esiste nessun'altra memoria. Con i weight a zero, ogni ingresso viene moltiplicato per zero e l'output diventa indipendente dall'input. «Imparare» significa trovare i valori giusti proprio di questi numeri, e senza addestramento niente migliora da solo."},
+    {"stem": "Nel ciclo di apprendimento, qual è esattamente il compito della backpropagation?",
+     "options": ["Prevedere l'output per un nuovo ingresso, facendo passare il segnale attraverso tutti gli strati in ordine", "Calcolare il contributo di ogni weight all'errore e la direzione in cui correggere ciascuno", "Misurare quanto la previsione della rete era lontana dalla risposta giusta e trasformarla in un unico numero di penalità", "Applicare la correzione finale a ogni singolo weight, con un passo la cui ampiezza è decisa dal learning rate"],
+     "answer": 1,
+     "explain": "Quattro fasi, quattro compiti distinti: il forward fa la previsione, la loss misura quanto era sbagliata, la backpropagation calcola la «quota di colpa» di ogni weight e l'optimizer applica la correzione. Le altre opzioni sono esattamente i compiti delle altre tre fasi — questa domanda ne verifica i confini."},
+    {"stem": "Con batch da 256, il nostro modello di base fa circa 370 passi per epoch. Che cosa succede se portiamo il batch a 1?",
+     "options": ["Non cambia nulla; il numero totale di campioni di train è fisso e il totale dei calcoli di ogni epoch resta lo stesso", "Il modello diventa molto più preciso, perché ogni campione riceve attenzione piena e dedicata e sparisce il rumore degli altri campioni", "Ogni epoch diventa circa 94 mila passi rumorosi: ogni passo vede solo l'opinione di un campione e il percorso si fa instabile e lento", "Il training si interrompe con un errore, perché le librerie di deep learning definiscono 32 come batch minimo consentito"],
+     "answer": 2,
+     "explain": "Passi di apprendimento = numero di campioni ÷ dimensione del batch. Con batch = 1 ogni passo vede l'opinione di «un solo» campione e la direzione della correzione cambia di continuo — rumoroso e inefficiente sulla GPU. Un batch medio (come 256) dà una media più stabile e sfrutta meglio l'hardware. Non esiste nessun minimo obbligatorio pari a 32."},
+    {"stem": "Perché per la regression di questo progetto usiamo la MAE e non la cross-entropy?",
+     "options": ["Perché la MAE dà sempre un numero più piccolo della cross-entropy e rende la curva di apprendimento più liscia e più stabile durante il training", "Perché il calcolo della cross-entropy è supportato solo su GPU e sui processori comuni risulta estremamente lento", "Perché la MAE è stata progettata apposta per i dati dei simulatori di guida ed è la loss standard in questo settore", "Perché la cross-entropy serve per probabilità sulle classi; la regression produce un numero continuo e la MAE misura l'errore in secondi"],
+     "answer": 3,
+     "explain": "La loss deve essere della stessa natura del problema: la cross-entropy penalizza la fiducia del modello nella classe giusta (abbiamo tre classi), ma «2.0 al posto di 2.3 secondi» non è una classe — è una distanza. La MAE prende il valore assoluto proprio di quella distanza e, siccome la sua unità è il secondo, il numero è direttamente interpretabile."}
+  ]
+  </script>
+
+  <div class="lesson-nav">
+    <a href="02-the-data.html"><div class="dir">← Precedente</div><div>Lezione 02 — I dati</div></a>
+    <a href="04-1d-cnn.html"><div class="dir">Successiva →</div><div>Lezione 04 — CNN monodimensionale</div></a>
+  </div>
+  <footer class="site">LC-Intention-NAS · ELIOS Lab</footer>
+</main>
+</body>
+</html>

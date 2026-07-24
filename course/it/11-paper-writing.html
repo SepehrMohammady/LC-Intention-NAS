@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="it" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lezione 11 — Scrivere il paper | LC-Intention-NAS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/course.css">
+<script src="../assets/course.js" defer></script>
+</head>
+<body>
+<div class="topbar">
+  <a class="home" href="index.html">↪ Indice del corso</a>
+  <div class="spacer"></div>
+  <nav class="lang-switch" aria-label="Language">
+    <a href="../11-paper-writing.html" hreflang="fa">فا</a>
+    <a href="../en/11-paper-writing.html" hreflang="en">EN</a>
+    <a href="11-paper-writing.html" class="active" hreflang="it">IT</a>
+  </nav>
+  <button class="theme-toggle" onclick="toggleTheme()">🌗 Chiaro/Scuro</button>
+</div>
+<main>
+  <p class="kicker">Lezione 11</p>
+  <h1>Scrivere il paper: come i risultati diventano un <span class="en">paper</span> 📝</h1>
+  <p class="lede">Abbiamo sperimentato per mesi e ottenuto numeri buoni; ora dobbiamo trasformare tutto questo in un documento di poche pagine capace di convincere anche i reviewer più severi del mondo.</p>
+
+  <div class="card callout story">
+    <p class="card-title">La storia 📖</p>
+    <p>La scienza è come un grande tribunale. Noi abbiamo una <b>tesi</b>: «il nostro modello
+    piccolo prevede il momento del cambio di corsia con più precisione del record precedente,
+    e gira anche su un chip reale.» Il paper (<span class="en">paper</span>) è il nostro fascicolo:
+    ogni affermazione che vi scriviamo deve avere lì la sua prova — una tabella, un grafico,
+    un esperimento riproducibile.</p>
+    <p>I giudici di questo tribunale sono i reviewer (<span class="en">reviewers</span>):
+    scienziati anonimi che leggono il fascicolo cercando il più piccolo buco. Se c&rsquo;è un
+    numero senza prova o un punto debole nascosto, il fascicolo torna indietro. Per questo la
+    nostra regola è semplice: <b>nessuna affermazione senza prova, e nessun punto debole
+    nascosto.</b></p>
+  </div>
+
+  <h2>Più in dettaglio 🔬</h2>
+  <p>I paper <span class="en">IEEE</span> hanno quasi sempre uno scheletro fisso. Se conosci
+  questo scheletro, riesci a leggere velocemente qualsiasi paper:</p>
+
+  <table>
+    <thead><tr><th>Sezione</th><th>In una frase, che cosa dice?</th></tr></thead>
+    <tbody>
+      <tr><td><span class="en">Abstract</span></td><td>Tutta la storia in poche frasi: che cosa abbiamo fatto e che numeri abbiamo ottenuto.</td></tr>
+      <tr><td><span class="en">Introduction</span></td><td>Perché questo problema è importante e che cosa di nuovo aggiungiamo, esattamente.</td></tr>
+      <tr><td><span class="en">Related Work</span></td><td>Che cosa hanno fatto gli altri finora e dove sta lo spazio vuoto per il nostro lavoro.</td></tr>
+      <tr><td><span class="en">Method</span></td><td>La ricetta completa: così precisa che chiunque possa ripetere il lavoro.</td></tr>
+      <tr><td><span class="en">Experiments</span></td><td>Le prove: tabelle e grafici che dimostrano una per una tutte le affermazioni.</td></tr>
+      <tr><td><span class="en">Conclusion</span></td><td>Il bilancio: che cosa abbiamo imparato e qual è il passo successivo.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Ogni numero deve essere tracciabile 🔎</h3>
+  <p>Quando un reviewer chiede «da dove viene questo <span class="en">0.287</span>?», dobbiamo
+  poter rispondere in pochi secondi. Per questo, fin dal primo giorno abbiamo tre abitudini:
+  ogni run viene registrata con tutti i suoi dettagli (configurazione, ambiente di esecuzione,
+  risultati) nel file <span class="en">logs/experiments.jsonl</span>; la ragione di ogni
+  decisione viene scritta in <span class="en">LOGBOOK.md</span>; e dopo ogni modifica al testo
+  del paper (<span class="en">paper/main.tex</span>) il file <span class="en">PDF</span> viene
+  ricostruito, così testo e numeri non restano mai indietro l&rsquo;uno rispetto agli altri.
+  Abbiamo anche una regola d&rsquo;oro: nessun numero entra nel paper se non abbiamo rimisurato
+  noi stessi il modello salvato con <span class="en">verify_models.py</span> sui dati di
+  <span class="en">test</span>.</p>
+
+  <figure class="viz">
+    <svg viewBox="0 0 760 300" role="img" aria-label="Il ciclo di produzione del paper: gli esperimenti vengono registrati in experiments.jsonl, le decisioni finiscono nel LOGBOOK, il testo viene scritto in main.tex e trasformato in PDF, inviato alla rivista, sottoposto a review e infine pubblicato; se i reviewer chiedono correzioni, la freccia di ritorno riporta al testo del paper">
+      <defs>
+        <marker id="arr-p" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="var(--muted)"/>
+        </marker>
+      </defs>
+      <!-- row 1: right to left -->
+      <rect x="600" y="48" width="140" height="64" rx="12" fill="none" stroke="var(--series-2)" stroke-width="2"/>
+      <text x="670" y="76" text-anchor="middle" fill="var(--ink)" font-size="14.5" font-weight="700">Esperimento 🧪</text>
+      <text x="670" y="98" text-anchor="middle" fill="var(--ink-2)" font-size="10.5" font-family="ui-monospace, Consolas, monospace">experiments.jsonl</text>
+      <line x1="600" y1="80" x2="552" y2="80" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr-p)"/>
+
+      <rect x="405" y="48" width="145" height="64" rx="12" fill="none" stroke="var(--series-2)" stroke-width="2"/>
+      <text x="477" y="76" text-anchor="middle" fill="var(--ink)" font-size="14.5" font-weight="700">Decisioni 📓</text>
+      <text x="477" y="98" text-anchor="middle" fill="var(--ink-2)" font-size="11" font-family="ui-monospace, Consolas, monospace">LOGBOOK.md</text>
+      <line x1="405" y1="80" x2="357" y2="80" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr-p)"/>
+
+      <rect x="210" y="48" width="145" height="64" rx="12" fill="none" stroke="var(--series-1)" stroke-width="2.5"/>
+      <text x="282" y="76" text-anchor="middle" fill="var(--ink)" font-size="14.5" font-weight="700">Manoscritto ✍️</text>
+      <text x="282" y="98" text-anchor="middle" fill="var(--ink-2)" font-size="11" font-family="ui-monospace, Consolas, monospace">main.tex</text>
+      <line x1="210" y1="80" x2="162" y2="80" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr-p)"/>
+
+      <rect x="30" y="48" width="130" height="64" rx="12" fill="none" stroke="var(--series-1)" stroke-width="2"/>
+      <text x="95" y="76" text-anchor="middle" fill="var(--ink)" font-size="14.5" font-weight="700">PDF 📄</text>
+      <text x="95" y="98" text-anchor="middle" fill="var(--ink-2)" font-size="11">dopo ogni modifica</text>
+
+      <!-- down to row 2 -->
+      <line x1="95" y1="112" x2="95" y2="186" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr-p)"/>
+
+      <!-- row 2: left to right -->
+      <rect x="30" y="192" width="130" height="64" rx="12" fill="none" stroke="var(--baseline)" stroke-width="2"/>
+      <text x="95" y="220" text-anchor="middle" fill="var(--ink)" font-size="14.5" font-weight="700">Invio 🚀</text>
+      <text x="95" y="242" text-anchor="middle" fill="var(--ink-2)" font-size="11" font-family="ui-monospace, Consolas, monospace">submit</text>
+      <line x1="160" y1="224" x2="204" y2="224" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr-p)"/>
+
+      <rect x="210" y="192" width="145" height="64" rx="12" fill="none" stroke="var(--baseline)" stroke-width="2"/>
+      <text x="282" y="220" text-anchor="middle" fill="var(--ink)" font-size="14.5" font-weight="700">Revisione 🕵️</text>
+      <text x="282" y="242" text-anchor="middle" fill="var(--ink-2)" font-size="11" font-family="ui-monospace, Consolas, monospace">review</text>
+      <line x1="355" y1="224" x2="399" y2="224" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr-p)"/>
+
+      <rect x="405" y="192" width="145" height="64" rx="12" fill="none" stroke="var(--series-2)" stroke-width="2.5"/>
+      <text x="477" y="220" text-anchor="middle" fill="var(--ink)" font-size="14.5" font-weight="700">Pubblicazione 🎉</text>
+      <text x="477" y="242" text-anchor="middle" fill="var(--ink-2)" font-size="11" font-family="ui-monospace, Consolas, monospace">publish</text>
+      <text x="655" y="228" text-anchor="middle" fill="var(--muted)" font-size="11.5">a disposizione del mondo 🌍</text>
+
+      <!-- revision loop -->
+      <line x1="282" y1="192" x2="282" y2="118" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="5 5" marker-end="url(#arr-p)"/>
+      <text x="296" y="148" text-anchor="start" fill="var(--ink-2)" font-size="12" font-weight="700">correzione e nuovo invio 🔁</text>
+      <text x="296" y="168" text-anchor="start" fill="var(--muted)" font-size="11" font-family="ui-monospace, Consolas, monospace">revision</text>
+    </svg>
+    <figcaption>Figura 1 — La catena di produzione del paper: ogni numero parte da un esperimento registrato e la sua traccia si conserva fino al <span class="en">PDF</span>. Se i reviewer chiedono correzioni (<span class="en">revision</span>), la freccia di ritorno riporta al manoscritto e il ciclo continua.</figcaption>
+  </figure>
+
+  <p>Anche la tesi principale del fascicolo ha già la sua prova — il miglior modello della
+  nostra ricerca <span class="en">NAS</span> (che abbiamo verificato noi, in modo indipendente,
+  sul <span class="en">test</span>) contro il record pubblicato:</p>
+
+  <div class="tiles">
+    <div class="tile"><div class="value">0.287</div><div class="label"><span class="en">MAE</span> del nostro modello (secondi, verifica indipendente)</div></div>
+    <div class="tile"><div class="value">0.298</div><div class="label"><span class="en">MAE</span> del record pubblicato</div></div>
+    <div class="tile"><div class="value">0.447</div><div class="label"><span class="en">RMSE</span> del nostro modello (secondi)</div></div>
+    <div class="tile"><div class="value">0.510</div><div class="label"><span class="en">RMSE</span> del record pubblicato</div></div>
+  </div>
+
+  <p>E la seconda colonna del fascicolo è l&rsquo;esecuzione reale su hardware — tutto misurato,
+  non stimato: accuratezza <span class="en">92.08%</span> contro <span class="en">91.69%</span>
+  del modello di riferimento, con <span class="en">9.2×</span> di velocità in più e
+  <span class="en">5.2×</span> di memoria in meno sulla stessa board e con lo stesso tool;
+  e sulla board economica <span class="en">F401</span> il modello di riferimento non entra
+  proprio, mentre il nostro modello minuscolo gira (Lezione 10).</p>
+
+  <h2>La review: ispettori severi 🕵️</h2>
+  <p>I reviewer sono anonimi, non fanno complimenti e il loro mestiere è proprio questo: trovare
+  i punti deboli. La difesa migliore? <b>Dichiarare noi per primi il punto debole.</b>
+  L&rsquo;esempio reale nel nostro progetto è il leakage della freccia: i due canali
+  <span class="en">blinker</span> da soli — senza nessun&rsquo;altra intelligenza — nel problema
+  di <span class="en">classification</span> raggiungono un&rsquo;accuratezza dell&rsquo;<span class="en">81.5%</span>
+  sul <span class="en">test</span>. Perché? Perché la freccia quasi sempre tradisce
+  l&rsquo;intenzione:</p>
+
+  <figure class="viz">
+    <div class="hbar" role="img" aria-label="Percentuale di finestre di ciascuna classe con la freccia accesa: 92 per cento nei cambi di corsia a destra, 71 per cento nei cambi a sinistra e solo il sei e mezzo per cento nelle finestre senza intenzione">
+      <div class="name">Cambio di corsia a destra (<span class="en">LCR</span>)</div><div class="track"><div class="fill" style="width:92%"></div></div><div class="val">92%</div>
+      <div class="name">Cambio di corsia a sinistra (<span class="en">LCL</span>)</div><div class="track"><div class="fill" style="width:71%"></div></div><div class="val">71%</div>
+      <div class="name">Nessuna intenzione di cambio</div><div class="track"><div class="fill" style="width:6.5%"></div></div><div class="val">6.5%</div>
+    </div>
+    <figcaption>Figura 2 — In quale percentuale delle finestre di ciascuna classe la freccia è accesa (scala da 0 a 100%). È proprio questa grande differenza a permettere al modello di <span class="en">classification</span> di «barare».</figcaption>
+  </figure>
+
+  <p>La buona notizia: il problema di <span class="en">regression</span> è pulito. Usando solo
+  la freccia, il <span class="en">MAE</span> arriva a <span class="en">0.72</span> e
+  <span class="en">0.90</span> secondi, mentre il nostro modello base ottiene
+  <span class="en">0.318</span> e <span class="en">0.333</span> — cioè il modello impara davvero
+  dal comportamento del guidatore, non dalla freccia. Per questo il nostro paper procede con la
+  <span class="en">regression</span> e l&rsquo;esecuzione reale su board, e per la
+  <span class="en">classification</span> riporta <b>apertamente</b> un esperimento comparativo
+  con/senza <span class="en">blinker</span> (si chiama <span class="en">ablation</span>).
+  Un reviewer che vede che siamo stati noi gli ispettori più severi del nostro stesso lavoro
+  si fida di più anche di tutti gli altri numeri.</p>
+
+  <p>Il leakage della freccia non è la nostra unica dichiarazione di onestà; scriviamo
+  esplicitamente anche altri due punti deboli: primo, alcuni <b>obiettivi interni di
+  <span class="en">RMSE</span></b> (i risultati di riferimento del team) non sono ancora stati
+  battuti, e non lo nascondiamo; secondo, la quantization <b><span class="en">int16×8</span></b>
+  sul tool <span class="en">ST</span> <b>non è deployabile</b> (ricade silenziosamente su
+  <span class="en">float32</span>), quindi la riportiamo solo come limite di accuratezza
+  offline, non come configurazione effettivamente deployata.</p>
+
+  <h2>Quale rivista? ⚖️</h2>
+  <p>Abbiamo due opzioni principali e la scelta è davvero difficile:</p>
+
+  <table>
+    <thead><tr><th>Rivista</th><th class="num">Quartile</th><th class="num">Limite di pagine</th><th class="num">IF</th><th class="num">Prima risposta (settimane)</th></tr></thead>
+    <tbody>
+      <tr><td><span class="en">IEEE Signal Processing Letters</span></td><td class="num">Q1</td><td class="num">4</td><td class="num">4.6</td><td class="num">≈6</td></tr>
+      <tr><td><span class="en">IEEE Internet of Things Journal</span></td><td class="num">Q1</td><td class="num">8</td><td class="num">8.7</td><td class="num">≈7</td></tr>
+    </tbody>
+  </table>
+
+  <p><span class="en">SPL</span> è proprio la rivista in cui è stato pubblicato il record
+  attuale (il lavoro del 2026 di questo stesso laboratorio) — quindi il nostro confronto
+  verrebbe visto esattamente lì. Ma il suo limite di 4 pagine è <b>duro</b>: la nostra storia
+  (<span class="en">NAS</span> + <span class="en">quantization</span> + esecuzione reale su
+  board + l&rsquo;esperimento di onestà sul <span class="en">blinker</span>) entra a fatica in
+  4 pagine e dovremmo sacrificare qualcosa. <span class="en">IoT-J</span> con 8 pagine dà spazio
+  per respirare, ha un <span class="en">IF</span> alto (<span class="en">8.7</span>) e la prima
+  risposta arriva in circa 7 settimane — ma il suo pubblico è un po&rsquo; diverso. Ora che i
+  risultati finali (le ricerche complete e le misure su board) sono arrivati, questa decisione
+  verrà finalizzata con il supervisore: la dimensione della storia determina la dimensione
+  della rivista.</p>
+
+  <h2>Il guardiano dello stile: numeri al posto di aggettivi ✍️</h2>
+  <p>C&rsquo;è anche un pericolo curioso: un testo che sembri «scritto da un robot». Alcune
+  parole sono state ripetute così tanto nei testi generati dall&rsquo;intelligenza artificiale
+  che i reviewer, vedendole, alzano il sopracciglio. Per questo in
+  <span class="en">paper/STYLE.md</span> abbiamo una lista di parole proibite:
+  <span class="en">delve</span>, <span class="en">leverage</span>, <span class="en">robust</span>,
+  <span class="en">seamless</span> e compagnia.</p>
+
+  <div class="card callout">
+    <p class="card-title">La regola d&rsquo;oro dello stile 🏅</p>
+    <p>Non consegnare aggettivi al reviewer; consegna numeri e tabelle.</p>
+    <p>❌ «Il nostro modello è in modo <span class="en">seamless</span> e sorprendente migliore dei lavori precedenti.»<br>
+    ✅ «Il <span class="en">MAE</span> del nostro modello è <span class="en">0.287</span> secondi
+    contro <span class="en">0.298</span> del record precedente (Tabella <span class="en">III</span>).»</p>
+    <p>La prima frase è discutibile; la seconda è verificabile. Nella scienza conta solo la seconda.</p>
+  </div>
+
+  <h2>Nel nostro progetto 🧰</h2>
+  <div class="card">
+    <p>• <span class="en">logs/experiments.jsonl</span>: ogni run viene registrata con configurazione + ambiente + risultati — nessun numero va perso.<br>
+    • <span class="en">LOGBOOK.md</span>: la ragione di ogni decisione, per il giorno in cui chiederanno «perché così?»<br>
+    • <span class="en">paper/main.tex</span>: la bozza del paper; dopo ogni modifica il <span class="en">PDF</span> viene ricostruito.<br>
+    • <span class="en">paper/STYLE.md</span>: la lista delle parole proibite e la regola «numeri al posto di aggettivi».<br>
+    • <span class="en">verify_models.py</span>: nessun numero entra nel paper senza verifica indipendente sul <span class="en">test</span>.<br>
+    • Regola di onestà: il leakage del <span class="en">blinker</span> viene riportato apertamente, con l&rsquo;esperimento con/senza.<br>
+    • La scelta della rivista (<span class="en">SPL</span> o <span class="en">IoT-J</span>) si fa dopo la fine delle ricerche complete.</p>
+  </div>
+
+  <div id="quiz" class="quiz"></div>
+  <script type="application/json" id="quiz-data">
+  [
+    {"stem": "Un reviewer chiede: «Perché avete rimisurato voi stessi il modello di riferimento? I numeri del paper originale erano già disponibili.» Qual è la difesa migliore?",
+     "options": ["L'accuratezza è stata riprodotta sullo stesso test e l'hardware misurato con configurazione identica; la superiorità ha senso solo a condizioni pari", "I numeri riportati negli altri paper non sono citabili per principio, e usarli senza prima riprodurli costituisce una violazione dell'integrità scientifica", "Perché rimisurare il modello di riferimento arricchisce la sezione Experiments e fa sembrare il paper più serio e completo agli occhi del reviewer", "Perché secondo la licenza del dataset l'uso dei modelli del team era permesso solo previa nuova valutazione e registrazione del risultato nel log"],
+     "answer": 0,
+     "explain": "Due ragioni difendibili: (1) latency e memoria sono sensibili alla board e alla versione del tool, quindi un confronto equo significa misurare entrambi i modelli con la stessa configurazione; (2) riprodurre il numero di riferimento dimostra che il nostro protocollo di valutazione coincide con il loro. È rispetto per il lavoro precedente, non sfiducia — ed è esattamente ciò che il reviewer vuole vedere."},
+    {"stem": "In experiments.jsonl, oltre al «risultato», si registrano anche la configurazione e l'ambiente di esecuzione (versioni delle librerie, GPU ecc.). Qual è lo scenario in cui questo ci salva?",
+     "options": ["Quando vogliamo accelerare il training: confrontando i tempi delle run registrate si possono individuare la GPU e la configurazione migliori", "Quando la rivista, in fase di review, richiede agli autori il file di log completo degli esperimenti come allegato obbligatorio alla submission", "Sei mesi dopo, un numero non torna più con una nuova run; solo confrontando l'ambiente registrato si capisce che cosa è cambiato", "Quando un altro gruppo vuole riprodurre i risultati e bisogna consegnargli le versioni esatte dell'hardware e delle librerie utilizzate"],
+     "answer": 2,
+     "explain": "L'incubo classico della ricerca: «questo 0.287 non esce più!» Se l'ambiente non è registrato, il colpevole può essere qualsiasi cosa — la versione di TensorFlow, la casualità del seed o i dati stessi. Con un log completo, la differenza tra due run si trova in pochi minuti. La registrazione non è per la rivista; è per i noi stessi di sei mesi dopo."},
+    {"stem": "Quale caso è un esempio di «dichiarare noi per primi il punto debole» nel nostro paper?",
+     "options": ["Eliminare del tutto i risultati int8 dal paper: il loro calo di accuratezza è grande e riportarli toglierebbe soltanto forza al nostro lavoro", "Riportare gli obiettivi interni di RMSE non ancora battuti + l'esperimento con/senza blinker + dichiarare int16×8 non deployabile", "Non scrivere il nome esatto della board e la versione del tool, così il reviewer non può confrontare i nostri numeri con quelli di altri paper", "Usare nel testo descrizioni più forti e più sicure, così i piccoli punti deboli numerici restano in ombra dietro un tono deciso e convincente"],
+     "answer": 1,
+     "explain": "Tre esempi reali di un unico principio: ciò che il reviewer prima o poi troverà, è meglio riportarlo noi, con misure precise. Il leakage della freccia è stato quantificato con l'ablation, il ritardo sugli obiettivi interni è dichiarato esplicitamente e il limite del tool ST è documentato. L'onestà compra la credibilità di tutti gli altri numeri."},
+    {"stem": "Quale frase è accettabile per il paper secondo il nostro «guardiano dello stile»?",
+     "options": ["«Il nostro approccio si deploya in modo seamless e senza alcuna difficoltà sull'hardware edge»", "«I nostri risultati sono stati notevolmente robust in tutti gli esperimenti e mostrano una superiorità considerevole»", "«Il nostro modello supera con un margine molto ampio tutti i concorrenti conosciuti in questo campo»", "«Il modello da 84k parametri, misurato sulla H7B3I-DK, è stato eseguito in 3.63ms (Tabella IV)»"],
+     "answer": 3,
+     "explain": "Solo la frase con il numero misurato riporta il valore, le condizioni di misura e il riferimento alla tabella — le tre cose che rendono un'affermazione «verificabile». Le altre o usano gli aggettivi proibiti di STYLE.md (seamless, robust) o fanno affermazioni vaghe senza prove. La regola d'oro: non consegnare aggettivi al reviewer; consegna numeri e tabelle."}
+  ]
+  </script>
+
+  <div class="lesson-nav">
+    <a href="10-stm32.html"><div class="dir">← Precedente</div><div>Lezione 10 — STM32</div></a>
+    <a href="index.html"><div class="dir">Successiva →</div><div>Indice del corso</div></a>
+  </div>
+  <footer class="site">LC-Intention-NAS · ELIOS Lab</footer>
+</main>
+</body>
+</html>

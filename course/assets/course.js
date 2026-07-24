@@ -1,5 +1,25 @@
 /* Theme toggle + quiz engine (vanilla JS, no dependencies). */
 
+/* ---------- i18n (strings follow <html lang>) ---------- */
+const COURSE_LANG = (document.documentElement.lang || "fa").slice(0, 2);
+const COURSE_STR = {
+  fa: {
+    quizTitle: "آزمونک درس 🎯",
+    score: (c, n) => `نتیجه: ${c} از ${n} درست ${c === n ? "— آفرین! 🏆" : "— دوباره درس را مرور کن و باز امتحان کن."}`,
+  },
+  en: {
+    quizTitle: "Lesson quiz 🎯",
+    score: (c, n) => `Score: ${c} of ${n} correct ${c === n ? "— well done! 🏆" : "— review the lesson and try again."}`,
+  },
+  it: {
+    quizTitle: "Quiz della lezione 🎯",
+    score: (c, n) => `Punteggio: ${c} su ${n} corrette ${c === n ? "— ottimo lavoro! 🏆" : "— ripassa la lezione e riprova."}`,
+  },
+}[COURSE_LANG] || {
+  quizTitle: "Quiz 🎯",
+  score: (c, n) => `${c} / ${n}`,
+};
+
 /* ---------- theme ---------- */
 (function initTheme() {
   const saved = localStorage.getItem("course-theme");
@@ -27,7 +47,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let answered = 0, correct = 0;
 
   const h2 = document.createElement("h2");
-  h2.textContent = "آزمونک درس 🎯";
+  h2.textContent = COURSE_STR.quizTitle;
   host.appendChild(h2);
 
   questions.forEach((q, qi) => {
@@ -58,7 +78,7 @@ document.addEventListener("DOMContentLoaded", () => {
         answered += 1;
         if (ok) correct += 1;
         if (answered === questions.length) {
-          score.textContent = `نتیجه: ${correct} از ${questions.length} درست ${correct === questions.length ? "— آفرین! 🏆" : "— دوباره درس را مرور کن و باز امتحان کن."}`;
+          score.textContent = COURSE_STR.score(correct, questions.length);
         }
       });
       opts.appendChild(btn);

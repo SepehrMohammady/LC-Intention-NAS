@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="it" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lezione 01 — Il problema | LC-Intention-NAS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/course.css">
+<script src="../assets/course.js" defer></script>
+</head>
+<body>
+<div class="topbar">
+  <a class="home" href="index.html">↪ Indice del corso</a>
+  <div class="spacer"></div>
+  <nav class="lang-switch" aria-label="Language">
+    <a href="../01-the-problem.html" hreflang="fa">فا</a>
+    <a href="../en/01-the-problem.html" hreflang="en">EN</a>
+    <a href="01-the-problem.html" class="active" hreflang="it">IT</a>
+  </nav>
+  <button class="theme-toggle" onclick="toggleTheme()">🌗 Chiaro/Scuro</button>
+</div>
+<main>
+  <p class="kicker">Lezione 01</p>
+  <h1>Il problema: come fa l&rsquo;auto a capire che il guidatore vuole cambiare corsia? 🚗</h1>
+  <p class="lede">Prima di cambiare corsia, il guidatore lascia piccole tracce nei segnali dell&rsquo;auto — il nostro compito è trovare proprio quelle tracce, qualche secondo prima della manovra vera e propria.</p>
+
+  <div class="card callout story">
+    <p class="card-title">La storia 📖</p>
+    <p>Quando qualcuno per strada vuole cambiare corsia, prima della manovra principale lascia
+    trasparire una serie di piccoli indizi: ruota il volante a poco a poco, aggiusta la velocità,
+    guarda lo specchietto, si avvicina o si allontana dal veicolo che lo precede. Le persone
+    colgono questi indizi in modo inconsapevole — per esempio, quando un motociclista ti zigzaga
+    accanto, «senti» che sta per tagliare, senza riuscire a dire con precisione da cosa
+    l&rsquo;hai capito.</p>
+    <p>La domanda di questo progetto: può anche un programma per computer, osservando questi
+    stessi indizi, prevedere il cambio di corsia <b>qualche secondo prima</b>? Se ci riesce,
+    l&rsquo;auto ha il tempo di dare un avviso o di prepararsi — e proprio quei pochi secondi
+    possono valere moltissimo.</p>
+  </div>
+
+  <h2>Più in dettaglio 🔬</h2>
+  <p>Le auto di oggi sono piene di sensori; decine di segnali vengono registrati in ogni istante:
+  velocità, angolo di sterzo, distanza dalla linea di corsia, distanza dai veicoli circostanti
+  e così via. Messi insieme, questi segnali formano una
+  <b><span class="en">multivariate time series</span></b>: più segnali paralleli che cambiano
+  tutti nel tempo — qualcosa di simile a più tracciati cardiaci registrati fianco a fianco,
+  in simultanea, ognuno dei quali racconta la propria storia.</p>
+
+  <p>La cosa interessante è che gli indizi del cambio di corsia, quelle «tracce», compaiono in
+  questi stessi segnali già qualche secondo prima. La figura qui sotto ne mostra uno schema
+  semplificato:</p>
+
+  <figure class="viz">
+    <div class="legend">
+      <span class="key"><span class="swatch" style="background:var(--series-1)"></span> Angolo di sterzo (<span class="en">steering angle</span>)</span>
+      <span class="key"><span class="swatch" style="background:var(--series-2)"></span> Freccia (<span class="en">indicator</span>)</span>
+      <span class="key"><span class="swatch" style="background:var(--muted)"></span> Distanza dalla linea (<span class="en">lane distance</span>)</span>
+    </div>
+    <svg viewBox="0 0 720 335" role="img" aria-label="Tre segnali del veicolo in una finestra di cinque secondi: l'angolo di sterzo cresce poco prima del cambio di corsia, la freccia si accende come un gradino e la distanza dalla linea diminuisce; la linea tratteggiata verticale indica l'istante del cambio di corsia e gli indizi iniziano qualche secondo prima">
+      <defs>
+        <marker id="arrA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="var(--muted)"/>
+        </marker>
+      </defs>
+      <!-- grid: one vertical line per second -->
+      <line x1="60"  y1="26" x2="60"  y2="290" stroke="var(--grid)" stroke-width="1"/>
+      <line x1="180" y1="26" x2="180" y2="290" stroke="var(--grid)" stroke-width="1"/>
+      <line x1="300" y1="26" x2="300" y2="290" stroke="var(--grid)" stroke-width="1"/>
+      <line x1="420" y1="26" x2="420" y2="290" stroke="var(--grid)" stroke-width="1"/>
+      <line x1="540" y1="26" x2="540" y2="290" stroke="var(--grid)" stroke-width="1"/>
+      <line x1="660" y1="26" x2="660" y2="290" stroke="var(--grid)" stroke-width="1"/>
+      <!-- lane-change marker -->
+      <line x1="600" y1="26" x2="600" y2="290" stroke="var(--ink-2)" stroke-width="1.5" stroke-dasharray="5 5"/>
+      <text x="600" y="18" text-anchor="middle" fill="var(--ink)" font-size="13" font-weight="700">Cambio di corsia</text>
+      <!-- band 1: steering angle -->
+      <text x="125" y="58" text-anchor="middle" fill="var(--ink-2)" font-size="12.5" font-weight="700">Angolo di sterzo</text>
+      <path d="M60,88 C90,82 110,94 140,88 C170,83 190,93 220,88 C250,84 270,92 300,88 C330,84 350,91 380,87 C410,84 435,84 460,79 C495,72 550,60 600,50 C625,46 645,49 660,50"
+            fill="none" stroke="var(--series-1)" stroke-width="2" stroke-linecap="round"/>
+      <!-- band 2: indicator (step) -->
+      <text x="125" y="145" text-anchor="middle" fill="var(--ink-2)" font-size="12.5" font-weight="700">Freccia</text>
+      <path d="M60,172 L416,172 L420,132 L660,132"
+            fill="none" stroke="var(--series-2)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+      <text x="240" y="164" text-anchor="middle" fill="var(--ink-2)" font-size="11">Spenta</text>
+      <text x="520" y="124" text-anchor="middle" fill="var(--ink-2)" font-size="11">Accesa</text>
+      <!-- band 3: distance to lane line -->
+      <text x="125" y="240" text-anchor="middle" fill="var(--ink-2)" font-size="12.5" font-weight="700">Distanza dalla linea</text>
+      <path d="M60,212 C120,209 170,215 230,212 C280,210 330,214 380,218 C440,224 520,239 600,251 C625,254 645,255 660,255"
+            fill="none" stroke="var(--muted)" stroke-width="2" stroke-dasharray="7 5" stroke-linecap="round"/>
+      <!-- annotation: signals appear seconds before -->
+      <text x="507" y="268" text-anchor="middle" fill="var(--ink-2)" font-size="11.5">Gli indizi iniziano qualche secondo prima</text>
+      <line x1="422" y1="277" x2="594" y2="277" stroke="var(--muted)" stroke-width="1.5" marker-start="url(#arrA)" marker-end="url(#arrA)"/>
+      <!-- time axis -->
+      <line x1="60" y1="290" x2="660" y2="290" stroke="var(--baseline)" stroke-width="1"/>
+      <line x1="60"  y1="290" x2="60"  y2="296" stroke="var(--baseline)" stroke-width="1"/>
+      <line x1="180" y1="290" x2="180" y2="296" stroke="var(--baseline)" stroke-width="1"/>
+      <line x1="300" y1="290" x2="300" y2="296" stroke="var(--baseline)" stroke-width="1"/>
+      <line x1="420" y1="290" x2="420" y2="296" stroke="var(--baseline)" stroke-width="1"/>
+      <line x1="540" y1="290" x2="540" y2="296" stroke="var(--baseline)" stroke-width="1"/>
+      <line x1="660" y1="290" x2="660" y2="296" stroke="var(--baseline)" stroke-width="1"/>
+      <text x="60"  y="311" text-anchor="middle" fill="var(--muted)" font-size="11">0</text>
+      <text x="180" y="311" text-anchor="middle" fill="var(--muted)" font-size="11">1</text>
+      <text x="300" y="311" text-anchor="middle" fill="var(--muted)" font-size="11">2</text>
+      <text x="420" y="311" text-anchor="middle" fill="var(--muted)" font-size="11">3</text>
+      <text x="540" y="311" text-anchor="middle" fill="var(--muted)" font-size="11">4</text>
+      <text x="660" y="311" text-anchor="middle" fill="var(--muted)" font-size="11">5</text>
+      <text x="360" y="330" text-anchor="middle" fill="var(--muted)" font-size="11">Tempo (secondi)</text>
+    </svg>
+    <figcaption>Figura 1 — Schema di tre segnali in una finestra di 5 secondi: la rotazione graduale dello sterzo, l&rsquo;accensione della freccia e la riduzione della distanza dalla linea si osservano tutte <b>prima</b> dell&rsquo;istante del cambio di corsia (linea tratteggiata verticale). Le scale sono simboliche, non dati reali.</figcaption>
+  </figure>
+
+  <div class="tiles">
+    <div class="tile">
+      <div class="value">3</div>
+      <div class="label">classi nella <span class="en">classification</span>: nessuna, destra, sinistra</div>
+    </div>
+    <div class="tile">
+      <div class="value">0–4 s</div>
+      <div class="label">intervallo di output della <span class="en">regression</span> (passo <span class="en">0.1</span>)</div>
+    </div>
+    <div class="tile">
+      <div class="value">50×31</div>
+      <div class="label">dimensione della finestra di input (<span class="en">window</span>): 50 passi temporali × 31 segnali</div>
+    </div>
+  </div>
+
+  <p>Con questi segnali risolviamo <b>tre problemi</b>:</p>
+  <div class="card">
+    <p>1. <b><span class="en">Classification</span></b> a tre classi — il modello deve dire in quale stato si trova ora il guidatore:</p>
+    <table>
+      <thead><tr><th>Codice classe</th><th>Significato</th></tr></thead>
+      <tbody>
+        <tr><td class="num">0</td><td>Nessuna intenzione di cambiare corsia</td></tr>
+        <tr><td class="num">1</td><td>Intenzione di cambio corsia a destra (<span class="en">LCR</span> = Lane Change Right)</td></tr>
+        <tr><td class="num">2</td><td>Intenzione di cambio corsia a sinistra (<span class="en">LCL</span> = Lane Change Left)</td></tr>
+      </tbody>
+    </table>
+    <p>2. <b><span class="en">Regression</span> per LCL</b>: quanti secondi mancano al cambio di corsia a sinistra?
+    La risposta è un numero tra <span class="en">0</span> e <span class="en">4</span> secondi con passo <span class="en">0.1</span>.<br>
+    3. <b><span class="en">Regression</span> per LCR</b>: la stessa domanda, questa volta per destra.</p>
+    <p>Da dove viene questo intervallo da 0 a 4? Dalle <b>etichette</b> stesse: ricevono un&rsquo;etichetta
+    numerica solo le finestre in cui il cambio di corsia avviene nei pochi secondi successivi. Su orizzonti
+    più lontani gli indizi non si sono ancora formati, quindi non viene proprio definito alcun valore
+    superiore a 4 secondi.</p>
+  </div>
+
+  <p>E un vincolo importante: perché «solo l&rsquo;accuratezza» non basta? Perché la risposta deve
+  essere calcolata su un <span class="en">microcontroller</span> dentro l&rsquo;auto stessa — in
+  pochi millisecondi e con qualche centinaio di kilobyte di memoria. Un <span class="en">model</span>
+  grande, accurato ma lento, è come uno scienziato geniale che per ogni risposta chiede una settimana:
+  qui non serve a nulla. Vogliamo accuratezza <b>e</b> compattezza e velocità, tutte insieme.</p>
+
+  <h2>Nel nostro progetto 🧰</h2>
+  <p>Il miglior risultato pubblicato su questi stessi dati (il framework
+  <a href="https://elios-lab.github.io/LC-Intention-Framework/"><span class="en">LC-Intention</span></a>)
+  è questo: <span class="en">accuracy</span> pari al <span class="en">92%</span> per la
+  <span class="en">classification</span>, e <span class="en">RMSE</span> pari a
+  <span class="en">0.42 s</span> e <span class="en">0.44 s</span> per i due problemi di
+  <span class="en">regression</span>. E già oggi il nostro primo modello semplice — una
+  <span class="en">CNN</span> piccola, senza alcuna messa a punto particolare — ha raggiunto il <span class="en">91.5%</span>:</p>
+
+  <figure class="viz">
+    <div class="legend">
+      <span class="key"><span class="swatch" style="background:var(--series-1)"></span> Il nostro primo modello</span>
+      <span class="key"><span class="swatch" style="background:var(--series-2)"></span> Obiettivo pubblicato</span>
+    </div>
+    <div class="hbar">
+      <div class="name">Il nostro primo modello (<span class="en">CNN</span> piccola, senza tuning)</div>
+      <div class="track"><div class="fill" style="width:91.5%"></div></div>
+      <div class="val">91.5%</div>
+      <div class="name">Obiettivo pubblicato (<span class="en">LC-Intention</span>)</div>
+      <div class="track"><div class="fill alt" style="width:92%"></div></div>
+      <div class="val">92%</div>
+    </div>
+    <figcaption>Figura 2 — <span class="en">accuracy</span> nel problema di <span class="en">classification</span> (scala da 0 a 100%): il divario tra il nostro primo modello e il record è di appena mezzo punto percentuale — la sfida è quindi del tutto alla portata e c&rsquo;è margine per migliorare.</figcaption>
+  </figure>
+
+  <div class="card">
+    <p>• Il risultato di ogni esperimento viene registrato in <span class="en">logs/experiments.jsonl</span>,
+    quindi ogni numero che vedi qui è riproducibile.<br>
+    • Nelle prossime lezioni miglioreremo passo dopo passo questo stesso modello semplice, fino a superare
+    l&rsquo;obiettivo del <span class="en">92%</span> e gli <span class="en">RMSE</span> di
+    <span class="en">0.42/0.44 s</span>.</p>
+  </div>
+
+  <div id="quiz" class="quiz"></div>
+  <script type="application/json" id="quiz-data">
+  [
+    {"stem": "Una finestra di 5 secondi termina esattamente nell'istante in cui inizia la rotazione principale dello sterzo. Per una previsione «prima che accada», quali informazioni dentro la finestra sono le più preziose?",
+     "options": ["Solo l'ultimo frame della finestra, perché lo stato più recente dell'auto è registrato proprio lì e gli altri frame sono informazione ridondante", "L'andamento graduale dei segnali lungo la finestra: la rotazione dolce dello sterzo, la distanza dalla linea che si riduce", "La media sull'intera finestra, perché elimina le oscillazioni momentanee e il rumore dei sensori lasciando solo il segnale pulito", "Il primo frame della finestra, perché è il più lontano nel tempo dalla manovra e fornisce quindi l'allarme più precoce possibile"],
+     "answer": 1,
+     "explain": "Gli indizi dell'intenzione sono pattern «nel tempo», non una singola fotografia: lo sterzo ruota poco a poco e la distanza dalla linea diminuisce. L'ultimo frame da solo non mostra il trend e la media schiaccia proprio questa dinamica — per questo il modello deve vedere l'intero filmato di 50 frame."},
+    {"stem": "Nella convenzione delle classi di questo progetto, quale coppia (codice, significato) è corretta?",
+     "options": ["Classe 0 = cambio corsia a destra; classe 1 = cambio corsia a sinistra; classe 2 = nessuna intenzione di cambio", "Classe 1 = cambio corsia a destra (LCR); classe 2 = cambio corsia a sinistra (LCL)", "Classe 1 = nessuna intenzione di cambio; classe 2 = cambio corsia a destra; classe 0 = cambio corsia a sinistra", "Classe 0 = cambio corsia a sinistra (LCL); classe 1 = nessuna intenzione; classe 2 = cambio corsia a destra (LCR)"],
+     "answer": 1,
+     "explain": "La convenzione: 0 = nessuna intenzione, 1 = LCR (destra), 2 = LCL (sinistra). Tenerla a mente è importante perché tutte le tabelle e le confusion matrix successive vengono riportate con questi codici, e leggerli invertiti capovolge le conclusioni."},
+    {"stem": "Abbiamo un modello con accuratezza del 99% in cui ogni previsione richiede mezzo secondo e 8 megabyte di memoria. Perché è un cattivo modello per questo progetto?",
+     "options": ["Perché un'accuratezza del 99% su dati di guida al simulatore è quasi sempre segno di memorizzazione (overfitting) e crolla nel mondo reale", "Perché non entra in un microcontroller con qualche centinaio di kilobyte di memoria ed è anche troppo lento per un avviso tempestivo", "Perché i sensori del veicolo consegnano i dati con ritardi di alcune centinaia di millisecondi, rendendo inutile l'alta accuratezza del modello", "Perché per definizione l'output della regression deve essere un numero intero, mentre un modello così grande produce solo numeri decimali"],
+     "answer": 1,
+     "explain": "Abbiamo due budget rigidi: qualche centinaio di kilobyte di memoria e una risposta nell'ordine dei millisecondi. 8MB non entrano affatto nel chip, e mezzo secondo di ritardo, per una manovra che avviene pochi secondi dopo, consuma una parte enorme del tempo di reazione. L'alta accuratezza è necessaria ma non sufficiente."},
+    {"stem": "Perché l'output della regression è limitato all'intervallo da 0 a 4 secondi?",
+     "options": ["Perché le etichette sono costruite solo per le finestre in cui la manovra avviene nell'orizzonte di pochi secondi successivi", "Perché la funzione di attivazione in uscita delle reti neurali per sua natura non può produrre numeri maggiori di 4", "Perché il simulatore, dopo 4 secondi di registrazione continua, svuota il buffer dei sensori e ricomincia la registrazione da capo", "Perché la scala di tutti i segnali viene compressa tra zero e quattro durante la normalizzazione e l'output segue la stessa scala"],
+     "answer": 0,
+     "explain": "L'intervallo di output deriva dalla definizione delle etichette, non da un limite della rete: ogni finestra con un cambio di corsia entro i 4 secondi successivi è etichettata con quella distanza temporale (passo 0.1). E prevedere l'intenzione su orizzonti molto più lontani non sarebbe comunque significativo — gli indizi non si sono ancora formati."}
+  ]
+  </script>
+
+  <div class="lesson-nav">
+    <a href="00-roadmap.html"><div class="dir">← Precedente</div><div>Lezione 00 — La roadmap</div></a>
+    <a href="02-the-data.html"><div class="dir">Successiva →</div><div>Lezione 02 — I dati</div></a>
+  </div>
+  <footer class="site">LC-Intention-NAS · ELIOS Lab</footer>
+</main>
+</body>
+</html>

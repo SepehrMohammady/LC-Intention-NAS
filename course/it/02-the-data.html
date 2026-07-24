@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="it" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lezione 02 — I dati | LC-Intention-NAS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/course.css">
+<script src="../assets/course.js" defer></script>
+</head>
+<body>
+<div class="topbar">
+  <a class="home" href="index.html">↪ Indice del corso</a>
+  <div class="spacer"></div>
+  <nav class="lang-switch" aria-label="Language">
+    <a href="../02-the-data.html" hreflang="fa">فا</a>
+    <a href="../en/02-the-data.html" hreflang="en">EN</a>
+    <a href="02-the-data.html" class="active" hreflang="it">IT</a>
+  </nav>
+  <button class="theme-toggle" onclick="toggleTheme()">🌗 Chiaro/Scuro</button>
+</div>
+<main>
+  <p class="kicker">Lezione 02</p>
+  <h1>I dati: che cos'è una <span class="en">Time Series</span> e che aspetto hanno i nostri dati? 🎞️</h1>
+  <p class="lede">Prima di costruire qualsiasi modello dobbiamo sapere che cosa andrà a guardare: un «film numerico» di 5 secondi sullo stato dell'auto.</p>
+
+  <div class="card callout story">
+    <p class="card-title">La storia 📖</p>
+    <p>Immagina di scattare, in ogni istante di guida, una fotografia numerica dello stato dell'auto: quanto era la velocità?
+    Di quanto era girato il volante? Quanto distava la linea di corsia? Se ora mettiamo in fila
+    queste fotografie numeriche, otteniamo un «film numerico». Questo film numerico si chiama
+    <b><span class="en">time series</span></b> (serie temporale).</p>
+    <p>Il nostro modello vede ogni volta un breve spezzone di questo film — come se guardasse solo gli ultimi
+    50 frame — e deve indovinare che cosa succederà dopo. Questo breve spezzone si chiama
+    <span class="en">window</span> (finestra).</p>
+  </div>
+
+  <h2>Più in dettaglio 🔬</h2>
+  <p>Ogni campione di input (una <span class="en">window</span>) è in realtà una tabella:</p>
+
+  <div class="tiles">
+    <div class="tile"><div class="value">50</div><div class="label">passi temporali (<span class="en">timestep</span>) per window</div></div>
+    <div class="tile"><div class="value">31</div><div class="label">segnali (<span class="en">feature</span>) per ogni passo</div></div>
+    <div class="tile"><div class="value">10 Hz</div><div class="label">frequenza di campionamento (10 fotografie al secondo)</div></div>
+    <div class="tile"><div class="value">5 s</div><div class="label">durata di ogni window (50 × 0.1 secondi)</div></div>
+  </div>
+
+  <p>Quindi la forma di ogni campione è <span class="en">(50, 31)</span>: 50 righe di tempo e 31 colonne di segnali.
+  Inoltre i dati sono già stati preparati e <b>normalizzati</b> (<span class="en">normalize</span>) dal team — cioè la scala
+  di tutti i segnali è stata resa uniforme (come esprimere i voti di tutte le materie su una scala da 0 a 20), così che la rete impari più facilmente.</p>
+
+  <figure class="viz">
+    <svg viewBox="0 0 720 315" role="img" aria-label="Vista di una window di input: una tabella con 50 passi temporali sull'asse orizzontale e 31 segnali su quello verticale; sono mostrate alcune righe di esempio come vehicleSpeed e steeringAngle e la forma dei dati è 50 per 31">
+      <defs>
+        <marker id="arrT" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="var(--muted)"/>
+        </marker>
+      </defs>
+
+      <!-- shape badge -->
+      <rect x="495" y="8" width="170" height="30" rx="9" fill="none" stroke="var(--series-1)" stroke-width="2"/>
+      <text x="580" y="29" text-anchor="middle" fill="var(--series-1)" font-size="14" font-weight="700">shape = (50, 31)</text>
+
+      <!-- labels column header -->
+      <text x="115" y="30" text-anchor="middle" fill="var(--ink-2)" font-size="13" font-weight="700">Segnali</text>
+
+      <!-- grid frame -->
+      <rect x="205" y="50" width="460" height="216" rx="6" fill="none" stroke="var(--baseline)" stroke-width="1.5"/>
+      <!-- vertical grid lines (vista delle 50 colonne temporali) -->
+      <g stroke="var(--grid)" stroke-width="1">
+        <line x1="225" y1="50" x2="225" y2="266"/><line x1="245" y1="50" x2="245" y2="266"/>
+        <line x1="265" y1="50" x2="265" y2="266"/><line x1="285" y1="50" x2="285" y2="266"/>
+        <line x1="305" y1="50" x2="305" y2="266"/><line x1="325" y1="50" x2="325" y2="266"/>
+        <line x1="345" y1="50" x2="345" y2="266"/><line x1="365" y1="50" x2="365" y2="266"/>
+        <line x1="385" y1="50" x2="385" y2="266"/><line x1="405" y1="50" x2="405" y2="266"/>
+        <line x1="425" y1="50" x2="425" y2="266"/><line x1="445" y1="50" x2="445" y2="266"/>
+        <line x1="465" y1="50" x2="465" y2="266"/><line x1="485" y1="50" x2="485" y2="266"/>
+        <line x1="505" y1="50" x2="505" y2="266"/><line x1="525" y1="50" x2="525" y2="266"/>
+        <line x1="545" y1="50" x2="545" y2="266"/><line x1="565" y1="50" x2="565" y2="266"/>
+        <line x1="585" y1="50" x2="585" y2="266"/><line x1="605" y1="50" x2="605" y2="266"/>
+        <line x1="625" y1="50" x2="625" y2="266"/><line x1="645" y1="50" x2="645" y2="266"/>
+      </g>
+      <!-- horizontal row separators -->
+      <g stroke="var(--grid)" stroke-width="1">
+        <line x1="205" y1="86" x2="665" y2="86"/>
+        <line x1="205" y1="122" x2="665" y2="122"/>
+        <line x1="205" y1="158" x2="665" y2="158"/>
+        <line x1="205" y1="194" x2="665" y2="194"/>
+        <line x1="205" y1="230" x2="665" y2="230"/>
+      </g>
+
+      <!-- example signal traces -->
+      <polyline points="210,72 240,70 270,66 300,60 330,58 360,62 390,68 420,72 450,70 480,64 510,60 540,62 570,66 600,70 630,72 660,70"
+        fill="none" stroke="var(--series-1)" stroke-width="1.8"/>
+      <polyline points="210,104 245,100 280,108 315,98 350,110 385,100 420,106 455,96 490,108 525,102 560,106 595,100 630,104 660,103"
+        fill="none" stroke="var(--series-2)" stroke-width="1.8"/>
+      <polyline points="210,144 260,142 310,138 360,134 410,133 460,135 510,139 560,143 610,145 660,144"
+        fill="none" stroke="var(--muted)" stroke-width="1.8"/>
+      <text x="435" y="204" text-anchor="middle" fill="var(--muted)" font-size="20">⋮</text>
+      <polyline points="210,250 260,246 310,250 360,247 410,251 460,246 510,249 560,247 610,250 660,248"
+        fill="none" stroke="var(--muted)" stroke-width="1.8"/>
+
+      <!-- row labels -->
+      <text x="115" y="66" text-anchor="middle" fill="var(--ink)" font-size="12" font-weight="600">vehicleSpeed</text>
+      <text x="115" y="81" text-anchor="middle" fill="var(--muted)" font-size="10.5">velocità del veicolo</text>
+      <text x="115" y="102" text-anchor="middle" fill="var(--ink)" font-size="12" font-weight="600">steeringAngle</text>
+      <text x="115" y="117" text-anchor="middle" fill="var(--muted)" font-size="10.5">angolo di sterzo</text>
+      <text x="115" y="138" text-anchor="middle" fill="var(--ink)" font-size="12" font-weight="600">curvatureDx</text>
+      <text x="115" y="153" text-anchor="middle" fill="var(--muted)" font-size="10.5">curvatura del percorso</text>
+      <text x="115" y="204" text-anchor="middle" fill="var(--muted)" font-size="18">⋮</text>
+      <text x="115" y="246" text-anchor="middle" fill="var(--ink)" font-size="12" font-weight="600">feature 31</text>
+      <text x="115" y="261" text-anchor="middle" fill="var(--muted)" font-size="10.5">segnale 31</text>
+
+      <!-- time axis -->
+      <line x1="205" y1="280" x2="655" y2="280" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#arrT)"/>
+      <text x="230" y="300" text-anchor="middle" fill="var(--muted)" font-size="11">t = 1</text>
+      <text x="435" y="302" text-anchor="middle" fill="var(--ink-2)" font-size="13" font-weight="700">tempo (50 passi = 5 secondi)</text>
+      <text x="640" y="300" text-anchor="middle" fill="var(--muted)" font-size="11">t = 50</text>
+    </svg>
+    <figcaption>Figura 1 — Una <span class="en">window</span> di input: una tabella con 50 passi temporali (i dati sono campionati a <span class="en">10 Hz</span>, quindi 5 secondi di film) e 31 segnali. La forma dei dati è <span class="en">(50, 31)</span>.</figcaption>
+  </figure>
+
+  <h3>Da dove vengono questi dati? 🎮</h3>
+  <div class="card">
+    <p>Il nome ufficiale di questo dataset è <b><span class="en">Lane Change Intention Recognition Dataset</span></b>.
+    I dati sono stati raccolti nel simulatore di guida <span class="en">CARLA</span>: 50 guidatori umani reali
+    hanno guidato nel simulatore e i segnali dell'auto sono stati registrati a <span class="en">10 Hz</span> (10 volte al secondo).
+    Per questo la nostra finestra da 50 passi mostra esattamente 5 secondi di guida.
+    (Il nome <span class="en">DMIR</span> è solo il nome interno del nostro progetto, non il nome del dataset.)</p>
+  </div>
+
+  <h3>La suddivisione dei dati (<span class="en">splits</span>) 📚</h3>
+  <p>Perché l'esame del modello non sia truccato, i dati sono divisi in tre parti — proprio come nello studio:
+  <b><span class="en">train</span></b> è il quaderno di esercizi (il modello impara con questo),
+  <b><span class="en">validation</span></b> sono le prove intermedie (con cui regoliamo il modello e scegliamo il migliore),
+  e <b><span class="en">test</span></b> è l'esame finale, che si sostiene <b>una sola volta</b> alla fine del lavoro.
+  Se regolassimo il modello guardando più volte il <span class="en">test</span>, avremmo di fatto svelato le risposte dell'esame!</p>
+
+  <figure class="viz">
+    <div class="hbar" role="img" aria-label="Dimensione delle tre parti dei dati per il problema di classification: la parte train con 94,620 campioni, la parte validation con 16,332 campioni e la parte test con 19,722 campioni">
+      <div class="name">train</div><div class="track"><div class="fill" style="width:100%"></div></div><div class="val">94,620</div>
+      <div class="name">validation</div><div class="track"><div class="fill" style="width:17.3%"></div></div><div class="val">16,332</div>
+      <div class="name">test</div><div class="track"><div class="fill" style="width:20.8%"></div></div><div class="val">19,722</div>
+    </div>
+    <figcaption>Figura 2 — Numero di campioni di ogni parte per il problema di <span class="en">classification</span>. La maggior parte dei dati serve all'apprendimento.</figcaption>
+  </figure>
+
+  <p>E per i nostri tre problemi, le dimensioni delle parti sono queste:</p>
+
+  <table>
+    <thead><tr><th>Parte</th><th>Ruolo</th><th class="num">Classification</th><th class="num">Regression LCL</th><th class="num">Regression LCR</th></tr></thead>
+    <tbody>
+      <tr><td><b><span class="en">train</span></b></td><td>apprendimento</td><td class="num">94,620</td><td class="num">39,313</td><td class="num">33,201</td></tr>
+      <tr><td><b><span class="en">validation</span></b></td><td>regolazione e scelta del modello</td><td class="num">16,332</td><td class="num">7,742</td><td class="num">5,828</td></tr>
+      <tr><td><b><span class="en">test</span></b></td><td>esame finale (una sola volta!)</td><td class="num">19,722</td><td class="num">8,097</td><td class="num">7,073</td></tr>
+    </tbody>
+  </table>
+
+  <p>Una buona notizia: nella <span class="en">classification</span> le tre classi (nessun cambio, sinistra, destra) hanno
+  esattamente lo stesso numero di campioni — si dice che il dataset è <b><span class="en">balanced</span></b>. È un'ottima cosa,
+  perché il modello non può ottenere un punteggio gonfiato con il trucco «rispondi sempre con la classe più numerosa».</p>
+
+  <h3>Le stranezze che abbiamo trovato nei dati 🕵️</h3>
+  <p>Il vero lavoro di ricerca è proprio questo: prima di qualsiasi modellazione abbiamo messo i dati sotto la lente d'ingrandimento, e sono emersi due punti importanti:</p>
+
+  <div class="card callout" style="border-left-color: var(--critical);">
+    <p class="card-title">⚠️ Due vere sorprese nei nostri dati</p>
+    <p>1. <b>Valori giganteschi solo nel <span class="en">test</span></b>: alcuni rari campioni della parte
+    <span class="en">test</span> contengono valori fino a 5 milioni (<span class="en">5×10⁶</span>) — sulle coppie di segnali
+    <span class="en">(12, 13)</span> e <span class="en">(14, 15)</span> — mentre il valore massimo nel
+    <span class="en">train</span> è circa 140! In seguito, con un'analisi a impronta digitale dei canali, abbiamo dimostrato che questi
+    valori si trovano esattamente nella coppia di canali <span class="en">curvatureDx</span> (tasso di variazione della curvatura del percorso):
+    questo segnale nasce da una divisione, e quando
+    il denominatore si avvicina a zero il risultato esplode. La nostra soluzione: limitiamo i valori di
+    <span class="en">val</span>/<span class="en">test</span> all'intervallo del <span class="en">train</span>
+    (<b><span class="en">clipping</span></b>) e non tocchiamo i dati di <span class="en">train</span>.</p>
+    <p>Perché il <span class="en">clipping</span> e non l'eliminazione completa di quei campioni? Perché il
+    <span class="en">test</span> deve restare lo stesso <b>esame fisso e condiviso</b>, così che il confronto tra metodi e
+    record sia equo. Eliminare un campione cambia l'esame; il <span class="en">clipping</span>, invece,
+    conserva il campione e si limita a riportare il valore fuori intervallo al confine noto del <span class="en">train</span>.</p>
+    <p>🔎 <b>Un nuovo indizio sul «perché»:</b> il team dei dati ci ha detto che alcuni guidatori nel simulatore
+    hanno avuto <b>incidenti</b> e che i loro dati sono stati conservati di proposito. I report delle prove
+    (<span class="en">DMIR Test Reports.xlsx</span>) lo confermano: ad esempio
+    <span class="en">User34</span> ha avuto quattro collisioni e due incidenti, e <span class="en">User1</span>
+    cinque collisioni e un incidente. Un incidente significa un salto o un reset improvviso della posizione dell'auto — e un segnale
+    costruito come «tasso di variazione» (come <span class="en">curvatureDx</span>) esplode proprio in
+    quell'istante. Questa è un'<b>ipotesi plausibile</b>, non una prova, perché con i materiali attuali non possiamo dire a quale
+    guidatore appartenga ciascuna finestra esplosa; però è coerente con il fatto che i valori giganteschi compaiono
+    «solo nel <span class="en">test</span>». In entrambi i casi la nostra soluzione resta il <span class="en">clipping</span>.</p>
+    <p>2. <b>La <span class="en">feature</span> numero <span class="en">7</span> è sempre zero</b> (nei dati di
+    <span class="en">classification</span>) — un segnale completamente muto, che in pratica non dà alcuna informazione al modello.</p>
+    <p>💡 La grande lezione: <b>prima di modellare, controlla sempre i dati con i tuoi occhi.</b>
+    Se fossimo andati dritti al modello, questi errori avrebbero rovinato i risultati senza fare rumore.</p>
+  </div>
+
+  <h2>Nel nostro progetto 🧰</h2>
+  <div class="card">
+    <p>• Codice di lettura e pulizia dei dati: <span class="en">src/data.py</span><br>
+    • Grafici di esplorazione dei dati (<span class="en">EDA</span>): sezione 4 di <span class="en">notebooks/dmir_pipeline.ipynb</span><br>
+    • Tutte le stranezze descritte sopra sono documentate in: <span class="en">docs/DATA.md</span></p>
+  </div>
+
+  <div id="quiz" class="quiz"></div>
+  <script type="application/json" id="quiz-data">
+  [
+    {"stem": "Se gli stessi dati fossero stati registrati a 20 Hz e volessimo comunque che ogni window durasse esattamente 5 secondi, quale sarebbe la forma di ogni campione?",
+     "options": ["(50, 31) — la lunghezza della finestra è fissata dal numero di passi e la frequenza di campionamento non ha alcun effetto sulla forma dei dati", "(50, 62) — raddoppiare la frequenza significa registrare ogni segnale due volte, quindi il numero di colonne raddoppia", "(100, 31) — i passi temporali raddoppiano, mentre i segnali restano gli stessi 31", "(25, 31) — con una frequenza più alta servono meno passi per coprire 5 secondi e la finestra si accorcia"],
+     "answer": 2,
+     "explain": "Durata della finestra (secondi) = numero di passi × durata di ogni passo. A 20 Hz ogni passo dura 0.05 secondi, quindi 5 secondi significano 100 passi: (100, 31). Il numero di segnali non dipende dalla frequenza di campionamento. Questa domanda verifica che tu abbia capito da dove viene il 50: 5 s × 10 Hz."},
+    {"stem": "Perché per «regolare» il modello (scegliere la epoch migliore, confrontare le architetture) usiamo la validation e non il test?",
+     "options": ["Perché la validation è più grande del test e fornisce una stima statistica più affidabile dell'errore reale del modello", "Perché ogni decisione basata su un insieme toglie al suo punteggio il valore di «stima imparziale»; il test deve restare intatto", "Perché il test è stato costruito solo per il problema di classification e nei due problemi di regression non abbiamo alternative alla validation", "Perché eseguire ripetutamente il modello sul test richiede tempo e rallenta senza motivo il ciclo di regolazione e scelta del modello"],
+     "answer": 1,
+     "explain": "La questione è statistica, non tecnica: se regoliamo il modello cento volte guardando il test, in pratica abbiamo «imparato» il test e il suo punteggio non è più un metro imparziale. La validation si sacrifica proprio per queste decisioni, così il test resta incontaminato — e tra l'altro la nostra validation (16,332) è perfino più piccola del test (19,722)."},
+    {"stem": "Nel gestire i valori giganteschi, perché abbiamo preferito il clipping all'eliminazione completa dei campioni?",
+     "options": ["Perché la struttura dei file pickle non permette di eliminare righe e qualunque modifica corromperebbe l'intero array", "Perché il clipping, oltre a contenere i valori, aumenta anche in modo garantito di alcuni punti l'accuratezza del modello su tutti i problemi", "Perché eliminare campioni cambia il test condiviso del confronto; il clipping conserva il campione e si limita a contenere il valore esploso", "Perché i valori giganteschi stavano nel train e correggerli nel test non aveva senso; bastava soltanto ripulire il train"],
+     "answer": 2,
+     "explain": "Il test è il banco di prova condiviso del confronto: se eliminiamo campioni, non stiamo più sostenendo lo stesso esame su cui è stato misurato il record pubblicato. Il clipping conserva il campione e riporta soltanto il valore fuori dall'intervallo del train al suo confine. (E attenzione: i valori giganteschi stavano solo nel test, non nel train.)"},
+    {"stem": "Quale opzione descrive correttamente il rapporto tra gli «incidenti nel simulatore» e i «valori da 5 milioni»?",
+     "options": ["È dimostrato: i report delle prove mostrano che ogni valore enorme coincide esattamente con l'istante registrato di un incidente", "È un'ipotesi plausibile: l'incidente sposta di colpo l'auto e il segnale derivativo esplode; ma senza la mappa finestra-guidatore non è dimostrato", "È irrilevante: un incidente mette fuori uso soltanto il sensore di velocità, e quel sensore registra il valore zero, non valori enormi", "Poiché non sappiamo quale finestra appartenga a quale guidatore, questo indizio non ha alcun valore scientifico e non andrebbe registrato da nessuna parte"],
+     "answer": 1,
+     "explain": "I report delle prove mostrano che alcuni guidatori (come User34 e User1) hanno avuto incidenti e che il team ha conservato i dati di proposito. Anche il meccanismo torna: la derivata di un salto improvviso produce un numero astronomico. Ma teniamo separata l'affermazione scientifica dalla congettura: senza la mappa finestra→guidatore questa è un'«ipotesi coerente con le evidenze» — non una conclusione certa. La soluzione (clipping) è la stessa in entrambi i casi."}
+  ]
+  </script>
+
+  <div class="lesson-nav">
+    <a href="01-the-problem.html"><div class="dir">← Precedente</div><div>Lezione 01 — Il problema</div></a>
+    <a href="03-neural-networks.html"><div class="dir">Successiva →</div><div>Lezione 03 — Neural Network</div></a>
+  </div>
+  <footer class="site">LC-Intention-NAS · ELIOS Lab</footer>
+</main>
+</body>
+</html>

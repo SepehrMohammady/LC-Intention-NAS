@@ -176,3 +176,19 @@ figure.viz svg { width: 100%; height: auto; display: block; }
 .quiz .score { font-weight: 800; margin-top: 16px; }
 
 footer.site { color: var(--muted); font-size: 13px; text-align: center; margin-top: 60px; }
+
+/* ---------- language switcher + LTR (en/it) overrides ---------- */
+.lang-switch { display: flex; gap: 4px; align-items: center; margin-inline-end: 10px; }
+.lang-switch a {
+  padding: 3px 10px; border-radius: 8px; font-size: 13px; text-decoration: none;
+  color: var(--muted); border: 1px solid transparent; font-family: system-ui, "Segoe UI", sans-serif;
+}
+.lang-switch a:hover { color: var(--ink); }
+.lang-switch a.active { color: var(--ink); border-color: var(--border); background: var(--surface); font-weight: 700; }
+
+[dir="ltr"] .quiz button.opt { text-align: left; }
+[dir="ltr"] .callout { border-right: none; border-left: 4px solid var(--accent); }
+[dir="ltr"] .callout.story { border-left-color: var(--series-2); }
+[dir="ltr"] .quiz .explain { border-right: none; padding-right: 0; border-left: 3px solid var(--baseline); padding-left: 12px; }
+[dir="ltr"] body, [dir="ltr"] main { font-family: system-ui, "Segoe UI", "Vazirmatn", Tahoma, sans-serif; line-height: 1.65; }
+[dir="ltr"] td.num, [dir="ltr"] th.num { text-align: right; }

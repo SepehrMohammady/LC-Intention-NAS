@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="it" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lezione 06 — Validation e Overfitting | LC-Intention-NAS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/course.css">
+<script src="../assets/course.js" defer></script>
+</head>
+<body>
+<div class="topbar">
+  <a class="home" href="index.html">↪ Indice del corso</a>
+  <div class="spacer"></div>
+  <nav class="lang-switch" aria-label="Language">
+    <a href="../06-validation-overfitting.html" hreflang="fa">فا</a>
+    <a href="../en/06-validation-overfitting.html" hreflang="en">EN</a>
+    <a href="06-validation-overfitting.html" class="active" hreflang="it">IT</a>
+  </nav>
+  <button class="theme-toggle" onclick="toggleTheme()">🌗 Chiaro/Scuro</button>
+</div>
+<main>
+  <p class="kicker">Lezione 06</p>
+  <h1><span class="en">Validation</span> e <span class="en">Overfitting</span>: perché alla rete non si devono mostrare le risposte dell'esame 🕵️</h1>
+  <p class="lede">Se uno studente ha già visto le domande dell'esame, il suo voto perfetto non significa nulla — e per una rete neurale vale esattamente lo stesso.</p>
+
+  <div class="card callout story">
+    <p class="card-title">La storia 📖</p>
+    <p>Immagina due studenti. Il primo ha imparato a memoria, parola per parola, il libro delle soluzioni;
+    negli esercizi in classe prende sempre il massimo dei voti. Ma il giorno dell'esame il docente propone una domanda
+    <b>nuova</b> e il primo studente resta di sasso — perché aveva memorizzato le risposte, non il metodo.
+    Il secondo studente ha memorizzato meno, ma ha capito la <b>regola</b>; una domanda nuova non lo spaventa.</p>
+    <p>Anche una rete neurale può diventare come il primo studente: invece di imparare il pattern reale,
+    memorizza i dettagli irrilevanti dei dati di training. Questo fenomeno si chiama <span class="en">overfitting</span>.
+    L'unico modo per capire se il modello «ha capito» oppure «ha memorizzato» è
+    <b>non mostrargli le domande dell'esame durante la lezione</b>.</p>
+  </div>
+
+  <h2>Più in dettaglio 🔬</h2>
+  <p>Per questo dividiamo i dati in tre insiemi separati — e nel nostro progetto la divisione è
+  <b>per guidatore</b>, non per singola finestra:</p>
+
+  <table>
+    <thead><tr><th>Insieme</th><th>Ruolo</th><th class="num">Guidatori</th></tr></thead>
+    <tbody>
+      <tr><td><span class="en">train</span></td><td>Lezione ed esercizi — il modello impara solo da questi</td><td class="num">36</td></tr>
+      <tr><td><span class="en">validation</span></td><td>Esame di prova — per le decisioni durante il training (come l'<span class="en">early stopping</span>)</td><td class="num">7</td></tr>
+      <tr><td><span class="en">test</span></td><td>Esame finale — una sola volta, alla fine, solo per riportare il risultato</td><td class="num">7</td></tr>
+    </tbody>
+  </table>
+
+  <p>Ora l'<span class="en">overfitting</span> si può vedere a occhio: l'errore del modello sui dati di training
+  (<span class="en">train loss</span>) continua a scendere, perché la memorizzazione non si ferma mai.
+  Ma l'errore sui dati che il modello non ha mai visto (<span class="en">validation loss</span>) prima scende e,
+  da un certo punto in poi, <b>risale</b> — esattamente il momento in cui il «capire» è finito e il «memorizzare» è cominciato:</p>
+
+  <figure class="viz">
+    <div class="legend">
+      <span class="key"><span class="swatch" style="background:var(--series-1)"></span> Loss di <span class="en">train</span></span>
+      <span class="key"><span class="swatch" style="background:var(--series-2)"></span> Loss di <span class="en">validation</span></span>
+    </div>
+    <svg viewBox="0 0 720 300" role="img" aria-label="Grafico dell'overfitting: la loss di train continua a scendere, ma la loss di validation risale dopo un certo punto; la linea tratteggiata verticale indica il punto di arresto dell'early stopping">
+      <!-- grid -->
+      <line x1="60" y1="105" x2="690" y2="105" stroke="var(--grid)" stroke-width="1"/>
+      <line x1="60" y1="182" x2="690" y2="182" stroke="var(--grid)" stroke-width="1"/>
+      <!-- axes -->
+      <line x1="60" y1="260" x2="690" y2="260" stroke="var(--baseline)" stroke-width="1.5"/>
+      <line x1="60" y1="42" x2="60" y2="260" stroke="var(--baseline)" stroke-width="1.5"/>
+      <text x="375" y="290" text-anchor="middle" fill="var(--muted)" font-size="12.5">tempo di training (epoch)</text>
+      <text x="68" y="58" fill="var(--muted)" font-size="12.5">errore (loss)</text>
+      <!-- zones -->
+      <text x="205" y="86" text-anchor="middle" fill="var(--ink-2)" font-size="12.5" font-weight="700">capire</text>
+      <text x="525" y="54" text-anchor="middle" fill="var(--ink-2)" font-size="12.5" font-weight="700">memorizzare</text>
+      <text x="525" y="72" text-anchor="middle" fill="var(--muted)" font-size="11.5">overfitting</text>
+      <!-- train loss -->
+      <path d="M75,70 C170,165 280,210 380,225 C480,238 590,244 680,247" fill="none" stroke="var(--series-1)" stroke-width="2.5"/>
+      <!-- validation loss -->
+      <path d="M75,88 C170,175 260,202 345,205 C450,208 570,152 680,90" fill="none" stroke="var(--series-2)" stroke-width="2.5"/>
+      <!-- early stopping marker -->
+      <line x1="360" y1="42" x2="360" y2="260" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="6 5"/>
+      <circle cx="360" cy="206" r="4.5" fill="var(--series-2)"/>
+      <text x="360" y="16" text-anchor="middle" fill="var(--ink)" font-size="13" font-weight="700">Fermati qui!</text>
+      <text x="360" y="34" text-anchor="middle" fill="var(--muted)" font-size="11.5">early stopping</text>
+      <!-- direct series labels -->
+      <text x="686" y="238" text-anchor="end" fill="var(--series-1)" font-size="12.5" font-weight="700">train</text>
+      <text x="686" y="82" text-anchor="end" fill="var(--series-2)" font-size="12.5" font-weight="700">validation</text>
+    </svg>
+    <figcaption>Figura 1 — La loss di <span class="en">train</span> scende sempre, ma la loss di <span class="en">validation</span> da un certo punto in poi risale. <span class="en">Early stopping</span> significa fermare il training esattamente in quel punto di minimo.</figcaption>
+  </figure>
+
+  <p>L'<b><span class="en">early stopping</span></b> è proprio la «guardia anti-memorizzazione»:
+  dopo ogni <span class="en">epoch</span> misuriamo l'errore del modello sull'insieme di <span class="en">validation</span>.
+  Se per diversi <span class="en">epoch</span> di fila non migliora (nel nostro progetto: <span class="en">patience</span> pari a 10),
+  interrompiamo il training e torniamo alla migliore versione salvata.
+  È curioso sapere che il nostro modello di base, pur avendo il permesso di allenarsi per 60 <span class="en">epoch</span>,
+  ha trovato il suo stato migliore già al terzo <span class="en">epoch</span> — e l'intero training è durato appena 27 secondi.</p>
+
+  <h2>Storia vera 1: un esame con guidatori sconosciuti 🚗</h2>
+  <p>I nostri dati provengono da 50 guidatori umani nel simulatore <span class="en">CARLA</span>.
+  Ogni guidatore ha le proprie abitudini: uno ruota il volante con dolcezza, un altro sorpassa in modo brusco.
+  Se le finestre <b>di uno stesso guidatore</b> compaiono sia nel training sia nell'esame, il modello può
+  memorizzare <b>lo stile di quel guidatore</b> invece di capire l'«intenzione di cambio corsia» — e l'esame perde ogni validità.</p>
+  <p>La soluzione: dividere per guidatore. Gli utenti <span class="en">5, 8, 10, 12, 16, 19, 27</span> solo in
+  <span class="en">validation</span>, gli utenti <span class="en">2, 7, 13, 18, 25, 31, 36</span> solo in
+  <span class="en">test</span>, e i 36 guidatori rimanenti solo in <span class="en">train</span>:</p>
+
+  <figure class="viz">
+    <svg viewBox="0 0 720 290" role="img" aria-label="Cinquanta guidatori divisi in tre gruppi completamente separati: 36 guidatori per il training, 7 per la validation e 7 per l'esame finale; nessun guidatore compare in due gruppi">
+      <defs>
+        <g id="drv">
+          <circle cx="0" cy="-5" r="3.4"/>
+          <path d="M-5.5,7 a5.5,5.5 0 0 1 11,0 z"/>
+        </g>
+      </defs>
+      <!-- train box (right) -->
+      <text x="500" y="22" text-anchor="middle" fill="var(--ink)" font-size="14" font-weight="700">Training</text>
+      <text x="500" y="40" text-anchor="middle" fill="var(--ink-2)" font-size="12">train · 36</text>
+      <rect x="300" y="52" width="400" height="175" rx="12" fill="none" stroke="var(--series-1)" stroke-width="2"/>
+      <g fill="var(--series-1)">
+        <use href="#drv" x="330" y="86"/><use href="#drv" x="370" y="86"/><use href="#drv" x="410" y="86"/><use href="#drv" x="450" y="86"/><use href="#drv" x="490" y="86"/><use href="#drv" x="530" y="86"/><use href="#drv" x="570" y="86"/><use href="#drv" x="610" y="86"/><use href="#drv" x="650" y="86"/>
+        <use href="#drv" x="330" y="122"/><use href="#drv" x="370" y="122"/><use href="#drv" x="410" y="122"/><use href="#drv" x="450" y="122"/><use href="#drv" x="490" y="122"/><use href="#drv" x="530" y="122"/><use href="#drv" x="570" y="122"/><use href="#drv" x="610" y="122"/><use href="#drv" x="650" y="122"/>
+        <use href="#drv" x="330" y="158"/><use href="#drv" x="370" y="158"/><use href="#drv" x="410" y="158"/><use href="#drv" x="450" y="158"/><use href="#drv" x="490" y="158"/><use href="#drv" x="530" y="158"/><use href="#drv" x="570" y="158"/><use href="#drv" x="610" y="158"/><use href="#drv" x="650" y="158"/>
+        <use href="#drv" x="330" y="194"/><use href="#drv" x="370" y="194"/><use href="#drv" x="410" y="194"/><use href="#drv" x="450" y="194"/><use href="#drv" x="490" y="194"/><use href="#drv" x="530" y="194"/><use href="#drv" x="570" y="194"/><use href="#drv" x="610" y="194"/><use href="#drv" x="650" y="194"/>
+      </g>
+      <!-- validation box (middle) -->
+      <text x="220" y="22" text-anchor="middle" fill="var(--ink)" font-size="14" font-weight="700">Validation</text>
+      <text x="220" y="40" text-anchor="middle" fill="var(--ink-2)" font-size="12">validation · 7</text>
+      <rect x="160" y="52" width="120" height="175" rx="12" fill="none" stroke="var(--series-2)" stroke-width="2"/>
+      <g fill="var(--series-2)">
+        <use href="#drv" x="195" y="86"/><use href="#drv" x="245" y="86"/>
+        <use href="#drv" x="195" y="122"/><use href="#drv" x="245" y="122"/>
+        <use href="#drv" x="195" y="158"/><use href="#drv" x="245" y="158"/>
+        <use href="#drv" x="220" y="194"/>
+      </g>
+      <!-- test box (left) -->
+      <text x="80" y="22" text-anchor="middle" fill="var(--ink)" font-size="14" font-weight="700">Esame finale</text>
+      <text x="80" y="40" text-anchor="middle" fill="var(--ink-2)" font-size="12">test · 7</text>
+      <rect x="20" y="52" width="120" height="175" rx="12" fill="none" stroke="var(--muted)" stroke-width="2"/>
+      <g fill="var(--muted)">
+        <use href="#drv" x="55" y="86"/><use href="#drv" x="105" y="86"/>
+        <use href="#drv" x="55" y="122"/><use href="#drv" x="105" y="122"/>
+        <use href="#drv" x="55" y="158"/><use href="#drv" x="105" y="158"/>
+        <use href="#drv" x="80" y="194"/>
+      </g>
+      <text x="360" y="266" text-anchor="middle" fill="var(--ink)" font-size="14" font-weight="700">✋ Nessun guidatore compare in due riquadri</text>
+    </svg>
+    <figcaption>Figura 2 — I 50 guidatori divisi in tre gruppi completamente separati: 36 per il training, 7 per la validation, 7 per l'esame finale. Il modello non vede mai i guidatori dell'esame durante il training.</figcaption>
+  </figure>
+
+  <p>E poiché nella scienza un «fidati» non basta, lo abbiamo <b>dimostrato</b>: abbiamo confrontato una a una,
+  con il coefficiente di correlazione (<span class="en">correlation</span>), le finestre grezze delle sessioni di ogni guidatore
+  con le finestre pronte per il training — con corrispondenze <span class="en">r &gt; 0.9999</span> —
+  e abbiamo visto che i guidatori di <span class="en">test</span> compaiono solo ed esclusivamente
+  nel <span class="en">test</span>. Il nostro esame è davvero un esame.</p>
+
+  <div class="card">
+    <p class="card-title">Prima di tutto: che cos'è esattamente la <span class="en">correlation</span>? 📐</p>
+    <p>Il coefficiente di correlazione di Pearson (<span class="en">Pearson r</span>) è un numero tra <span class="en">−1</span> e
+    <span class="en">+1</span> che dice quanto due sequenze di numeri salgono e scendono <b>con la stessa forma</b>:
+    <span class="en">+1</span> significa perfettamente al passo, <span class="en">0</span> significa nessuna relazione,
+    <span class="en">−1</span> significa speculare e opposto. Due sue proprietà sono state d'oro per il nostro lavoro:</p>
+    <p>1. <b>Non è sensibile alla scala</b>: se un segnale viene normalizzato (<span class="en">normalize</span>)
+    (moltiplicato per un numero o sommato a un numero), il suo <span class="en">r</span> con la versione grezza resta comunque
+    <span class="en">1</span>. Per questo abbiamo potuto confrontare le finestre <b>grezze</b> dei file originali dei guidatori con le
+    finestre <b>normalizzate</b> dei pickle — senza conoscere la formula di normalizzazione!<br>
+    2. <b>È quasi impossibile che sia un caso</b>: due finestre da 50 punti senza alcun legame possono dare un <span class="en">r</span>
+    intorno a <span class="en">0.3</span> o perfino <span class="en">0.8</span>, ma
+    <span class="en">r &gt; 0.9999</span> su 50 punti significa «questa è esattamente la stessa finestra».
+    Quindi, quando una finestra del guidatore 7 trova una coppia con
+    <span class="en">r &gt; 0.9999</span> solo nel <span class="en">test</span> e non nel <span class="en">train</span>,
+    siamo certi che il guidatore 7 non era nel training.</p>
+  </div>
+
+  <div class="card">
+    <p class="card-title">Perché non abbiamo fatto la <span class="en">k-fold cross-validation</span>? 🤔</p>
+    <p>È una domanda intelligente: con dati piccoli, di solito, invece di un <span class="en">validation</span>
+    fisso si divide il dato in <span class="en">k</span> parti e si addestra <span class="en">k</span> volte
+    (ogni volta una parte fa da esame), così tutti i dati servono sia per l'apprendimento sia per la valutazione.
+    Noi, consapevolmente, non l'abbiamo fatto, per tre ragioni:</p>
+    <p>1. <b>Confronto diretto</b>: il record pubblicato e i risultati di riferimento del team sono tutti riportati su
+    <b>questa stessa divisione fissa</b> dei guidatori. Se cambiamo la divisione, i nostri numeri non sono confrontabili
+    con i loro — e l'intera affermazione «siamo migliorati» perde senso.<br>
+    2. <b>Il costo nel NAS</b>: la nostra ricerca addestra centinaia di candidati. Con
+    <span class="en">k=7</span> significherebbe <b>moltiplicare per sette</b> diversi giorni e notti di GPU — per ognuna delle quattro ricerche.<br>
+    3. <b>I dati non sono poi così piccoli</b>: la nostra scarsità non è a livello di «finestra» (abbiamo 94 mila finestre di
+    <span class="en">train</span>); è a livello di «guidatore» (50 persone). E la divisione per guidatore misura
+    esattamente questo.</p>
+    <p>Onestamente: per il <b>modello finale</b> (non per la ricerca), una <span class="en">cross-validation</span>
+    per guidatore avrebbe potuto mostrare che il risultato non è sensibile alla scelta specifica dei 7 guidatori di
+    <span class="en">test</span>. L'abbiamo registrato come possibile esperimento supplementare nelle note dell'articolo.</p>
+  </div>
+
+  <h2>Storia vera 2: barare con la freccia 💡</h2>
+  <p>Ora un imbroglio più sottile: immagina che sul foglio d'esame, nell'angolo di ogni domanda, sia scritta anche la risposta!
+  Nei nostri dati, due dei 31 canali sono lo stato della <b>freccia</b> (<span class="en">turn indicator / blinker</span>).
+  I guidatori di solito mettono la freccia prima di cambiare corsia — cioè questi canali rivelano quasi la «risposta annunciata».
+  Questo problema si chiama <span class="en">label leak</span>.</p>
+
+  <div class="card">
+    <p class="card-title">Come abbiamo capito che la freccia era sospetta? (No, non abbiamo provato i 31 segnali uno per uno!) 🔍</p>
+    <p>La strada stupida sarebbe stata costruire 31 modelli, ognuno con un solo segnale — o peggio, provare tutte le combinazioni
+    (<span class="en">2³¹</span>, cioè oltre due miliardi di combinazioni!). La strada vera sono stati quattro passi economici:</p>
+    <p>1. <b>Prima abbiamo trovato i nomi dei canali</b>: le colonne dei pickle non avevano nome; con lo stesso trucco della
+    <span class="en">correlation</span> (il confronto con i file grezzi dei guidatori, che i nomi delle colonne li hanno) abbiamo scoperto
+    che i canali 28 e 29 sono proprio le frecce sinistra e destra.<br>
+    2. <b>Conoscenza della guida</b>: la freccia è l'unico segnale con cui il guidatore <b>dichiara ufficialmente</b> la propria intenzione —
+    il sospettato numero uno, senza bisogno di alcun esperimento.<br>
+    3. <b>Un semplice conteggio</b> (nemmeno un modello!): in quale percentuale delle finestre di ogni classe la freccia è accesa?
+    Risposta: <span class="en">92%</span> in LCR e <span class="en">71%</span> in LCL contro appena il
+    <span class="en">6.5%</span> in «nessuna intenzione». Questa piccola tabella, da sola, ha smascherato il leak.<br>
+    4. <b>Solo dopo, due esperimenti mirati</b>: un modello «solo-freccia» (quanto si può ottenere dalla risposta trapelata?)
+    e una ricerca completa «senza-freccia» (quanto si ottiene senza barare?).</p>
+    <p>La lezione di metodo: prima <b>pensa in modo economico</b> (nomi, conoscenza del dominio, conteggi), poi <b>sperimenta in modo costoso</b> —
+    e spendi l'esperimento solo per un'ipotesi precisa.</p>
+  </div>
+
+  <p>Il risultato degli esperimenti:</p>
+
+  <div class="tiles">
+    <div class="tile"><div class="value">81.5%</div><div class="label">Accuratezza con i soli canali <span class="en">blinker</span> — senza nessun altro segnale!</div></div>
+    <div class="tile"><div class="value">91.5%</div><div class="label">Accuratezza del nostro modello di base (quel giorno) con tutti i 31 canali</div></div>
+    <div class="tile"><div class="value">6.5%</div><div class="label">Freccia accesa nelle finestre «nessuna intenzione»</div></div>
+  </div>
+
+  <figure class="viz">
+    <div class="hbar">
+      <div class="name">Finestre <span class="en">LCR</span></div><div class="track"><div class="fill" style="width:92%"></div></div><div class="val">92%</div>
+      <div class="name">Finestre <span class="en">LCL</span></div><div class="track"><div class="fill" style="width:71%"></div></div><div class="val">71%</div>
+      <div class="name">Finestre senza intenzione</div><div class="track"><div class="fill" style="width:6.5%"></div></div><div class="val">6.5%</div>
+    </div>
+    <figcaption>Figura 3 — In quale percentuale delle finestre di ogni classe la freccia è accesa? La freccia accompagna quasi sempre il cambio di corsia e, da sola, dà l'81.5% di accuratezza in <span class="en">classification</span>.</figcaption>
+  </figure>
+
+  <p>In altre parole: un «modello» che legga soltanto la freccia, senza un briciolo di intelligenza, all'esame di
+  <span class="en">classification</span> prende un buon voto — ma questa non è <b>previsione dell'intenzione</b>;
+  è leggere una risposta che il guidatore stesso ha dichiarato.</p>
+  <p>La buona notizia: il problema di <span class="en">regression</span> (quanti secondi mancano al cambio di corsia?) è pulito.
+  La freccia dice solo «un cambio di corsia è in arrivo», ma non dice <b>quando</b>. Confronta:</p>
+
+  <table>
+    <thead><tr><th>Problema</th><th class="num">Solo freccia — MAE</th><th class="num">Il nostro modello — MAE</th><th class="num">Il nostro modello — RMSE</th></tr></thead>
+    <tbody>
+      <tr><td><span class="en">Regression LCR</span></td><td class="num">0.72 s</td><td class="num">0.318 s</td><td class="num">0.439 s</td></tr>
+      <tr><td><span class="en">Regression LCL</span></td><td class="num">0.90 s</td><td class="num">0.333 s</td><td class="num">0.459 s</td></tr>
+    </tbody>
+  </table>
+
+  <div class="card">
+    <p class="card-title">Che cosa significa <span class="en">ablation</span>? 🧪</p>
+    <p>La parola viene dalla chirurgia: «asportare» un pezzo. Nel machine learning, un <span class="en">ablation study</span>
+    significa <b>rimuovere deliberatamente un pezzo del sistema, riaddestrare da zero e misurare il calo</b> —
+    per scoprire il contributo reale di quel pezzo. Punto importante: il modello deve essere <b>riaddestrato</b>;
+    se ci limitiamo ad azzerare l'input del modello precedente, il modello viene colto di sorpresa e il calo appare
+    più grande di quanto sia.</p>
+    <p>La nostra tripletta (risultati finali, dopo la ricerca NAS completa):</p>
+    <table>
+      <thead><tr><th>Esperimento</th><th class="num">Accuratezza</th><th>Che cosa misura?</th></tr></thead>
+      <tbody>
+        <tr><td>Tutti i 31 canali</td><td class="num">92.1%</td><td>Il tetto massimo con tutto a disposizione</td></tr>
+        <tr><td>Senza i due canali della freccia</td><td class="num">91.1%</td><td>L'«intelligenza» reale — senza la risposta trapelata</td></tr>
+        <tr><td>Solo i due canali della freccia</td><td class="num">81.5%</td><td>Il contributo del solo «leggere la risposta»</td></tr>
+      </tbody>
+    </table>
+    <p>La lettura: la freccia da sola arriva all'<span class="en">81.5%</span> (il leak è reale!) ma toglierla
+    costa solo <b>un punto percentuale</b> al modello completo — cioè il nostro modello, anche senza barare, ha quasi
+    le stesse prestazioni. Senza l'<span class="en">ablation</span>, nessuna delle due affermazioni sarebbe stata difendibile.</p>
+  </div>
+
+  <p>La nostra soluzione è duplice: primo, il nostro articolo procede con la <span class="en">regression</span> e con
+  l'esecuzione reale sull'hardware, perché lì non c'è alcun imbroglio in gioco. Secondo, per la <span class="en">classification</span>
+  riportiamo proprio questa <span class="en">ablation</span> —
+  così il lettore vede esattamente quanta accuratezza è «intelligenza» e quanta è «lettura della risposta».
+  Questa è l'<b>onestà scientifica</b>: non nascondiamo il difetto dei dati, lo misuriamo e lo scriviamo con trasparenza.</p>
+
+  <h2>Nel nostro progetto 🧰</h2>
+  <div class="card">
+    <p>• Divisione per guidatore: <span class="en">36 / 7 / 7</span> utenti per <span class="en">train / validation / test</span>;
+    ne abbiamo dimostrato la correttezza con il confronto delle finestre (<span class="en">r &gt; 0.9999</span>).<br>
+    • <span class="en">early stopping</span> con <span class="en">patience</span> = 10; il nostro modello di base ha trovato il suo stato migliore al terzo <span class="en">epoch</span> (su un massimo di 60).<br>
+    • Non accettiamo nessun numero senza verifica: rivalutiamo noi stessi ogni modello salvato con <span class="en">verify_models.py</span>, di nuovo sull'insieme di <span class="en">test</span>.<br>
+    • Il leak della freccia (<span class="en">label leak</span>) non viene nascosto nel <span class="en">paper</span>: il risultato di <span class="en">classification</span> viene riportato sia con sia senza <span class="en">blinker</span>.</p>
+  </div>
+
+  <div id="quiz" class="quiz"></div>
+  <script type="application/json" id="quiz-data">
+  [
+    {"stem": "La curva della loss di train di un modello scende fino alla fine, ma la loss di validation risale a partire dal decimo epoch. Qual è la descrizione migliore?",
+     "options": ["Dal decimo epoch il 'capire' ha lasciato il posto al 'memorizzare'; bisogna tornare ai pesi di circa quell'epoch", "Dal decimo epoch il modello ha smesso di imparare e dobbiamo aumentare il learning rate per uscire da questa situazione", "I dati di validation hanno sicuramente un difetto; in un training sano le due curve devono sempre scendere nella stessa direzione", "È una situazione del tutto normale; bisogna continuare fino all'ultimo epoch perché la loss di train arrivi a zero e il training si completi"],
+     "answer": 0,
+     "explain": "La separazione delle due curve è la firma dell'overfitting: il modello continua a memorizzare sempre meglio gli esercizi ma peggiora sui dati mai visti. La soluzione è tornare al punto migliore della validation (il lavoro dell'early stopping con restore) — non continuare, né manipolare alla cieca il learning rate."},
+    {"stem": "Se avessimo distribuito le finestre a caso (invece che per guidatore) tra train e test, come ci saremmo aspettati che cambiasse l'accuratezza riportata e perché?",
+     "options": ["Sarebbe scesa, perché i dati di train diventerebbero più vari e imparare il pattern comune a tutti i guidatori risulterebbe più difficile", "Non sarebbe cambiata; il numero totale di finestre resta identico e il modello nel complesso vede le stesse informazioni in entrambi i casi", "Sarebbe scesa, perché con la distribuzione casuale l'early stopping scatterebbe più tardi e il modello finirebbe molto più in overfit", "Sarebbe salita, ma per finta: le finestre sovrapposte di un guidatore cadono sui due lati e il modello ritrova all'esame uno 'stile noto'"],
+     "answer": 3,
+     "explain": "Le finestre consecutive di uno stesso guidatore si somigliano; una divisione casuale mette copie quasi identiche dello stesso istante sia nell'esercitazione sia nell'esame — il voto sale senza che il modello abbia capito il 'guidatore sconosciuto'. La divisione per guidatore chiude proprio questo leak; e con il confronto r>0.9999 abbiamo dimostrato che è stata rispettata."},
+    {"stem": "Perché, nel confronto delle finestre, abbiamo preso r > 0.9999 come segno di 'stessa finestra', se il pickle era la versione normalizzata e non il file grezzo?",
+     "options": ["Perché prima del confronto abbiamo ottenuto dal team dei dati la formula esatta di normalizzazione e ne abbiamo annullato l'effetto sulle finestre grezze", "Perché il Pearson r è insensibile a moltiplicazioni e somme costanti; grezzo e normalizzato danno comunque r=1 e un r>0.9999 non esce per caso", "Perché i segnali di guida hanno per natura correlazioni superiori a 0.99 e qualunque coppia di finestre dello stesso tipo dà un numero di quel genere", "Perché la normalizzazione era stata applicata soltanto ai dati di train e le finestre di test erano rimaste nella loro forma grezza originale"],
+     "answer": 1,
+     "explain": "È la proprietà d'oro della correlation: è invariante rispetto alle trasformazioni lineari (scala e traslazione). Perciò anche senza conoscere la formula di normalizzazione si potevano confrontare le finestre grezze dei guidatori con i pickle. E la soglia 0.9999 è così severa che le coppie casuali non la superano."},
+    {"stem": "Nell'ablation, perché abbiamo riaddestrato da zero il modello 'senza freccia', invece di azzerare i due canali della freccia nello stesso modello completo?",
+     "options": ["Perché azzerare una parte dell'input in TensorFlow rompe la struttura del grafo computazionale e produce un errore di esecuzione", "Perché riaddestrare da zero è nel complesso più rapido ed economico che manipolare i canali di input del modello già esistente", "Perché il modello a 31 canali si è 'abituato' alla freccia; azzerarla fa sembrare il calo più grande di quanto sia in realtà", "Perché senza riaddestramento la contaminazione dei canali della freccia si propagava, tramite i pesi condivisi, anche al risultato di regression"],
+     "answer": 2,
+     "explain": "Un'ablation onesta significa costruire per intero il 'mondo senza quel pezzo' — ricerca e training, entrambi senza freccia. Risultato: 91.1% contro il 92.1% del completo; cioè solo un punto di accuratezza era davvero 'lettura della risposta', benché la freccia da sola arrivi all'81.5%."},
+    {"stem": "Qual è la ragione migliore per cui non abbiamo fatto la k-fold cross-validation?",
+     "options": ["Il record pubblicato usa la stessa divisione fissa; cambiarla rende il confronto privo di senso — e moltiplicava per k il costo del NAS", "La cross-validation è definita soltanto per i problemi di regression e per la nostra classification a tre classi non è proprio utilizzabile", "Il k-fold, per via del dato di training più piccolo in ogni fold, dà sempre risultati peggiori della divisione fissa e non è raccomandato", "Con 94 mila finestre di training anche un solo addestramento completo del modello era in pratica impossibile, figuriamoci k volte"],
+     "answer": 0,
+     "explain": "Due ragioni insieme: la confrontabilità diretta (dobbiamo sostenere lo stesso esame del detentore del record) e il costo della ricerca moltiplicato per k. La nostra vera scarsità è a livello di guidatore, non di finestra — e lo split per guidatore misura esattamente quello. Per il modello finale, una CV per guidatore è un esperimento supplementare ragionevole ed è registrata nelle note."}
+  ]
+  </script>
+
+  <div class="lesson-nav">
+    <a href="05-training.html"><div class="dir">← Precedente</div><div>Lezione 05 — Training</div></a>
+    <a href="07-nas.html"><div class="dir">Successiva →</div><div>Lezione 07 — NAS</div></a>
+  </div>
+  <footer class="site">LC-Intention-NAS · ELIOS Lab</footer>
+</main>
+</body>
+</html>

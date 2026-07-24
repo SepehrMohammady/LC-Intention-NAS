@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="it" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lezione 07 — NAS | LC-Intention-NAS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/course.css">
+<script src="../assets/course.js" defer></script>
+</head>
+<body>
+<div class="topbar">
+  <a class="home" href="index.html">↪ Indice del corso</a>
+  <div class="spacer"></div>
+  <nav class="lang-switch" aria-label="Language">
+    <a href="../07-nas.html" hreflang="fa">فا</a>
+    <a href="../en/07-nas.html" hreflang="en">EN</a>
+    <a href="07-nas.html" class="active" hreflang="it">IT</a>
+  </nav>
+  <button class="theme-toggle" onclick="toggleTheme()">🌗 Chiaro/Scuro</button>
+</div>
+<main>
+  <p class="kicker">Lezione 07</p>
+  <h1><span class="en">NAS</span>: quando è il computer a progettare la rete 🧬</h1>
+  <p class="lede">Invece di costruire l&rsquo;architettura della rete a forza di intuizioni e tentativi, organizziamo una gara evolutiva: cento progetti competono tra loro, i migliori generano figli e i più anziani vanno in pensione.</p>
+
+  <div class="card callout story">
+    <p class="card-title">La storia 📖 — Cucina evolutiva</p>
+    <p>Immagina di avere un quaderno con 100 ricette e di voler arrivare alla migliore zuppa del
+    mondo. Ogni giorno fai questo gioco: peschi <b>a caso</b> 25 ricette dal quaderno e le assaggi;
+    la più buona di queste 25 è il «genitore» di oggi. Ora ne modifichi <b>un poco</b> la ricetta —
+    una spezia nuova, un po&rsquo; più di cipolla — senza riscriverla da zero. Cucini la nuova
+    ricetta, ne annoti il punteggio e la aggiungi al quaderno.</p>
+    <p>E ora la regola strana del gioco: <b>la ricetta più vecchia del quaderno va in pensione</b> —
+    anche se un tempo è stata la campionessa! Perché? Perché se la vecchia campionessa restasse per
+    sempre, ogni giorno farebbe da genitore solo lei e il quaderno si riempirebbe di sue copie;
+    nessuna idea nuova avrebbe più la possibilità di crescere. Ma quando tutte, prima o poi, vanno
+    in pensione, una buona ricetta sopravvive solo attraverso i suoi «figli» — e il quaderno resta
+    sempre fresco e vario. Dopo centinaia di giorni, il quaderno è pieno di ricette eccellenti e
+    diverse tra loro.</p>
+  </div>
+
+  <h2>Più in dettaglio 🔬</h2>
+  <h3>Primo passo: lo spazio di ricerca</h3>
+  <p>Prima di qualunque ricerca dobbiamo dichiarare «che cosa siamo autorizzati a costruire».
+  Questo si chiama <b><span class="en">search space</span></b>: l&rsquo;insieme di tutti i progetti
+  possibili. Nel nostro progetto questo spazio contiene reti <span class="en">1D CNN</span>: quanti
+  <span class="en">layer</span>? Di che tipo (<span class="en">Conv1D</span> normale,
+  <span class="en">depthwise</span> oppure <span class="en">1x1</span>, visti nella Lezione 04)?
+  <span class="en">kernel</span> di che dimensione (da 3 a 7)? Quanti canali per layer?
+  Mettere il <span class="en">pooling</span> oppure no? E alla fine un piccolo
+  <span class="en">dense head</span> per la risposta finale.</p>
+  <p>Ogni combinazione di queste scelte è una rete diversa — e il numero di combinazioni è
+  astronomico. Provarle tutte è impossibile; ci serve quindi un cercatore intelligente.</p>
+
+  <h3>Secondo passo: l&rsquo;evoluzione con invecchiamento</h3>
+  <p>Il nostro algoritmo si chiama <b><span class="en">aging evolution</span></b> ed è esattamente
+  il gioco della cucina, solo che al posto delle ricette abbiamo architetture di rete:</p>
+  <div class="card">
+    <p>1. Manteniamo una <b>popolazione</b> (<span class="en">population</span>) di architetture — ad esempio 100.<br>
+    2. A ogni round peschiamo un campione casuale — ad esempio 25.<br>
+    3. <b>La migliore di questo campione</b> diventa genitore (un piccolo torneo, non tutta la popolazione).<br>
+    4. Il genitore subisce una <b>mutazione</b> (<span class="en">mutation</span>): un piccolo cambiamento, come aggiungere o togliere un <span class="en">layer</span>, o allargarne uno (più canali). Questo cambiamento della struttura della rete si chiama anche <span class="en">morphism</span>.<br>
+    5. Il figlio <b>viene addestrato</b> e si aggiunge alla popolazione con il suo punteggio.<br>
+    6. <b>Il membro più anziano della popolazione viene rimosso</b> — non il peggiore!</p>
+  </div>
+
+  <figure class="viz">
+    <svg viewBox="0 0 720 390" role="img" aria-label="Il ciclo di aging evolution: dalla popolazione di cento architetture se ne campionano venticinque a caso, la migliore del campione diventa genitore, viene leggermente modificata da una mutazione, il figlio viene addestrato e torna nella popolazione; nel frattempo il membro più anziano della popolazione va in pensione">
+      <defs>
+        <marker id="arr-c" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="var(--muted)"/>
+        </marker>
+      </defs>
+      <!-- step numbers -->
+      <text x="605" y="42" text-anchor="middle" fill="var(--muted)" font-size="12" font-weight="800">1</text>
+      <text x="365" y="20" text-anchor="middle" fill="var(--muted)" font-size="12" font-weight="800">2</text>
+      <text x="120" y="42" text-anchor="middle" fill="var(--muted)" font-size="12" font-weight="800">3</text>
+      <text x="160" y="227" text-anchor="middle" fill="var(--muted)" font-size="12" font-weight="800">4</text>
+      <text x="470" y="227" text-anchor="middle" fill="var(--muted)" font-size="12" font-weight="800">5</text>
+      <!-- A: population -->
+      <rect x="520" y="50" width="170" height="70" rx="12" fill="none" stroke="var(--series-1)" stroke-width="2.5"/>
+      <text x="605" y="80" text-anchor="middle" fill="var(--ink)" font-size="15" font-weight="700">Popolazione</text>
+      <text x="605" y="103" text-anchor="middle" fill="var(--ink-2)" font-size="12">es. 100 architetture</text>
+      <!-- B: sampling -->
+      <rect x="285" y="28" width="160" height="70" rx="12" fill="none" stroke="var(--baseline)" stroke-width="2"/>
+      <text x="365" y="58" text-anchor="middle" fill="var(--ink)" font-size="15" font-weight="700">Campionamento</text>
+      <text x="365" y="81" text-anchor="middle" fill="var(--ink-2)" font-size="12">es. 25 a caso</text>
+      <!-- C: fittest parent -->
+      <rect x="40" y="50" width="160" height="70" rx="12" fill="none" stroke="var(--series-2)" stroke-width="2"/>
+      <text x="120" y="80" text-anchor="middle" fill="var(--ink)" font-size="15" font-weight="700">Miglior genitore 🏆</text>
+      <text x="120" y="103" text-anchor="middle" fill="var(--ink-2)" font-size="12">vincitore del campione</text>
+      <!-- D: mutation -->
+      <rect x="75" y="235" width="170" height="70" rx="12" fill="none" stroke="var(--baseline)" stroke-width="2"/>
+      <text x="160" y="263" text-anchor="middle" fill="var(--ink)" font-size="15" font-weight="700">Mutazione</text>
+      <text x="160" y="286" text-anchor="middle" fill="var(--ink-2)" font-size="12">aggiungi o allarga un layer</text>
+      <text x="160" y="324" text-anchor="middle" fill="var(--muted)" font-size="11" font-family="ui-monospace, Consolas, monospace">mutation / morphism</text>
+      <!-- E: train child -->
+      <rect x="385" y="235" width="170" height="70" rx="12" fill="none" stroke="var(--baseline)" stroke-width="2"/>
+      <text x="470" y="263" text-anchor="middle" fill="var(--ink)" font-size="15" font-weight="700">Training del figlio</text>
+      <text x="470" y="286" text-anchor="middle" fill="var(--ink-2)" font-size="12">poche epoch di training</text>
+      <!-- ghost: oldest retires -->
+      <text x="548" y="303" text-anchor="middle" fill="var(--muted)" font-size="12" font-weight="800">6</text>
+      <rect x="540" y="310" width="150" height="58" rx="12" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="6 5"/>
+      <text x="615" y="335" text-anchor="middle" fill="var(--ink-2)" font-size="13">Membro più anziano</text>
+      <text x="615" y="356" text-anchor="middle" fill="var(--muted)" font-size="12">va in pensione 👋</text>
+      <!-- cycle arrows -->
+      <line x1="520" y1="80" x2="448" y2="66" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr-c)"/>
+      <line x1="285" y1="63" x2="205" y2="80" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr-c)"/>
+      <line x1="110" y1="120" x2="148" y2="231" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr-c)"/>
+      <line x1="247" y1="270" x2="381" y2="270" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr-c)"/>
+      <line x1="497" y1="233" x2="560" y2="124" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr-c)"/>
+      <text x="445" y="180" text-anchor="middle" fill="var(--muted)" font-size="11.5">entra nella popolazione</text>
+      <!-- aging side arrow -->
+      <line x1="612" y1="122" x2="612" y2="306" stroke="var(--muted)" stroke-width="2" stroke-dasharray="5 5" marker-end="url(#arr-c)"/>
+      <text x="666" y="195" text-anchor="middle" fill="var(--muted)" font-size="11.5">il più anziano</text>
+      <text x="666" y="215" text-anchor="middle" fill="var(--muted)" font-size="11.5">viene rimosso</text>
+    </svg>
+    <figcaption>Figura 1 — Il ciclo di <span class="en">aging evolution</span>: a ogni round un piccolo torneo, una piccola mutazione, un figlio nuovo — e un pensionamento. Questo stesso ciclo si ripete centinaia di volte.</figcaption>
+  </figure>
+
+  <p>Il punto d&rsquo;oro è proprio il passo 6. Se rimuovessimo sempre il «peggiore», un vincitore
+  fortunato delle prime fasi potrebbe restare nella popolazione per sempre, fare continuamente da
+  genitore e riempirla di proprie copie. Rimuovendo <b>il più anziano</b>, anche il campione ha una
+  data di scadenza: le sue buone idee sopravvivono solo attraverso i suoi figli e la ricerca non
+  smette mai di esplorare.</p>
+
+  <div class="card">
+    <p class="card-title">Come sappiamo chi è «il più anziano»? (soprattutto al primo round!) 🧓</p>
+    <p>Bella domanda: al primo round, quando sono tutti nuovi arrivati, chi è il più anziano? La
+    risposta sta nel modo in cui la popolazione viene costruita. Nel codice di
+    <span class="en">µNAS</span> la popolazione è una <b>coda</b>
+    (<span class="en">queue</span>), non un sacco alla rinfusa:</p>
+    <p>1. Nemmeno la popolazione iniziale viene creata <b>tutta in una volta</b>: le architetture
+    casuali vengono costruite e addestrate una alla volta, e ciascuna viene aggiunta in fondo alla
+    coda <b>nell&rsquo;ordine in cui è pronta</b>. Fin dal primo istante, quindi, l&rsquo;ordine di
+    ingresso è perfettamente definito: «il più anziano» è la testa della coda — il primo membro
+    entrato.<br>
+    2. Anche la rimozione è altrettanto semplice: quando la popolazione supera il tetto (ad esempio
+    100), il membro in testa alla coda viene rimosso — <b>senza guardare il suo punteggio</b>. Nel
+    codice è davvero una sola riga:
+    <span class="en">population.pop(0)</span>.</p>
+    <p>L&rsquo;«età», quindi, non ha nulla a che vedere con la qualità; è solo l&rsquo;ordine di
+    ingresso. È proprio questa semplicità a distinguere l&rsquo;<span class="en">aging
+    evolution</span> dall&rsquo;algoritmo genetico classico (rimozione del più debole): qui nessuno,
+    nemmeno il campione, vive più a lungo della «vita della coda».</p>
+  </div>
+
+  <div class="card">
+    <p class="card-title">Le famiglie di algoritmi <span class="en">NAS</span> 🧭 — e perché abbiamo scelto l&rsquo;evoluzione</p>
+    <p>L&rsquo;evoluzione con invecchiamento non è l&rsquo;unico modo di cercare architetture.
+    Esistono quattro famiglie principali, e ciascuna propone un compromesso diverso:</p>
+    <table>
+      <thead><tr><th>Famiglia</th><th>Come funziona</th><th>Costo</th><th>Punto debole</th></tr></thead>
+      <tbody>
+        <tr><td>Reinforcement learning (<span class="en">RL</span>)</td><td>Un <span class="en">controller RNN</span> propone architetture, l&rsquo;accuratezza di <span class="en">validation</span> è la sua ricompensa e con il <span class="en">policy gradient</span> impara a proporre meglio</td><td>Astronomico</td><td>Richiede migliaia di training completi</td></tr>
+        <tr><td>A gradiente (<span class="en">DARTS</span>)</td><td>Tiene tutte le operazioni possibili una accanto all&rsquo;altra in una super-rete (<span class="en">supernet</span>) con pesi morbidi <span class="en">softmax</span> e affida la scelta al gradiente stesso</td><td>Economico</td><td>Divora memoria; a volte collassa sulle <span class="en">skip-connection</span></td></tr>
+        <tr><td>Evolutiva (<span class="en">aging evolution</span>)</td><td>Popolazione + mutazione + pensionamento del più anziano — questa lezione</td><td>Medio</td><td>Ogni figlio va addestrato separatamente</td></tr>
+        <tr><td>Casuale (<span class="en">random search</span>)</td><td>Genera architetture casuali e le valuta — la baseline di ogni confronto</td><td>Dipende dal budget</td><td>Non impara nulla dal passato</td></tr>
+      </tbody>
+    </table>
+    <p>Perché <span class="en">µNAS</span> ha scelto l&rsquo;evoluzione con invecchiamento? Perché i
+    tetti <b>rigidi</b> sulle risorse — memoria <span class="en">flash</span>, picco di
+    <span class="en">RAM</span>, numero di <span class="en">MACs</span> — si agganciano in modo
+    molto pulito alla sua <span class="en">fitness</span>: il figlio che sfora il budget viene
+    penalizzato lì per lì, senza che il vincolo debba essere differenziabile o richieda trucchi
+    aggiuntivi. La storia completa di questi vincoli è la prossima lezione.</p>
+  </div>
+
+  <h3>Terzo passo: non esiste un unico «migliore» — il fronte di Pareto</h3>
+  <p>Abbiamo due obiettivi simultanei che si combattono a vicenda: <b>errore basso</b> e
+  <b>dimensione piccola</b> (perché il modello entri nel <span class="en">microcontroller</span>).
+  Un modello che sia al tempo stesso più piccolo e più accurato di un altro lo «batte». Ma molto
+  spesso non è così: uno è più piccolo e l&rsquo;altro è più accurato — nessuno dei due è il
+  vincitore assoluto. L&rsquo;insieme dei modelli che nessuno riesce a battere su entrambi i
+  criteri contemporaneamente forma una «frontiera dei compromessi»: il
+  <b><span class="en">Pareto front</span></b>.</p>
+
+  <figure class="viz">
+    <div class="legend">
+      <span class="key"><span class="swatch" style="background:var(--series-1)"></span> Modelli sul fronte <span class="en">Pareto</span> — i compromessi migliori</span>
+      <span class="key"><span class="swatch" style="background:var(--muted)"></span> Modelli dominati — un altro è insieme più piccolo e più accurato</span>
+    </div>
+    <svg viewBox="0 0 720 400" role="img" aria-label="Grafico concettuale del fronte di Pareto: architetture sparse su due assi, dimensione del modello ed errore; quattro punti di frontiera sono collegati da una linea a gradini e gli altri punti sono dominati">
+      <defs>
+        <marker id="arr-ax" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="var(--baseline)"/>
+        </marker>
+        <marker id="arr-p" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="var(--series-1)"/>
+        </marker>
+      </defs>
+      <!-- grid -->
+      <line x1="80" y1="105" x2="680" y2="105" stroke="var(--grid)" stroke-width="1"/>
+      <line x1="80" y1="180" x2="680" y2="180" stroke="var(--grid)" stroke-width="1"/>
+      <line x1="80" y1="255" x2="680" y2="255" stroke="var(--grid)" stroke-width="1"/>
+      <!-- axes -->
+      <line x1="80" y1="330" x2="695" y2="330" stroke="var(--baseline)" stroke-width="1.5" marker-end="url(#arr-ax)"/>
+      <line x1="80" y1="330" x2="80" y2="30" stroke="var(--baseline)" stroke-width="1.5" marker-end="url(#arr-ax)"/>
+      <text x="380" y="368" text-anchor="middle" fill="var(--ink-2)" font-size="13">Dimensione del modello (<tspan>KB</tspan>)</text>
+      <text x="135" y="22" text-anchor="middle" fill="var(--ink-2)" font-size="13">Errore (<tspan>MAE</tspan>)</text>
+      <!-- ideal corner -->
+      <text x="150" y="318" text-anchor="middle" fill="var(--series-2)" font-size="12">🎯 angolo ideale</text>
+      <!-- dominated dots -->
+      <g fill="var(--muted)">
+        <circle cx="235" cy="115" r="5"/>
+        <circle cx="320" cy="155" r="5"/>
+        <circle cx="355" cy="95" r="5"/>
+        <circle cx="300" cy="70" r="5"/>
+        <circle cx="480" cy="175" r="5"/>
+        <circle cx="530" cy="125" r="5"/>
+        <circle cx="625" cy="205" r="5"/>
+      </g>
+      <!-- Pareto step line -->
+      <path d="M150,140 H260 V205 H400 V255 H600 V290" fill="none" stroke="var(--series-1)" stroke-width="2"/>
+      <!-- Pareto dots -->
+      <g fill="var(--series-1)">
+        <circle cx="150" cy="140" r="6"/>
+        <circle cx="260" cy="205" r="6"/>
+        <circle cx="400" cy="255" r="6"/>
+        <circle cx="600" cy="290" r="6"/>
+      </g>
+      <!-- annotation -->
+      <text x="215" y="292" text-anchor="middle" fill="var(--series-1)" font-size="13" font-weight="700">Fronte <tspan>Pareto</tspan></text>
+      <line x1="228" y1="275" x2="252" y2="218" stroke="var(--series-1)" stroke-width="1.5" stroke-dasharray="4 4" marker-end="url(#arr-p)"/>
+    </svg>
+    <figcaption>Figura 2 — Vista concettuale del fronte <span class="en">Pareto</span>: ogni punto è un&rsquo;architettura; più a destra significa più grande, più in alto significa più errore, e l&rsquo;angolo in basso a sinistra è l&rsquo;ideale. Nessun altro modello batte i punti blu su entrambi i criteri contemporaneamente; la scelta tra loro dipende dal budget hardware. Un dettaglio importante: la nostra frontiera reale ha più di due dimensioni — accuratezza, dimensione del modello, picco di <span class="en">RAM</span> e <span class="en">MACs</span> — e questa figura ne è solo una sezione bidimensionale, per restare leggibile.</figcaption>
+  </figure>
+
+  <p>Per questo l&rsquo;output del <span class="en">NAS</span> non è un singolo modello, ma una
+  «vetrina» di compromessi ottimali — e noi scegliamo da questa vetrina in base alla board di
+  destinazione. Come misuriamo esattamente l&rsquo;«essere piccoli» senza hardware e quali tetti
+  diamo all&rsquo;algoritmo è la storia della prossima lezione (<span class="en">µNAS</span>).</p>
+
+  <h2>Nel nostro progetto 🧰</h2>
+  <p>Usiamo la versione del nostro laboratorio (<span class="en">ELIOS</span>) di
+  <span class="en">µNAS</span>, che lavora con <span class="en">TensorFlow</span>. La prima breve
+  esecuzione di prova (<span class="en">smoke test</span>) sulla
+  <span class="en">RTX 5070</span> ha messo in moto proprio questo ciclo e ha risposto molto in
+  fretta:</p>
+
+  <div class="tiles">
+    <div class="tile">
+      <div class="value">72,729</div>
+      <div class="label">parametri (284 KB <span class="en">float</span>) — un candidato iniziale</div>
+    </div>
+    <div class="tile">
+      <div class="value">0.41</div>
+      <div class="label"><span class="en">val MAE</span> dello stesso candidato — dopo appena 3 <span class="en">epoch</span></div>
+    </div>
+    <div class="tile">
+      <div class="value">31</div>
+      <div class="label">modelli salvati sul fronte <span class="en">Pareto</span> nella ricerca breve</div>
+    </div>
+  </div>
+
+  <p>Poi abbiamo eseguito una vera ricerca breve: 25 round, ogni figlio solo 20
+  <span class="en">epoch</span>. Risultato: 31 modelli sul fronte <span class="en">Pareto</span>.
+  Il migliore lo abbiamo valutato separatamente sul set di <span class="en">test</span> — e il
+  record pubblicato (il <span class="en">Transformer</span> dell&rsquo;articolo
+  <span class="en">IEEE SPL 2026</span>) risulta già battuto:</p>
+
+  <figure class="viz">
+    <div class="legend">
+      <span class="key"><span class="swatch" style="background:var(--series-1)"></span> Il nostro miglior modello <span class="en">NAS</span> (verifica indipendente su <span class="en">test</span>)</span>
+      <span class="key"><span class="swatch" style="background:var(--series-2)"></span> Record pubblicato (<span class="en">Transformer</span>)</span>
+    </div>
+    <div class="hbar">
+      <div class="name">MAE — nostro modello</div>
+      <div class="track"><div class="fill" style="width:47.8%"></div></div>
+      <div class="val">0.287 s</div>
+      <div class="name">MAE — record</div>
+      <div class="track"><div class="fill alt" style="width:49.7%"></div></div>
+      <div class="val">0.298 s</div>
+    </div>
+    <div class="hbar" style="margin-top:16px">
+      <div class="name">RMSE — nostro modello</div>
+      <div class="track"><div class="fill" style="width:73.8%"></div></div>
+      <div class="val">0.443 s</div>
+      <div class="name">RMSE — record</div>
+      <div class="track"><div class="fill alt" style="width:85%"></div></div>
+      <div class="val">0.510 s</div>
+    </div>
+    <figcaption>Figura 3 — Errore su <span class="en">test</span> del miglior modello della ricerca breve contro il record pubblicato; la scala comune dei due grafici va da 0 a 0.6 secondi e più basso è meglio.</figcaption>
+  </figure>
+
+  <table>
+    <thead><tr><th>Metrica</th><th class="num">Il nostro miglior modello (ricerca breve)</th><th class="num">Record pubblicato (SPL 2026)</th></tr></thead>
+    <tbody>
+      <tr><td><span class="en">MAE</span></td><td class="num"><b>0.287 s</b></td><td class="num">0.298 s</td></tr>
+      <tr><td><span class="en">RMSE</span></td><td class="num"><b>0.443 s</b></td><td class="num">0.510 s</td></tr>
+    </tbody>
+  </table>
+
+  <p>Due note di onestà scientifica. Primo: questi numeri non ce li ha consegnati la ricerca
+  stessa. Durante il suo lavoro la ricerca confronta centinaia di volte i candidati con il
+  punteggio di <span class="en">validation</span> e sceglie il migliore; proprio questa
+  <b>selezione ripetuta</b> rende il miglior punteggio di <span class="en">validation</span> un
+  po&rsquo; ottimista e distorto — come la fuga graduale delle domande d&rsquo;esame, questa volta
+  per l&rsquo;algoritmo. Per questo la nostra ricerca breve ha riportato un
+  <span class="en">MAE</span> di circa <span class="en">0.11</span> su
+  <span class="en">validation</span>, ma il numero reale e citabile è <span class="en">0.287</span>:
+  secondo la nostra regola di sempre, il modello salvato viene ricaricato separatamente con
+  <span class="en">verify_models.py</span> e rivalutato sui guidatori di
+  <span class="en">test</span> (mai comparsi né nel training né nella selezione). Secondo: quella
+  era soltanto la ricerca «breve».</p>
+
+  <div class="card callout">
+    <p class="card-title">Il risultato finale delle ricerche complete 🏁 (150 round, tutti i task)</p>
+    <table>
+      <thead><tr><th>Task</th><th class="num">Il nostro miglior modello</th><th class="num">Riferimento</th><th>Stato</th></tr></thead>
+      <tbody>
+        <tr><td>Classification</td><td class="num"><b>92.08%</b> (84k parametri)</td><td class="num">92% (441k)</td><td>✅ migliore, con 5 volte meno parametri</td></tr>
+        <tr><td>Classification tiny</td><td class="num">91.30% (8k)</td><td class="num">—</td><td>✅ 55 volte più piccolo del riferimento</td></tr>
+        <tr><td>Senza guida (ablation)</td><td class="num">91.08%</td><td class="num">—</td><td>✅ il leak valeva solo 1 punto percentuale</td></tr>
+      </tbody>
+    </table>
+    <p>E per la <span class="en">regression</span>, invece di una frase generica, chiudiamo ogni confronto separatamente e onestamente:</p>
+    <table>
+      <thead><tr><th>Direzione (nostro RMSE)</th><th>vs SOTA pubblicato (RMSE 0.510)</th><th>vs riferimento interno (0.42 / 0.44)</th></tr></thead>
+      <tbody>
+        <tr><td><span class="en">LCR</span> — 0.447</td><td>✅ migliore (0.447 vs 0.510)</td><td>❌ non ancora (0.447 vs 0.42)</td></tr>
+        <tr><td><span class="en">LCL</span> — 0.466</td><td>✅ migliore, con cautela (0.466 vs 0.510)</td><td>❌ non ancora (0.466 vs 0.44)</td></tr>
+      </tbody>
+    </table>
+    <p>Stesso schema per il <span class="en">MAE</span>: il nostro <span class="en">LCR</span>
+    (0.287) è migliore del record pubblicato (0.298), ma il <span class="en">MAE</span> del nostro
+    modello <span class="en">LCL</span> (0.317) non è ancora sceso sotto 0.298 — la sinistra è la
+    direzione più difficile.</p>
+    <p><b>Due cautele necessarie per questa tabella:</b> primo, il numero pubblicato è un
+    <span class="en">TTLC</span> <b>combinato unico</b> per entrambe le direzioni, non un valore
+    separato per <span class="en">LCL</span>; la prima colonna della riga
+    <span class="en">LCL</span> è quindi un confronto allineato, non un testa a testa esatto.
+    Secondo, il riferimento interno è stato ottenuto con un protocollo di training e una
+    sogliatura diversi, quindi anche quella colonna è un confronto morbido. Diciamo entrambe le
+    cose apertamente perché i numeri non sembrino più grandi della realtà.</p>
+    <p>Una nota perché i numeri non si confondano: quei «31 modelli» visti più su appartenevano
+    alla ricerca <b>breve</b> dimostrativa. Le ricerche complete da 150 round hanno consegnato
+    fronti <span class="en">Pareto</span> più grandi: 33 modelli per la
+    <span class="en">classification</span>, 29 per la versione senza guida, 32 per
+    <span class="en">LCR</span> e 33 per <span class="en">LCL</span> (le riesecuzioni
+    <span class="en">rmse</span> che salvavano tutti i modelli: 90 e 82).</p>
+    <p>E i due modelli delle prime righe della tabella — il migliore
+    (<span class="en">model_aaaabl</span>, 84k parametri) e il tiny
+    (<span class="en">model_aaaaat</span>, circa 8k parametri) — sono entrambi membri della
+    <b>stessa frontiera da 33</b> della <span class="en">classification</span>. Il modello tiny non
+    è una versione potata o compressa del modello grande; è un&rsquo;architettura diversa che la
+    ricerca ha trovato da sola, perché con
+    <span class="en">save_criteria=pareto</span> viene salvata l&rsquo;intera frontiera
+    accuratezza-dimensione, non solo un vincitore.</p>
+    <p>Una bella scoperta inattesa: la forma della rete ha seguito la natura del task. La ricerca
+    permetteva rami paralleli per entrambi i tipi di problema, ma i modelli di
+    <span class="en">classification</span> sono diventati quasi <b>lineari</b> e i modelli di
+    <span class="en">regression</span> <b>multi-ramo</b>
+    (<span class="en">LCR</span> due rami, <span class="en">LCL</span> tre rami) —
+    nessuno lo ha progettato; lo ha scoperto la ricerca da sola.</p>
+  </div>
+
+  <div class="card callout">
+    <p class="card-title">Il costo della ricerca ⏱️ — circa una notte di GPU</p>
+    <p>Tutte e quattro le ricerche complete da 150 round sono state eseguite in una coda notturna
+    su <b>una sola</b> <span class="en">RTX 5070</span> da laptop e sono terminate il giorno dopo
+    con la ripresa a blocchi (<span class="en">chunked resume</span>)
+    (<span class="en">LOGBOOK</span>, 8 e 9 luglio 2026). Il tempo delle singole ricerche non è
+    stato registrato, quindi onestamente diciamo solo questo: <b>circa una notte di GPU per tutte e
+    quattro le ricerche</b> — non un numero più preciso che non abbiamo.</p>
+    <p>Per dare il senso della scala, i numeri celebri della letteratura:
+    <span class="en">NASNet</span> con il reinforcement learning
+    (<span class="en">Zoph &amp; Le</span>) circa 2000 <span class="en">GPU-day</span>,
+    <span class="en">AmoebaNet</span> con l&rsquo;evoluzione
+    (<span class="en">Real et al., 2019</span>) circa 3150 <span class="en">GPU-day</span>, e il
+    <span class="en">DARTS</span> a gradiente
+    (<span class="en">Liu et al., 2019</span>) circa 1–4 <span class="en">GPU-day</span>.
+    <b>Cautela necessaria:</b> erano problemi e hardware completamente diversi; questi numeri
+    servono solo a dare contesto, non sono un confronto testa a testa.</p>
+  </div>
+
+  <div class="card callout">
+    <p class="card-title">Ingegneria vera 🔧 — la guerra contro il memory leak</p>
+    <p>La nostra prima ricerca si rompeva all&rsquo;improvviso dopo circa 40 candidati. Perché?
+    <span class="en">TensorFlow</span> teneva in memoria i modelli vecchi — circa 200 megabyte
+    ciascuno — finché la <span class="en">RAM</span> si esauriva.
+    Soluzione: dopo ogni candidato, libera la <span class="en">session</span>.
+    La lezione è semplice ma importante: i lavori lunghi di machine learning hanno bisogno di
+    igiene della memoria (<span class="en">memory hygiene</span>) — altrimenti muoiono a metà
+    della terza notte.</p>
+  </div>
+
+  <div id="quiz" class="quiz"></div>
+  <script type="application/json" id="quiz-data">
+  [
+    {"stem": "Al primo round della ricerca, quando la popolazione è appena stata riempita, come si determina il «membro più anziano»?",
+     "options": ["Tutti i membri iniziali contano come coetanei, quindi nei primi round se ne sceglie uno a caso da rimuovere", "La popolazione è una coda: anche i membri iniziali sono entrati uno alla volta; il più anziano è la testa della coda", "Il membro con il punteggio di fitness più basso conta come il più anziano, perché di fatto è rimasto indietro nella competizione", "Al primo round nessun membro viene rimosso; l'algoritmo aspetta che tutti abbiano avuto almeno una possibilità di fare da genitore"],
+     "answer": 1,
+     "explain": "È proprio il punto che a prima vista sembra ambiguo! La popolazione iniziale non viene creata tutta in una volta — le architetture casuali vengono addestrate una alla volta e aggiunte in fondo alla coda, quindi l'ordine di ingresso è definito fin dall'istante zero. Anche la rimozione avviene alla cieca dalla testa della coda (pop(0)), senza guardare il punteggio — né a caso, né in base alla debolezza."},
+    {"stem": "Perché il genitore viene scelto come «il migliore di un campione casuale di 25», e non come il migliore dell'intera popolazione di 100?",
+     "options": ["Perché confrontare i punteggi di 100 membri a ogni round è computazionalmente più pesante del training dei candidati stessi e paralizzerebbe la ricerca", "Perché il punteggio dei membri più vecchi col passare del tempo non è più affidabile e andrebbe ricalcolato da capo prima di ogni confronto", "Perché il piccolo torneo casuale dà a membri più vari la possibilità di fare da genitore ed evita il blocco su un unico campione", "Perché nel codice di µNAS la dimensione reale della popolazione è proprio 25 e il numero 100 è soltanto la capienza massima della memoria"],
+     "answer": 2,
+     "explain": "Il piccolo torneo (tournament selection) è volutamente un po' «impreciso»: se a fare da genitore fosse sempre il campione assoluto, la popolazione si riempirebbe presto di sue copie. Con il campione casuale, ogni tanto vincono anche altri buoni membri — la diversità si conserva, e la rimozione del più anziano rafforza lo stesso effetto dall'altro lato. Il costo computazionale non è il problema: i punteggi sono già calcolati."},
+    {"stem": "Il modello X pesa 40 KB con errore 0.35, il modello Y 80 KB con errore 0.30, il modello Z 90 KB con errore 0.33. Quali stanno sul fronte di Pareto?",
+     "options": ["X e Y; il modello Z è dominato perché Y è al tempo stesso più piccolo e più accurato di lui", "Solo Y; perché ha l'errore minimo e nei problemi di sicurezza l'accuratezza ha priorità assoluta su ogni altro criterio", "Tutti e tre; perché ognuno ha almeno un criterio con un valore diverso dagli altri e nessuna coppia di modelli è del tutto identica", "Solo X; perché è il più piccolo e nel nostro progetto entrare nella memoria del chip è il prerequisito di ogni altra cosa"],
+     "answer": 0,
+     "explain": "La regola: viene eliminato il modello che un altro modello batte o eguaglia «su entrambi i criteri contemporaneamente». Y con 80 KB e 0.30 è migliore di Z (90 KB e 0.33) su entrambi → Z è dominato. Ma né X né Y battono l'altro su entrambi i criteri: X è più piccolo, Y più accurato — entrambi compromessi validi."},
+    {"stem": "La ricerca breve ha riportato un MAE su validation di circa 0.11, ma noi abbiamo dichiarato 0.287 su test. Da dove viene soprattutto questo divario, e quale numero è citabile?",
+     "options": ["Dall'accumulo degli errori di arrotondamento float32 lungo i layer; entrambi i numeri sono validi e andrebbe riportata la loro media", "Da una lieve corruzione del file del modello al salvataggio su disco; il numero di validation, calcolato prima del salvataggio, è quello giusto", "Dal fatto che il set di test è più piccolo di quello di validation; un insieme più piccolo mostra sempre un errore più grande", "La ricerca ha guardato validation centinaia di volte e ne è rimasta distorta; solo la valutazione indipendente su test è citabile"],
+     "answer": 3,
+     "explain": "La ricerca confronta e seleziona di continuo i candidati con il punteggio di validation; dopo centinaia di selezioni, il miglior punteggio di validation contiene anche un po' di «fortuna su quei dati» (la stessa logica della fuga delle domande d'esame, questa volta per l'algoritmo). Da qui la nostra regola: ogni modello salvato viene rivalutato separatamente su test con verify_models.py e solo quel numero entra nell'articolo."}
+  ]
+  </script>
+
+  <div class="lesson-nav">
+    <a href="06-validation-overfitting.html"><div class="dir">← Precedente</div><div>Lezione 06 — Validation</div></a>
+    <a href="08-munas-constraints.html"><div class="dir">Successiva →</div><div>Lezione 08 — µNAS e i vincoli</div></a>
+  </div>
+  <footer class="site">LC-Intention-NAS · ELIOS Lab</footer>
+</main>
+</body>
+</html>

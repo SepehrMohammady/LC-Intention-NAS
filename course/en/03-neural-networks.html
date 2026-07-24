@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 03 — Neural Networks in Plain Language | LC-Intention-NAS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/course.css">
+<script src="../assets/course.js" defer></script>
+</head>
+<body>
+<div class="topbar">
+  <a class="home" href="index.html">↪ Course index</a>
+  <div class="spacer"></div>
+  <nav class="lang-switch" aria-label="Language">
+    <a href="../03-neural-networks.html" hreflang="fa">فا</a>
+    <a href="03-neural-networks.html" class="active" hreflang="en">EN</a>
+    <a href="../it/03-neural-networks.html" hreflang="it">IT</a>
+  </nav>
+  <button class="theme-toggle" onclick="toggleTheme()">🌗 Light/Dark</button>
+</div>
+<main>
+  <p class="kicker">Lesson 03</p>
+  <h1><span class="en">Neural Network</span> in Plain Language 🧠</h1>
+  <p class="lede">A guessing machine that starts out answering completely at random, but nudges itself a little after every mistake.</p>
+
+  <div class="card callout story">
+    <p class="card-title">The story 📖</p>
+    <p>Imagine you want to teach a friend to recognize musical instruments by ear, but you are
+    not allowed to state any rules; you can't say "a guitar sounds stringy" or "a piano sounds
+    percussive." All you can do is play songs for them thousands of times and say "that was a
+    guitar," "that was a piano." Little by little, your friend's brain finds the patterns on its
+    own — without ever being able to say exactly how.</p>
+    <p>A <b><span class="en">neural network</span></b> does the same thing with numbers:
+    a guessing machine that starts out answering completely at random, but corrects itself a little after every mistake.
+    After millions of tiny corrections, its guesses become excellent.</p>
+  </div>
+
+  <h2>More precisely 🔬</h2>
+  <p>The network is built from layers of <span class="en">neuron</span>s.
+  Each <span class="en">neuron</span> is a very simple creature: it takes a few input numbers,
+  multiplies each one by a <b><span class="en">weight</span></b>, adds them all up,
+  and passes the result through a simple non-linear function called an <b><span class="en">activation</span></b>.
+  The most famous <span class="en">activation</span> is <b><span class="en">ReLU</span></b>, which has just one rule:
+  "if it's negative, make it zero; otherwise leave it alone."</p>
+  <p>Think of the weights as the volume knobs on a mixing desk: each knob decides how loudly one
+  input is heard in the final answer. <b>"Learning" means finding the right setting for exactly these knobs.</b></p>
+
+  <figure class="viz">
+    <svg viewBox="0 0 720 315" role="img" aria-label="Structure of a neuron: three inputs with weights w1 to w3 flow into a sum node, then pass through ReLU to produce the output">
+      <defs>
+        <marker id="arr-n" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="var(--muted)"/>
+        </marker>
+      </defs>
+      <!-- inputs (right) -->
+      <text x="630" y="26" text-anchor="middle" fill="var(--ink-2)" font-size="12.5">Inputs</text>
+      <circle cx="630" cy="70" r="26" fill="none" stroke="var(--series-2)" stroke-width="2"/>
+      <text x="630" y="76" text-anchor="middle" fill="var(--ink)" font-size="16" font-weight="700">x₁</text>
+      <circle cx="630" cy="155" r="26" fill="none" stroke="var(--series-2)" stroke-width="2"/>
+      <text x="630" y="161" text-anchor="middle" fill="var(--ink)" font-size="16" font-weight="700">x₂</text>
+      <circle cx="630" cy="240" r="26" fill="none" stroke="var(--series-2)" stroke-width="2"/>
+      <text x="630" y="246" text-anchor="middle" fill="var(--ink)" font-size="16" font-weight="700">x₃</text>
+      <!-- weighted arrows -->
+      <line x1="606" y1="80" x2="450" y2="143" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#arr-n)"/>
+      <line x1="604" y1="155" x2="452" y2="155" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#arr-n)"/>
+      <line x1="606" y1="230" x2="450" y2="167" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#arr-n)"/>
+      <text x="533" y="100" text-anchor="middle" fill="var(--series-1)" font-size="15" font-weight="700">w₁</text>
+      <text x="530" y="147" text-anchor="middle" fill="var(--series-1)" font-size="15" font-weight="700">w₂</text>
+      <text x="533" y="218" text-anchor="middle" fill="var(--series-1)" font-size="15" font-weight="700">w₃</text>
+      <text x="528" y="290" text-anchor="middle" fill="var(--ink-2)" font-size="12">each input is multiplied by its own weight</text>
+      <!-- sum node -->
+      <circle cx="420" cy="155" r="30" fill="none" stroke="var(--series-1)" stroke-width="2.5"/>
+      <text x="420" y="164" text-anchor="middle" fill="var(--ink)" font-size="24" font-weight="700">Σ</text>
+      <text x="420" y="212" text-anchor="middle" fill="var(--ink-2)" font-size="12.5">weighted sum</text>
+      <!-- ReLU -->
+      <line x1="390" y1="155" x2="318" y2="155" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#arr-n)"/>
+      <rect x="205" y="125" width="110" height="60" rx="10" fill="none" stroke="var(--series-2)" stroke-width="2.5"/>
+      <text x="260" y="152" text-anchor="middle" fill="var(--ink)" font-size="16" font-weight="700">ReLU</text>
+      <text x="260" y="172" text-anchor="middle" fill="var(--ink-2)" font-size="11">activation</text>
+      <text x="260" y="212" text-anchor="middle" fill="var(--ink-2)" font-size="12">if negative, set it to zero</text>
+      <!-- output -->
+      <line x1="205" y1="155" x2="132" y2="155" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#arr-n)"/>
+      <circle cx="97" cy="155" r="30" fill="none" stroke="var(--baseline)" stroke-width="2.5"/>
+      <text x="97" y="160" text-anchor="middle" fill="var(--ink)" font-size="12.5" font-weight="700">output</text>
+      <text x="97" y="212" text-anchor="middle" fill="var(--ink-2)" font-size="12">output: the network's guess</text>
+    </svg>
+    <figcaption>Figure 1 — One <span class="en">neuron</span>: each input is multiplied by its own <span class="en">weight</span>, everything is summed, and the result passes through <span class="en">ReLU</span>. Learning means finding the right values for these weights.</figcaption>
+  </figure>
+
+  <h3>The learning loop: four steps, millions of times 🔁</h3>
+  <p>So how does the network find the right setting for the weights? With a simple loop that repeats over and over:</p>
+  <div class="card">
+    <p>1. The network makes a guess for one sample (this stage is called the <span class="en">forward</span> pass);<br>
+    2. A function called the <b><span class="en">loss</span></b> measures how bad the guess was — like a teacher who only hands out marks;<br>
+    3. The <b><span class="en">backpropagation</span></b> algorithm works out how much each <span class="en">weight</span> was to blame for the error;<br>
+    4. The <b><span class="en">optimizer</span></b> (such as <b><span class="en">AdamW</span></b>, the one we use) nudges each <span class="en">weight</span> a little in the right direction.</p>
+  </div>
+
+  <figure class="viz">
+    <svg viewBox="0 0 720 440" role="img" aria-label="The learning loop with four stages: make a guess, measure the error, find who is to blame, nudge the weights a little — then start again">
+      <defs>
+        <marker id="arr-l" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="var(--muted)"/>
+        </marker>
+      </defs>
+      <!-- stage 1: top -->
+      <rect x="250" y="22" width="220" height="62" rx="12" fill="none" stroke="var(--series-1)" stroke-width="2"/>
+      <text x="360" y="50" text-anchor="middle" fill="var(--ink)" font-size="15" font-weight="700">1) Make a guess</text>
+      <text x="360" y="71" text-anchor="middle" fill="var(--series-1)" font-size="12">forward</text>
+      <!-- stage 2: left -->
+      <rect x="15" y="189" width="225" height="62" rx="12" fill="none" stroke="var(--series-1)" stroke-width="2"/>
+      <text x="127" y="214" text-anchor="middle" fill="var(--ink)" font-size="14.5" font-weight="700">2) Measure the error</text>
+      <text x="127" y="236" text-anchor="middle" fill="var(--series-1)" font-size="12">loss</text>
+      <!-- stage 3: bottom -->
+      <rect x="235" y="356" width="250" height="62" rx="12" fill="none" stroke="var(--series-1)" stroke-width="2"/>
+      <text x="360" y="381" text-anchor="middle" fill="var(--ink)" font-size="14.5" font-weight="700">3) Find who is to blame</text>
+      <text x="360" y="403" text-anchor="middle" fill="var(--series-1)" font-size="12">backpropagation</text>
+      <!-- stage 4: right -->
+      <rect x="480" y="189" width="225" height="62" rx="12" fill="none" stroke="var(--series-1)" stroke-width="2"/>
+      <text x="592" y="214" text-anchor="middle" fill="var(--ink)" font-size="14" font-weight="700">4) Nudge the weights</text>
+      <text x="592" y="236" text-anchor="middle" fill="var(--series-1)" font-size="12">optimizer · AdamW</text>
+      <!-- arrows, counterclockwise (RTL) -->
+      <path d="M 250 53 Q 140 65 127 185" fill="none" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr-l)"/>
+      <path d="M 127 251 Q 138 375 231 385" fill="none" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr-l)"/>
+      <path d="M 485 385 Q 582 375 592 255" fill="none" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr-l)"/>
+      <path d="M 592 189 Q 580 65 474 53" fill="none" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr-l)"/>
+      <!-- center note -->
+      <text x="360" y="185" text-anchor="middle" fill="var(--ink)" font-size="14" font-weight="700">This loop repeats</text>
+      <text x="360" y="208" text-anchor="middle" fill="var(--ink)" font-size="14" font-weight="700">millions of times 🔁</text>
+      <text x="360" y="242" text-anchor="middle" fill="var(--ink-2)" font-size="12.5">one full pass over all the data</text>
+      <text x="360" y="264" text-anchor="middle" fill="var(--ink-2)" font-size="12.5">= one epoch</text>
+    </svg>
+    <figcaption>Figure 2 — The learning loop: guess, measure the error, assign the blame, nudge the weights a little — and start again. One full pass over all the <span class="en">train</span> data is called an <span class="en">epoch</span>.</figcaption>
+  </figure>
+
+  <p>The important point: none of these corrections works miracles on its own; each time, the
+  weights get only "a little" better. The magic of a <span class="en">neural network</span> is in
+  the repetition — millions of tiny corrections that add up.</p>
+
+  <div class="card">
+    <p class="card-title">An epoch is made of "steps" 👣</p>
+    <p>We saw that one full pass over all the <span class="en">train</span> data is called an
+    <b><span class="en">epoch</span></b>. But the network doesn't look at the data one sample at a
+    time, and it doesn't look at it all at once either; the data is split into small groups called
+    <b><span class="en">batch</span>es</b>, and the weights are updated once after
+    <b>each batch</b>. So:</p>
+    <p style="text-align:center"><b>Steps per epoch = number of samples ÷ batch size</b></p>
+    <p>For example, with 94,620 samples and a batch size of 256, each epoch takes about 370 steps. Why batches?
+    If we update after <b>every single sample</b> (batch = 1), each step reflects the opinion of just one sample,
+    and the learning path becomes jittery and slow; if we update after <b>the whole dataset</b>, each step is very expensive.
+    A medium <span class="en">batch</span> gives a steadier average and also keeps the
+    <span class="en">GPU</span> better fed — in our project, <span class="en">batch = 256</span>.</p>
+  </div>
+
+  <h3>What does the network's output look like? 🎯</h3>
+  <div class="card">
+    <p>• For <b><span class="en">classification</span></b>, the network outputs three numbers (one per class),
+    and the largest one is the network's guess.<br>
+    • For <b><span class="en">regression</span></b>, the output is a single number: how many seconds until the lane change.</p>
+  </div>
+
+  <h3>But how do we measure the "error"? Two kinds of loss 📏</h3>
+  <p>We said the <span class="en">loss</span> tells us how bad a guess was — but "being bad" is
+  <b>not the same thing</b> for these two kinds of output, so we need two different formulas:</p>
+  <div class="card">
+    <p>• For <b><span class="en">regression</span></b> (a continuous output, like "2.3 seconds")
+    we use <b><span class="en">MAE</span></b> (mean absolute error): the distance between the guess
+    and the right answer. If the network says "2.0" and the answer is "2.3", this sample's error is
+    0.3 <b>seconds</b> — and since the unit is seconds, the meaning is immediately clear.<br>
+    • For <b><span class="en">classification</span></b> (one probability per class)
+    we use <b><span class="en">cross-entropy</span></b>: this formula measures the network's confidence
+    in the correct class, and heavily penalizes answers that are "confidently wrong." "2.0 instead of 2.3"
+    is a distance, not a class — which is why MAE is of no use here.</p>
+  </div>
+  <p>So the type of <span class="en">loss</span> must match the problem. More detail on training and
+  these two <span class="en">loss</span>es comes in Lesson 05; here you only needed to know why we
+  have two separate formulas.</p>
+
+  <h2>In our project 🧰</h2>
+  <div class="card">
+    <p>• Our baseline model is a small <b>1D <span class="en">CNN</span></b> (Lesson 04 explains it in detail)
+    in <span class="en">src/models/baseline.py</span>.<br>
+    • The learning loop is implemented in <span class="en">src/train.py</span>:
+    <span class="en">AdamW</span> + <span class="en">early stopping</span>
+    (if several <span class="en">epoch</span>s in a row bring no improvement, stop).<br>
+    • First run: only 27 seconds of <span class="en">training</span> on the <span class="en">GPU</span>
+    and 91.5% accuracy on the <span class="en">test</span> data —
+    recorded in <span class="en">logs/experiments.jsonl</span>.</p>
+  </div>
+
+  <div class="tiles">
+    <div class="tile">
+      <div class="value">27 s</div>
+      <div class="label"><span class="en">Training</span> time of the first run on the <span class="en">GPU</span></div>
+    </div>
+    <div class="tile">
+      <div class="value">91.5%</div>
+      <div class="label"><span class="en">Accuracy</span> on the <span class="en">test</span> data</div>
+    </div>
+  </div>
+
+  <div id="quiz" class="quiz"></div>
+  <script type="application/json" id="quiz-data">
+  [
+    {"stem": "If we set all the weights of a network to zero and never train it, what happens?",
+     "options": ["The network falls back to a generic default state and makes average but reasonable guesses from the architecture's built-in knowledge", "Only the network's execution speed drops while the answers stay the same, because the layer structure is untouched", "The output no longer depends on any input at all; all of the knowledge lived in those weights", "The network throws errors on its first runs but gradually generates and substitutes new weights on its own"],
+     "answer": 2,
+     "explain": "All of a network's \"knowledge\" is the values of its weights — there is no other memory. With zero weights, every input is multiplied by zero and the output becomes independent of the input. \"Learning\" means finding the right values for exactly these numbers, and without training nothing improves by itself."},
+    {"stem": "In the learning loop, what exactly is backpropagation's job?",
+     "options": ["Guessing the output for a new input by passing the signal through all the layers in order", "Computing each weight's share of the error and the direction in which to correct it", "Measuring how far the network's guess was from the right answer and turning that into a single penalty number", "Applying the final correction to every single weight, with a step whose size is set by the learning rate"],
+     "answer": 1,
+     "explain": "Four stages, four separate jobs: forward makes the guess, loss measures how bad the guess was, backpropagation computes each weight's \"share of the blame\", and the optimizer applies the correction. The other options are exactly the jobs of the other three stages — this question tests the boundary between them."},
+    {"stem": "With a batch size of 256, our baseline model takes about 370 steps per epoch. What happens if we set the batch size to 1?",
+     "options": ["Nothing changes; the total number of train samples is fixed, so the total computation per epoch stays the same", "The model becomes far more accurate, because each sample gets full, dedicated attention and the noise from the other samples is removed", "Each epoch becomes about 94 thousand noisy steps: every step sees only one sample's opinion, and the path becomes jittery and slow", "Training stops with an error, because deep learning libraries define 32 as the minimum allowed batch size"],
+     "answer": 2,
+     "explain": "Learning steps = number of samples ÷ batch size. With batch = 1, each step sees the opinion of just \"one\" sample and the correction direction keeps changing — noisy and inefficient on the GPU. A medium batch (like 256) gives a steadier average and also keeps the hardware better fed. There is no legal minimum called 32."},
+    {"stem": "Why do we use MAE for this project's regression rather than cross-entropy?",
+     "options": ["Because MAE always produces a smaller number than cross-entropy, which keeps the learning curve smoother and more stable during training", "Because computing cross-entropy is only supported on GPUs and runs extremely slowly on ordinary processors", "Because MAE was designed specifically for data from driving simulators and is the standard loss function in this field", "Because cross-entropy is for probabilities over classes; regression outputs a continuous number, and MAE measures its error in seconds"],
+     "answer": 3,
+     "explain": "The loss must match the problem: cross-entropy penalizes the model's confidence in the correct class (we have three classes), but \"2.0 instead of 2.3 seconds\" is not a class — it is a distance. MAE takes the absolute value of exactly that distance, and since its unit is seconds, the number is directly interpretable."}
+  ]
+  </script>
+
+  <div class="lesson-nav">
+    <a href="02-the-data.html"><div class="dir">← Previous</div><div>Lesson 02 — The Data</div></a>
+    <a href="04-1d-cnn.html"><div class="dir">Next →</div><div>Lesson 04 — 1D CNN</div></a>
+  </div>
+  <footer class="site">LC-Intention-NAS · ELIOS Lab</footer>
+</main>
+</body>
+</html>
