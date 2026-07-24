@@ -348,3 +348,26 @@ Spike provenance: DMIR Test Reports.xlsx corroborates User34 (4 collisions+2 acc
 Lesson 06 expanded (Pearson r explainer, ablation definition, blinker-detection methodology, why-no-k-fold). Lessons 07-11 refreshed with measured results: int16x8 silent-dequantize story, PTQ not QAT as actual path, float32 headline, H7B3 measured table, F401 categorical result, int8 point, 7-11.6 cycles/MAC.
 
 All 49 quiz questions rewritten. First rewrite FAILED its own audit (49/49 still longest-option-correct); second pass -> 33% (chance 25%), gaps within a few chars, indices spread. Agent sweep died on session limit; replaced with deterministic checks (JSON parse, geometric SVG audit, staleness grep).
+
+## 2026-07-24 15:52 — Course trilingual; notebook covers full arc; results narrative unified
+
+Three deliverables in one session (all workflow-verified):
+1) Results narrative sync: lesson 07 gets the honest 2x2 comparison (LCR/LCL x
+   published-SOTA/internal-ref, both caveats), NAS-algorithm families card,
+   Pareto-is-N-dimensional note, cls_tiny provenance (same 33-model front as
+   cls_best, not a pruned copy), and search-cost card (~1 GPU-night for all
+   four 150-round searches on the RTX 5070 vs literature GPU-days, context
+   only). README results table finally replaced the first-DSCNN numbers with
+   final verified results + measured on-device section. Paper: search setup
+   sentence (150 rounds, pop 50, sample 15 per launch-script defaults) +
+   Zoph/Real citations; board-choice rationale recorded (same platform as the
+   published baseline = like-for-like; unit available in ELIOS lab).
+2) Notebook dmir_pipeline.ipynb now covers the whole research arc: new §8-§11
+   (verified Pareto fronts from results/nas-fronts, quantization artifact
+   sizes read from disk, measured ST Edge AI deployment, scoreboard) via new
+   src/results_viz.py; executed headlessly end-to-end, 0 errors.
+3) Course is trilingual: full English and Italian editions (course/en/,
+   course/it/), 13 pages each, language switcher everywhere, i18n quiz
+   engine. Deterministic checks: zero Farsi residue, 49 quiz questions per
+   language, longest-option-correct 4%/2%, all links resolve; two editorial
+   audit agents passed both languages and unified terminology.
