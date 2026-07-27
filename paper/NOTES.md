@@ -109,12 +109,15 @@ articles the team shared). Run every draft section against it.
       4.0.1 silently dequantizes it to float32 (weights 326.15 KiB = identical
       to float32; the int8 control compresses to 83.28 KiB). Offline accuracy
       bound only — never quote as deployed. See docs/research/deployment.md.
-- [ ] **int8 I/O interface re-export.** `prepare_deploy.py` leaves
-      `inference_input_type`/`inference_output_type` at float32, so the int8
-      model still allocates a 6,200 B float32 input buffer — which is why its
-      measured RAM (8,096 B) barely beat float32's (9,456 B) instead of hitting
-      the predicted ~3 KB. Re-export cls_best_int8 with `tf.int8` I/O, then one
-      ST upload to confirm RAM ≈ 3 KB and the `conversion_0` cast disappears.
+- [ ] **int8 I/O interface — artifact READY, needs one ST upload.**
+      `results/deploy/cls_best_int8_io.tflite` (112,568 B, int8 in/out,
+      scale 1.10578 / zp 38), built by `unas/export_int8_io.py` and verified
+      accuracy-neutral (0.868624, identical to the float32-I/O build; the
+      float32-I/O control rebuilt byte-for-byte identical to the committed
+      artifact). **Upload it and check: RAM 8,096 B → ~3,446 B** (−4,650 B, the
+      float32 input buffer) and `conversion_0` gone from the per-layer chart;
+      flash/latency ≈ unchanged. This closes the last open RAM question and
+      would make int8 the clear RAM winner (currently it barely beats float32).
 - [x] **QAT int8 measured on-device** (2026-07-24, H7B3I-DK): 89.82% @
       **1.558 ms** / 128 KiB flash / 8.4 KB RAM. Recovers +2.96 over PTQ int8 and
       is the *fastest* operating point (< float32 3.628 ms and PTQ int8 1.885 ms).

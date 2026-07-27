@@ -393,9 +393,33 @@ cast is visible in the per-layer time chart and is not cheap.
 So the input-floor rule is **confirmed, not refuted** — the floor simply never
 moved, because quantizing the *weights* does not quantize the *interface*.
 **Actionable:** setting `inference_input_type=tf.int8` /
-`inference_output_type=tf.int8` in `prepare_deploy.py` should cut the floor to
-1.55 KB and take int8 RAM to ~3 KB, and drop the `conversion_0` cast. Worth one
-re-export and one upload. → TODO in `paper/NOTES.md`.
+`inference_output_type=tf.int8` cuts the floor from 6,200 B to 1,550 B.
+
+**✔ Artifact prepared and verified (2026-07-27):**
+`unas/export_int8_io.py` → `results/deploy/cls_best_int8_io.tflite` (112,568 B),
+int8 in / int8 out, input `scale=1.10578, zero_point=38`.
+
+The re-export is **accuracy-neutral, proven**: evaluated through a quantizing
+interpreter it scores **0.868624** — identical to the float32-I/O build to six
+decimals, and matching the measured 0.8686. In the same run the float32-I/O
+control rebuilt **byte-for-byte** identical to the committed
+`cls_best_int8.tflite` (112,912 B), so the converter is deterministic and this
+script reproduces `prepare_deploy.py` exactly.
+
+*Note on the evaluator:* `eval_tflite` in `prepare_deploy.py` / `quantize_eval.py`
+only **casts** (`.astype(dtype)`). That is a harmless no-op for a float32
+interface — so every number measured so far is unaffected — but it would
+silently destroy an int8 input. `export_int8_io.py` therefore carries its own
+evaluator that quantizes in and dequantizes out.
+
+*Why accuracy is unchanged:* the float32 interface never protected accuracy. The
+float32-I/O build already quantizes the input internally with the same scale (the
+visible `conversion_0` op); the int8 interface just moves that cast off the
+device. The float32 interface was costing RAM and buying nothing.
+
+**⏳ Prediction to confirm with one ST upload:** RAM **8,096 B → ~3,446 B**
+(−4,650 B, the float32-input buffer), and `conversion_0` should disappear from
+the per-layer chart. Flash and latency should be essentially unchanged.
 
 **2. Width-bound (`lcr_best`, 20.8 KB).** Its wide 116-channel conv emits
 25×116×4 B = 11.6 KB; peak ≈ input 6.2 + 11.6 ≈ 17.8 KB against 18.91 KiB
