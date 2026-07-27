@@ -120,6 +120,15 @@ articles the team shared). Run every draft section against it.
       is the *fastest* operating point (< float32 3.628 ms and PTQ int8 1.885 ms).
       Flash is +24 KiB vs PTQ int8 (weights identical 83.28 KiB; the delta is ST
       library code for the width-1 2D re-expression).
+- [x] **F401 flash-headroom limit — bracketed.** `lcl_best` (423,494 B, 80.8%,
+      100,794 B headroom) **runs at 162.5 ms**; `lcr_best` (474,522 B, 90.5%,
+      49,766 B headroom) returns **no measured time**. So the practical ceiling
+      is between **80.8% and 90.5% flash occupancy** (~100 KB vs ~50 KB free):
+      the validation app + runtime need flash on top of the weights. Caveat kept
+      in deployment.md: the Cloud gave no reason for the dash, so "insufficient
+      headroom" is the supported explanation, not a reported error. Optional
+      refinement: an int8 lcr_best (~152 KB) would test whether the *model* or
+      the *headroom* is what fails.
 - [ ] **Optional: native-1D QAT** to drop the +24 KiB library overhead. Custom
       tfmot QuantizeConfigs for Conv1D/DepthwiseConv1D/pool would keep the exact
       1D graph (~104 KiB) instead of the 2D workaround, and would also isolate the

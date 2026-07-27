@@ -215,19 +215,49 @@ scaling below).
 
 **The headline here is categorical, not a ratio: the reference CNN cannot run on
 this board at all.** Its 1,769,882 B of flash is **3.38× the F401's entire
-512 KB**. No optimization setting fixes that. Every searched model fits:
+512 KB**. No optimization setting fixes that. Every searched model is *smaller*
+than the board's flash — but see the headroom caveat under the table:
 
-| model | flash | % of F401 flash | fits? |
+| model | flash | % of F401 flash | benchmark on the board |
 |---|--:|--:|---|
-| REF_cnn_multi | 1,769,882 B | 337.6% | **no — 3.38× over** |
-| lcr_best | 474,522 B | 90.5% | yes |
-| lcl_best | 423,494 B | 80.8% | yes |
+| REF_cnn_multi | 1,769,882 B | 337.6% | **no — 3.38× over, cannot run** |
+| lcr_best | 474,522 B | 90.5% | **no result returned** (2026-07-24) |
+| lcl_best | 423,494 B | 80.8% | yes (**MAE 0.317 @ 162.5 ms**) |
 | cls_best | 343,254 B | 65.5% | yes (**92.08% @ 18.35 ms**) |
 | cls_best int8 QAT | 131,008 B | 25.6% | yes (89.82% @ 7.381 ms) |
 | cls_tiny | 37,954 B | **7.2%** | yes (91.30% @ 4.376 ms) |
 
-So the searched models open a board class the reference is locked out of — 91.3%
-accuracy at 4.4 ms on a Cortex-M4 that costs a fraction of the H7B3. This matches
+**Flash headroom, not model size, is the real F401 limit — and the threshold is
+now bracketed.** `lcr_best` (474,522 B, 90.5% of flash) returned **no measured
+inference time** from the Developer Cloud (a dash, no reason given), while
+`lcl_best` (423,494 B, 80.8%) — the discriminating test — **does run, at
+162.5 ms**. Every model that returns a time has ≥100 KB of flash free; the only
+one that does not has 49,766 B:
+
+| model | flash used | % of flash | headroom | benchmark |
+|---|--:|--:|--:|---|
+| cls_tiny | 37,954 B | 7.2% | 486,334 B | ✔ 4.376 ms |
+| cls_best int8 QAT | 131,008 B | 25.0% | 393,280 B | ✔ 7.381 ms |
+| cls_best fp32 | 343,254 B | 65.5% | 181,034 B | ✔ 18.35 ms |
+| lcl_best fp32 | 423,494 B | 80.8% | 100,794 B | ✔ **162.5 ms** |
+| lcr_best fp32 | 474,522 B | 90.5% | **49,766 B** | ✘ no result |
+
+So the practical ceiling on this board lies **between 80.8% and 90.5% flash
+occupancy** (between ~100 KB and ~50 KB of headroom): the validation application
+and runtime need flash *on top of* the weights, and below roughly 50 KB there is
+not enough left. Model-size arithmetic alone ("474 KB < 512 KB, therefore fits")
+is not a deployability test.
+
+One honesty limit remains: the Cloud reported *no reason* for the dash, so
+"insufficient headroom" is the supported explanation, not a message we were
+given — a dash could in principle also be a not-run or a timeout. What is
+certain is the bracket above and the negative fact that **we have no measured
+latency for lcr_best on the F401**.
+
+So four of the five models run on this board, including a regression model at
+162.5 ms — while the reference CNN cannot run at all, needing 3.38× the entire
+flash. The classifiers are the strong case (91.3% at 4.4 ms; the full 92.08%
+model at 18.35 ms) on a Cortex-M4 costing a fraction of the H7B3. This matches
 the baseline paper's own report that their Transformer did not fit the F401.
 
 **Cross-board scaling (same model, same file):**
@@ -237,23 +267,28 @@ the baseline paper's own report that their Transformer did not fit the F401.
 | cls_tiny fp32 | 31,742 | 0.7931 ms | 4.376 ms | 5.52× | 1.66× |
 | cls_best fp32 | 158,094 | 3.628 ms | **18.35 ms** | 5.06× | 1.52× |
 | cls_best int8 QAT | 161,570 | 1.558 ms | **7.381 ms** | 4.74× | 1.42× |
+| lcl_best fp32 | 1,658,927 | 28.77 ms | **162.5 ms** | 5.65× | 1.69× |
 
 Against a clock ratio of 3.33×, the M4 is consistently **1.4–1.7× slower per
 clock** — the M7's dual-issue pipeline and cache — and the factor shrinks as the
 kernels get more efficient. Cycles per MAC:
 
-| model | M7 | M4 |
-|---|--:|--:|
-| cls_tiny fp32 | 7.00 | 11.58 |
-| cls_best fp32 | 6.43 | 9.75 |
-| cls_best int8 QAT | **2.70** | **3.84** |
+| model | MACC | M7 | M4 |
+|---|--:|--:|--:|
+| cls_tiny fp32 | 31,742 | 7.00 | 11.58 |
+| cls_best fp32 | 158,094 | 6.43 | 9.75 |
+| lcl_best fp32 | 1,658,927 | **4.86** | **8.23** |
+| cls_best int8 QAT | 161,570 | **2.70** | **3.84** |
 
-Two readings. (1) On the **float32** path, 6.4–11.6 cycles per MAC on cores with
-single-cycle MAC instructions — arithmetic is not the bottleneck at this model
-size; per-op overhead and memory traffic are. (2) **int8 is ~2.4× more efficient
-per MAC** than float32 on the same core (2.70 vs 6.43 on the M7), which is where
-the QAT model's speed advantage comes from: it does *more* MACs (161,570 vs
-158,094) in *less* time.
+Three readings. (1) On the **float32** path, 4.9–11.6 cycles per MAC on cores
+with single-cycle MAC instructions — arithmetic is not the bottleneck; per-op
+overhead and memory traffic are. (2) **Efficiency improves with model size**:
+cycles/MAC falls monotonically from cls_tiny (31 k MACs, 7.00) through cls_best
+(158 k, 6.43) to lcl_best (1.66 M, 4.86), because a bigger model amortises the
+fixed per-op overhead over more arithmetic — direct support for the
+overhead-bound reading. (3) **int8 is ~2.4× more efficient per MAC** than float32
+at comparable size (2.70 vs 6.43 on the M7), which is where the QAT model's speed
+advantage comes from: it does *more* MACs (161,570 vs 158,094) in *less* time.
 
 ### The int8 operating point, measured (cls_best)
 

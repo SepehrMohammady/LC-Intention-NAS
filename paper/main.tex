@@ -245,9 +245,14 @@ occupies 7.2\% of flash, while the reference CNN does not fit at all---its
 compiler setting can recover. Nor is the small model the only one that reaches
 this board: the full classifier runs there in 18.35~ms at 65.5\% of flash, and
 its quantized form in 7.381~ms at 25.6\%, so the accuracy headline itself is
-available on the Cortex-M4. The searched models therefore open a device class
-the reference is locked out of, consistent with the baseline's own report that
-its Transformer did not fit this board.
+available on the Cortex-M4, as is the LCL regression model at 162.5~ms. The
+searched models therefore open a device class the reference is locked out of,
+consistent with the baseline's own report that its Transformer did not fit this
+board. One model does not follow: the widest regressor occupies 90.5\% of flash
+and returned no measured time, while every model that did run leaves at least
+100~KB free. The binding constraint on this board is flash \emph{headroom} for
+the runtime, not model size---a distinction that matters because size arithmetic
+alone would have called all five deployable.
 
 One measurement is worth recording for anyone budgeting from operation counts:
 the tiny model costs 7.0 cycles per MAC on the M7 and 11.6 on the M4, on cores
