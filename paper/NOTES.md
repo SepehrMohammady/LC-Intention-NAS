@@ -109,15 +109,21 @@ articles the team shared). Run every draft section against it.
       4.0.1 silently dequantizes it to float32 (weights 326.15 KiB = identical
       to float32; the int8 control compresses to 83.28 KiB). Offline accuracy
       bound only — never quote as deployed. See docs/research/deployment.md.
-- [ ] **int8 I/O interface — artifact READY, needs one ST upload.**
-      `results/deploy/cls_best_int8_io.tflite` (112,568 B, int8 in/out,
-      scale 1.10578 / zp 38), built by `unas/export_int8_io.py` and verified
-      accuracy-neutral (0.868624, identical to the float32-I/O build; the
-      float32-I/O control rebuilt byte-for-byte identical to the committed
-      artifact). **Upload it and check: RAM 8,096 B → ~3,446 B** (−4,650 B, the
-      float32 input buffer) and `conversion_0` gone from the per-layer chart;
-      flash/latency ≈ unchanged. This closes the last open RAM question and
-      would make int8 the clear RAM winner (currently it barely beats float32).
+- [x] **int8 I/O interface — MEASURED (2026-07-27).** RAM **8,096 → 5,444 B**
+      (1.49×; activations 6.05 → 3.46 KiB), both cast ops gone, MACC 158,336 →
+      155,230, flash unchanged, badge now `STAI_FORMAT_S8`. int8 is now clearly
+      the RAM-efficient point (1.74× under float32, was 1.17×). My predicted
+      3,446 B was 2 KB optimistic — I subtracted the buffer saving instead of
+      applying max-over-live-tensors; once the input stopped being the binding
+      constraint the internal peak set the floor. Recorded in deployment.md.
+      Side finding: `STAI_FORMAT_*` tracks the **I/O dtype**, not weight
+      precision — resolves the earlier badge puzzle.
+- [ ] *Optional:* one **H7B3I-DK** run of `cls_best_int8_io.tflite` for a
+      like-for-like latency. The int8-I/O build was benchmarked on an
+      **STM32H573I-DK** (Cortex-M33 @ 250 MHz, 2.462 ms), so it cannot be
+      compared to the 1.885 ms M7 figure. Flash/RAM are already comparable
+      (platform-level), so this is only needed if we want to claim the interface
+      change is latency-neutral.
 - [x] **QAT int8 measured on-device** (2026-07-24, H7B3I-DK): 89.82% @
       **1.558 ms** / 128 KiB flash / 8.4 KB RAM. Recovers +2.96 over PTQ int8 and
       is the *fastest* operating point (< float32 3.628 ms and PTQ int8 1.885 ms).

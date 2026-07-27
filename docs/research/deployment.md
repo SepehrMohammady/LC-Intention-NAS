@@ -194,6 +194,23 @@ Two operating points, both measured on real hardware: *more accurate and 9×
 faster*, or *0.4 points lower and 42× faster in 37 KB with sub-millisecond
 inference*.
 
+### MEASURED — STM32H573I-DK (Cortex-M33 @ 250 MHz, 640 KB RAM, 2048 KB flash)
+
+A third board, used for the int8-I/O run (2026-07-27):
+
+| model | latency | MACC | cycles/MAC | flash | RAM |
+|---|--:|--:|--:|--:|--:|
+| cls_best int8 (**int8 I/O**) | **2.462 ms** @ 250 MHz | 155,230 | 3.97 | 106,446 B | 5,444 B |
+
+⚠ **Not comparable to the 1.885 ms H7B3 figure** — different core (Cortex-M33 vs
+M7), different clock (250 vs 280 MHz) *and* a different build. We have **no
+H7B3 latency for the int8-I/O artifact**, so no statement should be made about
+whether the interface change affects speed. The flash/RAM figures above *are*
+comparable, because they come from the platform-level optimize step rather than
+the board run. For a like-for-like latency the int8-I/O model would need one
+H7B3I-DK run. The M33's 3.97 cycles/MAC sits between the M7 (2.70) and M4 (3.84)
+int8 figures, which is at least consistent.
+
 ### MEASURED — NUCLEO-F401RE (Cortex-M4 @ 84 MHz, 512 KB flash, 96 KB RAM)
 
 `cls_tiny_float32`: **4.376 ms @ 84 MHz** (measured 2026-07-14, Core 4.0.1,
@@ -417,9 +434,44 @@ float32-I/O build already quantizes the input internally with the same scale (th
 visible `conversion_0` op); the int8 interface just moves that cast off the
 device. The float32 interface was costing RAM and buying nothing.
 
-**⏳ Prediction to confirm with one ST upload:** RAM **8,096 B → ~3,446 B**
-(−4,650 B, the float32-input buffer), and `conversion_0` should disappear from
-the per-layer chart. Flash and latency should be essentially unchanged.
+**✔ MEASURED (2026-07-27) — direction confirmed, my magnitude was wrong.**
+
+| | float32 I/O | int8 I/O | change |
+|---|--:|--:|--:|
+| RAM total | 8,096 B | **5,444 B** | −2,652 B (**1.49×**) |
+| — activations | 6.05 KiB (6,195 B) | **3.46 KiB (3,543 B)** | −2,652 B |
+| flash | 106,738 B | 106,446 B | −292 B (weights identical, 83.28 KiB) |
+| MACC | 158,336 | **155,230** | −3,106 (the cast ops) |
+| model type badge | `STAI_FORMAT_FLOAT` | **`STAI_FORMAT_S8`** | — |
+
+`conversion_0` **and** `conversion_14` are gone: the per-layer charts now begin
+at `pool_1` and end at `gemm_26`, where the float32-I/O build began with
+`conversion_0` and ended with `conversion_14`. That is the predicted effect, and
+it also accounts for the MACC drop.
+
+**Where my prediction failed, and why it matters.** I predicted ~3,446 B by
+*subtracting* the buffer saving (6,200 − 1,550 = 4,650 B) from the measured
+8,096 B. Measured is 5,444 B — I was **2.0 KB optimistic**. The error is
+methodological: peak RAM is a **max over simultaneously-live tensors plus kernel
+scratch, not a sum**, which is exactly the principle stated in the RAM-regimes
+section below — and which I failed to apply to my own forecast. Shrinking the
+input buffer from 6,200 B to 1,550 B did not subtract 4,650 B from the arena; it
+removed the input as *the binding constraint*, after which the widest internal
+activation set the new floor at 3,543 B. The lesson generalises: once you are no
+longer input-bound, further input shrinking buys nothing.
+
+**What it settles.** int8 is now unambiguously the RAM-efficient point: 5,444 B
+vs float32's 9,456 B (**1.74×**, up from a marginal 1.17×). The input-floor
+account is confirmed on hardware — the floor was real, it moved when the
+interface changed, and it stopped mattering once it fell below the internal peak.
+
+**Bonus: what the `STAI_FORMAT_*` badge actually means.** This run resolves an
+earlier open puzzle. We once cited `STAI_FORMAT_FLOAT` as evidence that the
+int16×8 model had been dequantized, then retracted it after the genuinely-int8
+build showed the same badge. Now that a build with an int8 *interface* reports
+`STAI_FORMAT_S8`, the rule is clear: **the badge reflects the I/O tensor dtype,
+not the weight precision.** The retraction was correct, and the weights figure
+remains the sound discriminator for the int16×8 finding.
 
 **2. Width-bound (`lcr_best`, 20.8 KB).** Its wide 116-channel conv emits
 25×116×4 B = 11.6 KB; peak ≈ input 6.2 + 11.6 ≈ 17.8 KB against 18.91 KiB
