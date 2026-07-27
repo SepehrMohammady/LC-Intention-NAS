@@ -201,6 +201,11 @@ balanced). Flash/RAM are the platform-level optimize output and unchanged from
 the H7B3 run: 37,954 B flash (**7.2%** of the F401's 512 KB), 9,412 B RAM
 (9.8% of its 96 KB).
 
+`cls_best_float32` measured on the F401 (2026-07-24): **18.35 ms @ 84 MHz**, flash
+343,254 B (**65.5%** of 512 KB), RAM 9,456 B (9.6% of 96 KB). So the **accuracy
+headline model itself** — 92.08%, the one that beats the reference CNN — runs on
+the $10 Cortex-M4, on a board where that reference cannot run at all.
+
 `cls_best_qat_int8` also measured on the F401 (2026-07-24): **7.381 ms @ 84 MHz**.
 Flash/RAM unchanged from its H7B3 run (128 KiB flash = **25.6%** of 512 KB;
 8,404 B RAM = 8.8% of 96 KB) — so the *full* classifier, quantized, runs on the
@@ -217,9 +222,9 @@ this board at all.** Its 1,769,882 B of flash is **3.38× the F401's entire
 | REF_cnn_multi | 1,769,882 B | 337.6% | **no — 3.38× over** |
 | lcr_best | 474,522 B | 90.5% | yes |
 | lcl_best | 423,494 B | 80.8% | yes |
-| cls_best | 343,254 B | 65.5% | yes |
+| cls_best | 343,254 B | 65.5% | yes (**92.08% @ 18.35 ms**) |
 | cls_best int8 QAT | 131,008 B | 25.6% | yes (89.82% @ 7.381 ms) |
-| cls_tiny | 37,954 B | **7.2%** | yes, easily |
+| cls_tiny | 37,954 B | **7.2%** | yes (91.30% @ 4.376 ms) |
 
 So the searched models open a board class the reference is locked out of — 91.3%
 accuracy at 4.4 ms on a Cortex-M4 that costs a fraction of the H7B3. This matches
@@ -227,16 +232,28 @@ the baseline paper's own report that their Transformer did not fit the F401.
 
 **Cross-board scaling (same model, same file):**
 
-| board | latency | clock | cycles | cycles/MAC |
-|---|--:|--:|--:|--:|
-| STM32H7B3I-DK (M7) | 0.7931 ms | 280 MHz | 222,068 | 7.0 |
-| NUCLEO-F401RE (M4) | 4.376 ms | 84 MHz | 367,584 | 11.6 |
+| model | MACC | M7 @ 280 MHz | M4 @ 84 MHz | M4/M7 wall | implied IPC factor |
+|---|--:|--:|--:|--:|--:|
+| cls_tiny fp32 | 31,742 | 0.7931 ms | 4.376 ms | 5.52× | 1.66× |
+| cls_best fp32 | 158,094 | 3.628 ms | **18.35 ms** | 5.06× | 1.52× |
+| cls_best int8 QAT | 161,570 | 1.558 ms | **7.381 ms** | 4.74× | 1.42× |
 
-Wall-clock ratio 5.52× against a clock ratio of only 3.33×, so the M4 is 1.66×
-slower **per clock** — consistent with the M7's dual-issue pipeline and cache.
-Note both figures: **7–11.6 cycles per MAC** on cores with single-cycle MAC
-instructions. Arithmetic is not the bottleneck on either board at this model
-size; per-op overhead and memory traffic are.
+Against a clock ratio of 3.33×, the M4 is consistently **1.4–1.7× slower per
+clock** — the M7's dual-issue pipeline and cache — and the factor shrinks as the
+kernels get more efficient. Cycles per MAC:
+
+| model | M7 | M4 |
+|---|--:|--:|
+| cls_tiny fp32 | 7.00 | 11.58 |
+| cls_best fp32 | 6.43 | 9.75 |
+| cls_best int8 QAT | **2.70** | **3.84** |
+
+Two readings. (1) On the **float32** path, 6.4–11.6 cycles per MAC on cores with
+single-cycle MAC instructions — arithmetic is not the bottleneck at this model
+size; per-op overhead and memory traffic are. (2) **int8 is ~2.4× more efficient
+per MAC** than float32 on the same core (2.70 vs 6.43 on the M7), which is where
+the QAT model's speed advantage comes from: it does *more* MACs (161,570 vs
+158,094) in *less* time.
 
 ### The int8 operating point, measured (cls_best)
 

@@ -383,3 +383,7 @@ User uploaded ST Edge AI results for cls_best_qat_int8.tflite (H7B3I-DK, Core 4.
 ## 2026-07-24 16:58 — QAT int8 also on NUCLEO-F401RE: 7.381 ms @ 84 MHz
 
 User measured cls_best_qat_int8 on the F401RE too: 7.381 ms @ 84 MHz. Flash/RAM platform-level, unchanged from H7B3 (128 KiB = 25.6% of 512 KB flash; 8,404 B RAM). So the full classifier, quantized to int8 via QAT, runs on the Cortex-M4 at 89.82%. Cross-board 4.7x slower than H7B3 M7 (1.558 ms) ~ 3.3x clock x 1.4x M4-vs-M7 IPC, consistent with cls_tiny scaling. deployment.md F401 section + fits table + experiments.jsonl updated.
+
+## 2026-07-27 15:14 — cls_best float32 on NUCLEO-F401RE: 18.35 ms @ 84 MHz
+
+User measured the remaining F401 gap: cls_best_float32 = 18.35 ms @ 84 MHz (flash 343,254 B = 65.5% of 512 KB; RAM 9,456 B = 9.6% of 96 KB). Significance: the ACCURACY-HEADLINE model (92.08%, the one that beats the 441k reference CNN) runs on the 0 Cortex-M4 - a board the reference cannot run on at all (3.38x over flash). Cross-board scaling now has three models: M4/M7 wall ratio 5.52x (cls_tiny), 5.06x (cls_best fp32), 4.74x (QAT int8) against a 3.33x clock ratio -> IPC factor 1.4-1.7x, shrinking as the kernels get more efficient. New finding from the cycles/MAC table: int8 runs at 2.70 cyc/MAC vs float32 6.43 on the M7 (~2.4x more efficient per MAC) - that is the real source of the QAT model speed win, since it executes MORE MACs (161,570 vs 158,094) in LESS time. deployment.md F401 section + fits table + cross-board tables + experiments.jsonl updated.
