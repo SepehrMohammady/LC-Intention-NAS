@@ -126,9 +126,19 @@ articles the team shared). Run every draft section against it.
       is between **80.8% and 90.5% flash occupancy** (~100 KB vs ~50 KB free):
       the validation app + runtime need flash on top of the weights. Caveat kept
       in deployment.md: the Cloud gave no reason for the dash, so "insufficient
-      headroom" is the supported explanation, not a reported error. Optional
-      refinement: an int8 lcr_best (~152 KB) would test whether the *model* or
-      the *headroom* is what fails.
+      headroom" is the supported explanation, not a reported error.
+- [x] **Headroom cause isolated** (2026-07-27): `lcr_best_int8` (150,504 B,
+      28.7% of flash) **runs at 28.10 ms** on the F401 — same architecture,
+      operators and board as the fp32 build that returned nothing. So the
+      failure is the flash footprint, not the model or an unsupported op.
+      Paper now states that on this board quantization is what makes the widest
+      model deployable at all. Accuracy caveat: that int8 build is PTQ and
+      costs the regressor a lot (MAE 0.287 → 0.4485).
+- [ ] **QAT for the regression heads.** QAT recovered the classifier from 86.9%
+      to 89.8%; the regressors currently only have the badly-degraded PTQ int8
+      point (LCR MAE 0.287 → 0.4485). Running `unas/qat_finetune.py` for
+      lcr/lcl would likely give a deployable-*and*-accurate regression operating
+      point — relevant now that int8 is what gets lcr_best onto the F401.
 - [ ] **Optional: native-1D QAT** to drop the +24 KiB library overhead. Custom
       tfmot QuantizeConfigs for Conv1D/DepthwiseConv1D/pool would keep the exact
       1D graph (~104 KiB) instead of the 2D workaround, and would also isolate the

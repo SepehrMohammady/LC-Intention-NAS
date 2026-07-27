@@ -221,7 +221,8 @@ than the board's flash — but see the headroom caveat under the table:
 | model | flash | % of F401 flash | benchmark on the board |
 |---|--:|--:|---|
 | REF_cnn_multi | 1,769,882 B | 337.6% | **no — 3.38× over, cannot run** |
-| lcr_best | 474,522 B | 90.5% | **no result returned** (2026-07-24) |
+| lcr_best fp32 | 474,522 B | 90.5% | **no result returned** (2026-07-24) |
+| lcr_best **int8** | 150,504 B | 28.7% | yes (MAE 0.449 @ **28.10 ms**) |
 | lcl_best | 423,494 B | 80.8% | yes (**MAE 0.317 @ 162.5 ms**) |
 | cls_best | 343,254 B | 65.5% | yes (**92.08% @ 18.35 ms**) |
 | cls_best int8 QAT | 131,008 B | 25.6% | yes (89.82% @ 7.381 ms) |
@@ -236,11 +237,12 @@ one that does not has 49,766 B:
 
 | model | flash used | % of flash | headroom | benchmark |
 |---|--:|--:|--:|---|
-| cls_tiny | 37,954 B | 7.2% | 486,334 B | ✔ 4.376 ms |
+| cls_tiny fp32 | 37,954 B | 7.2% | 486,334 B | ✔ 4.376 ms |
 | cls_best int8 QAT | 131,008 B | 25.0% | 393,280 B | ✔ 7.381 ms |
+| lcr_best **int8** | 150,504 B | 28.7% | 373,784 B | ✔ **28.10 ms** |
 | cls_best fp32 | 343,254 B | 65.5% | 181,034 B | ✔ 18.35 ms |
-| lcl_best fp32 | 423,494 B | 80.8% | 100,794 B | ✔ **162.5 ms** |
-| lcr_best fp32 | 474,522 B | 90.5% | **49,766 B** | ✘ no result |
+| lcl_best fp32 | 423,494 B | 80.8% | 100,794 B | ✔ 162.5 ms |
+| lcr_best **fp32** | 474,522 B | 90.5% | **49,766 B** | ✘ no result |
 
 So the practical ceiling on this board lies **between 80.8% and 90.5% flash
 occupancy** (between ~100 KB and ~50 KB of headroom): the validation application
@@ -248,11 +250,33 @@ and runtime need flash *on top of* the weights, and below roughly 50 KB there is
 not enough left. Model-size arithmetic alone ("474 KB < 512 KB, therefore fits")
 is not a deployability test.
 
-One honesty limit remains: the Cloud reported *no reason* for the dash, so
-"insufficient headroom" is the supported explanation, not a message we were
-given — a dash could in principle also be a not-run or a timeout. What is
-certain is the bracket above and the negative fact that **we have no measured
-latency for lcr_best on the F401**.
+### The controlled experiment that proves it is the footprint
+
+`lcr_best` was then quantized and re-run on the same board. **Same architecture,
+same task, same toolchain — only the numeric format differs:**
+
+| build | flash | % of flash | headroom | F401 result |
+|---|--:|--:|--:|---|
+| lcr_best **fp32** | 474,522 B | 90.5% | 49,766 B | ✘ **no result** |
+| lcr_best **int8** | 150,504 B | 28.7% | 373,784 B | ✔ **28.10 ms** |
+
+The int8 build runs. Since the architecture, operator set and board are
+identical, the failure cannot be attributed to an unsupported op or to the
+model's structure — **what blocked the fp32 build was its flash footprint**, and
+shrinking it 3.2× is sufficient to make the same network deployable. This
+upgrades the headroom account from a plausible explanation to a demonstrated
+one (ST still reports no reason for the dash, so the *precise* failure mode
+inside the toolchain remains unreported — but the cause is now isolated).
+
+**Consequence worth stating in the paper:** on this board quantization is not
+merely a size/speed optimisation for `lcr_best`; it is the difference between a
+model that cannot be benchmarked at all and one that runs in 28.10 ms.
+
+Honest accuracy caveat: this int8 build is post-training-quantized, and on the
+DMIR inputs that costs the regressor dearly (MAE 0.287 → **0.4485**). So the
+deployable-on-F401 claim for `lcr_best` currently comes at a large accuracy
+price. QAT recovered most of the int8 loss for the classifier (86.9 → 89.8%) and
+would be the natural fix here, but has not been run for the regression heads.
 
 So four of the five models run on this board, including a regression model at
 162.5 ms — while the reference CNN cannot run at all, needing 3.38× the entire

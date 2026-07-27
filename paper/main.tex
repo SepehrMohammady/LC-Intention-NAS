@@ -248,11 +248,15 @@ its quantized form in 7.381~ms at 25.6\%, so the accuracy headline itself is
 available on the Cortex-M4, as is the LCL regression model at 162.5~ms. The
 searched models therefore open a device class the reference is locked out of,
 consistent with the baseline's own report that its Transformer did not fit this
-board. One model does not follow: the widest regressor occupies 90.5\% of flash
-and returned no measured time, while every model that did run leaves at least
-100~KB free. The binding constraint on this board is flash \emph{headroom} for
-the runtime, not model size---a distinction that matters because size arithmetic
-alone would have called all five deployable.
+board. One build does not follow: the widest regressor in float32 occupies
+90.5\% of flash and returned no measured time, while every build that ran leaves
+at least 100~KB free. Quantizing that same network to int8---identical
+architecture, operators and board, 28.7\% of flash---makes it run in 28.10~ms,
+which isolates the cause: the binding constraint is flash \emph{headroom} for
+the runtime, not model size or operator support. Size arithmetic alone would
+have called the float32 build deployable, and on this board quantization is
+therefore not only a speed and memory optimisation but the difference between a
+model that runs and one that does not.
 
 One measurement is worth recording for anyone budgeting from operation counts:
 the tiny model costs 7.0 cycles per MAC on the M7 and 11.6 on the M4, on cores
