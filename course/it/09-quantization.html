@@ -235,6 +235,26 @@
   veloce della versione <span class="en">int8</span> con <span class="en">PTQ</span>, anche se
   costa un po&rsquo; più di flash per il codice di libreria 2D.)</p>
 
+  <div class="card callout">
+    <p class="card-title">Ma ha funzionato solo per uno dei tre problemi 🤔</p>
+    <p>Abbiamo eseguito esattamente la stessa ricetta <span class="en">QAT</span> sui due modelli
+    di <b>regressione</b> — e <b>non</b> ha aiutato. Per <span class="en">LCR</span> l&rsquo;errore
+    si è mosso appena (<span class="en">MAE</span> 0,449 → 0,431) e per <span class="en">LCL</span>
+    è addirittura <b>peggiorato</b> rispetto al semplice <span class="en">PTQ</span>
+    (0,344 → 0,362). Abbiamo provato anche un learning rate più basso: ancora peggio. Quindi è una
+    proprietà reale del problema, non una cattiva impostazione.</p>
+    <p>Perché? Il classificatore deve solo scegliere il <b>più grande di tre numeri</b> — un
+    righello grossolano raramente ne cambia l&rsquo;ordine. I modelli di regressione devono invece
+    produrre un <b>numero esatto di secondi</b>, quindi la stessa grossolanità ricade direttamente
+    sulla risposta. In termini relativi <span class="en">int8</span> costa al classificatore circa
+    il 5,7% dell&rsquo;accuratezza, ma aumenta l&rsquo;errore di <span class="en">LCR</span> del
+    57%. E il <span class="en">fine-tuning</span> regola i <b>pesi</b>: non può ricostruire il
+    dettaglio già perso quando le <b>activation</b> sono state arrotondate.</p>
+    <p>Conclusione onesta: per la classificazione abbiamo tre buoni punti operativi; per la
+    regressione l&rsquo;unico accurato è <span class="en">float32</span>, e
+    <span class="en">int8</span> serve solo quando è l&rsquo;unico modo per stare nella board.</p>
+  </div>
+
   <h2>Nel nostro progetto 🧰</h2>
   <figure class="viz">
     <svg viewBox="0 0 720 170" role="img" aria-label="La nostra pipeline: il modello vincitore del NAS in float32 passa per la PTQ — arrotondamento dopo il training, con calibration su finestre reali — e alla fine produciamo due file TFLite pronti per la board: float32 e int8">

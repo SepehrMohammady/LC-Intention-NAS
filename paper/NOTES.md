@@ -134,11 +134,15 @@ articles the team shared). Run every draft section against it.
       Paper now states that on this board quantization is what makes the widest
       model deployable at all. Accuracy caveat: that int8 build is PTQ and
       costs the regressor a lot (MAE 0.287 → 0.4485).
-- [ ] **QAT for the regression heads.** QAT recovered the classifier from 86.9%
-      to 89.8%; the regressors currently only have the badly-degraded PTQ int8
-      point (LCR MAE 0.287 → 0.4485). Running `unas/qat_finetune.py` for
-      lcr/lcl would likely give a deployable-*and*-accurate regression operating
-      point — relevant now that int8 is what gets lcr_best onto the F401.
+- [x] **QAT for the regression heads — DONE, and it does not work** (2026-07-27).
+      LCR: 0.4485 → 0.4313 MAE (recovers only 11% of the gap vs the classifier's
+      57%). LCL: 0.3440 → 0.3620, i.e. **worse than plain PTQ**. Robust to the
+      fine-tune rate (repeated at 2e-5: LCR +0.0115, LCL −0.0321). Anchors exact
+      in both cases, so the comparison is sound. Interpretation in
+      deployment.md: classification only needs an argmax and tolerates coarse
+      activations; regression needs the continuous value, and int8 costs the
+      classifier 5.7% relative accuracy against a 57% relative error increase
+      for LCR. Paper states float32 as the only accurate regression config.
 - [ ] **Optional: native-1D QAT** to drop the +24 KiB library overhead. Custom
       tfmot QuantizeConfigs for Conv1D/DepthwiseConv1D/pool would keep the exact
       1D graph (~104 KiB) instead of the 2D workaround, and would also isolate the

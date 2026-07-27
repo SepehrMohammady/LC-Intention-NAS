@@ -274,9 +274,49 @@ model that cannot be benchmarked at all and one that runs in 28.10 ms.
 
 Honest accuracy caveat: this int8 build is post-training-quantized, and on the
 DMIR inputs that costs the regressor dearly (MAE 0.287 → **0.4485**). So the
-deployable-on-F401 claim for `lcr_best` currently comes at a large accuracy
-price. QAT recovered most of the int8 loss for the classifier (86.9 → 89.8%) and
-would be the natural fix here, but has not been run for the regression heads.
+deployable-on-F401 claim for `lcr_best` comes at a large accuracy price — and,
+as the next section shows, QAT does **not** buy it back.
+
+## QAT rescues the classifier but NOT the regressors (2026-07-27)
+
+`unas/qat_finetune.py` was generalised to the regression heads and run on both.
+The 2D re-expression is again exact — every anchor reproduces the 1D number to
+four decimals (LCR float 0.2865, PTQ 0.4485; LCL float 0.3165, PTQ 0.3440) — so
+these are clean single-variable PTQ-vs-QAT comparisons:
+
+| model | metric | float32 | int8 PTQ | int8 QAT | QAT vs PTQ |
+|---|---|--:|--:|--:|--:|
+| cls_best | accuracy | 92.08% | 86.86% | **89.82%** | **+2.96 pts** ✔ |
+| lcr_best | MAE (s) | 0.2865 | 0.4485 | 0.4313 | +0.0172 (marginal) |
+| lcl_best | MAE (s) | 0.3165 | **0.3440** | 0.3620 | **−0.0180 (worse)** ✘ |
+
+For LCL, plain PTQ int8 remains the better int8 build; QAT actively hurt it.
+For LCR, QAT recovers only ~11% of the gap to float32 versus the classifier's
+57%. **Robust to the fine-tuning rate:** repeating both at lr 2e-5 was worse
+still (LCR +0.0115, LCL −0.0321), so this is not a single bad hyper-parameter —
+tested 2e-4 and 2e-5, best of each reported above.
+
+**Why the tasks differ (interpretation, consistent with the measurements).**
+Classification only needs the *argmax* over three logits, which survives noisy
+int8 activations; regression needs the actual continuous value, so the same
+activation-resolution loss lands directly on the output. The relative damage
+from int8 PTQ shows this plainly: the classifier loses 5.7% of its accuracy,
+while LCR's error grows by **57%** and LCL's by 9%. Fine-tuning adapts *weights*,
+but the information destroyed here is in the *activation representation* of
+wide-dynamic-range inputs — which is why weight adaptation cannot recover it.
+
+**Practical consequence.** The honest operating-point table is asymmetric:
+- **Classification** — three usable points: float32 (92.08%), int8 QAT (89.82%,
+  fastest at 1.558 ms), int8 PTQ (86.86%, smallest).
+- **Regression** — float32 is the only accurate point. int8 (either PTQ or QAT)
+  is available when it is the *only* way to fit the board (as on the F401, where
+  it is what makes `lcr_best` run at all), but it costs roughly half the LCR
+  accuracy and should be reported as a deployability fallback, not a result.
+
+Artifacts: `results/qat/{lcr,lcl}_best_qat_int8.tflite` and their
+`*_qat_result.json`. Not benchmarked on-device — the accuracy makes them
+uninteresting as operating points, and `lcr_best_int8` (PTQ) already supplies
+the F401 latency figure.
 
 So four of the five models run on this board, including a regression model at
 162.5 ms — while the reference CNN cannot run at all, needing 3.38× the entire

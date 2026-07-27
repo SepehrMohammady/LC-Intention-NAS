@@ -223,6 +223,26 @@
   <span class="en">PTQ</span> <span class="en">int8</span> version, though it costs a little
   more flash for the 2D library code.)</p>
 
+  <div class="card callout">
+    <p class="card-title">But it only worked for one of the three tasks 🤔</p>
+    <p>We ran exactly the same <span class="en">QAT</span> recipe on the two
+    <b>regression</b> models — and it did <b>not</b> help. For <span class="en">LCR</span> the
+    error barely moved (<span class="en">MAE</span> 0.449 → 0.431), and for
+    <span class="en">LCL</span> it actually got <b>worse</b> than plain
+    <span class="en">PTQ</span> (0.344 → 0.362). We tried a gentler learning rate too; that was
+    worse again. So this is a real property of the problem, not a bad setting.</p>
+    <p>Why? The classifier only has to pick the <b>largest of three numbers</b> — a coarse
+    ruler barely disturbs which one is biggest. The regression models must output an
+    <b>exact number of seconds</b>, so the same coarseness lands straight on the answer. In
+    relative terms <span class="en">int8</span> costs the classifier about 5.7% of its
+    accuracy, but raises <span class="en">LCR</span>'s error by 57%. And
+    <span class="en">fine-tuning</span> adjusts <b>weights</b> — it cannot rebuild detail that
+    was already thrown away when the <b>activations</b> were rounded.</p>
+    <p>Honest conclusion: for the classifier we have three good operating points; for
+    regression, <span class="en">float32</span> is the only accurate one, and
+    <span class="en">int8</span> is a fallback for when it is the only way to fit the board.</p>
+  </div>
+
   <h2>In our project 🧰</h2>
   <figure class="viz">
     <svg viewBox="0 0 720 170" role="img" aria-label="Our production line: the NAS winner model in float32 format enters the PTQ stage, is rounded after training using a few hundred real calibration windows, and at the end two board-ready TFLite files are produced: float32 and int8">

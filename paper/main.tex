@@ -311,7 +311,16 @@ float32, and on the board it runs in 1.558~ms---the fastest of the three
 operating points---in 128~KB, still $2.6\times$ below the float32 build. The
 tooling quantizes only 2D operators, so the 1D graph is deployed as width-1 2D
 convolutions; the computation is identical and the accuracy is read through the
-int8 interpreter. An
+int8 interpreter. The same procedure does \emph{not} transfer to the regression
+heads: it recovers only 11\% of the gap for LCR and degrades LCL outright
+($0.344 \rightarrow 0.362$~s MAE), a result stable across fine-tuning rates. We
+read this as a task asymmetry rather than a tuning failure---classification
+needs only the argmax of three logits, which tolerates coarse activations, while
+a continuous time-to-lane-change estimate does not, and int8 costs the
+classifier 5.7\% of its accuracy against a 57\% increase in LCR error. Weight
+fine-tuning cannot restore information lost in the activation representation, so
+we report float32 as the only accurate regression configuration and int8 there
+purely as a deployability fallback. An
 int16$\times$8 scheme (int8 weights, int16 activations) preserves accuracy almost
 exactly offline ($92.1\% \rightarrow 92.2\%$; LCR MAE
 $0.287 \rightarrow 0.286$), but the toolchain does not deploy it. We verified
