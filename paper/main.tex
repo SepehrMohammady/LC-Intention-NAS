@@ -304,15 +304,17 @@ The input-bound regime is not a property of the network but of the tensor
 interface, and we verified this by changing only the interface. Exporting the
 int8 classifier with int8 rather than float32 input and output tensors---the
 weights, graph and accuracy are untouched, $86.86\%$ either way---removes the
-6.2~KB float32 input buffer and both cast operators, and measured RAM falls from
-8,096 to 5,444~B. The reduction is smaller than the 4.65~KB of buffer removed,
+6.2~KB float32 input buffer and both cast operators. Measured on the same board,
+RAM falls from 8,096 to 5,444~B and inference from 1.885 to 1.752~ms, because
+casting 1,550 elements every inference is work the board no longer does. The
+memory reduction is smaller than the 4.65~KB of buffer removed,
 which is the same maximum-over-live-tensors point again: shrinking the input
 does not subtract from the arena, it merely stops the input being the binding
 constraint, after which the widest internal activation sets the floor at
-3.5~KB. Reporting int8 with a float32 interface therefore understates its
+3.5~KB. Reporting int8 with a float32 interface therefore understates both its
 memory advantage---$1.17\times$ against float32 before the change, $1.74\times$
-after---and we note it because the default converter settings produce exactly
-that misleading configuration.
+after---and its speed, and we note it because the default converter settings
+produce exactly that misleading configuration.
 
 On quantization, the ST toolchain accepts only float32/int8/uint8 tensors. Full
 post-training int8 shrinks the classifier to 104~KB and 1.885~ms but costs 5.2

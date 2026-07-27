@@ -174,6 +174,7 @@ Core **4.0.1-20581**, platform STM32 MCU (tool 12.0.1), optimization
 | lcr_best_float32 (ours, 117 k; regression) | MAE 0.2865 / RMSE 0.4466 | 14.06 | 860,407 | 474,522 (463 KiB; weights 453.83 KiB + ~10 KiB lib) | 20,772 (18.91 KiB act + ~1 KiB lib) |
 | lcl_best_float32 (ours, 106 k; regression) | MAE 0.3165 | 28.77 | 1,658,927 | 423,494 (414 KiB; weights 403.61 KiB + ~10 KiB lib) | 28,264 (26.46 KiB act + ~1 KiB lib) |
 | cls_best_**int8** (PTQ, 1D, 84 k) | 86.86% | **1.885** | 158,336 | 106,738 (104 KiB; weights 83.28 KiB + ~21 KiB lib) | 8,096 (6.05 KiB act + ~2 KiB lib) |
+| cls_best_**int8, int8 I/O** (ours, 84 k) | 86.86% | **1.752** | 155,230 | 106,446 (104 KiB; weights 83.28 KiB + ~21 KiB lib) | **5,444** (3.46 KiB act + ~2 KiB lib) |
 | cls_best_**int8 QAT** (2D re-expr, 84 k) | **89.82%** | **1.558** | 161,570 | 131,008 (128 KiB; weights 83.28 KiB + ~43 KiB lib) | 8,404 (6.05 KiB act + ~2 KiB lib) |
 | cls_best_**int16x8** (ours, 84 k) | — | 3.605 | 158,094 | 343,258 (335 KiB; weights 326.15 KiB + ~9 KiB lib) | 9,456 (8.42 KiB act + 832 B lib) |
 
@@ -193,23 +194,6 @@ The last row is **not a real int16x8 deployment** — ST dequantized it to float
 Two operating points, both measured on real hardware: *more accurate and 9×
 faster*, or *0.4 points lower and 42× faster in 37 KB with sub-millisecond
 inference*.
-
-### MEASURED — STM32H573I-DK (Cortex-M33 @ 250 MHz, 640 KB RAM, 2048 KB flash)
-
-A third board, used for the int8-I/O run (2026-07-27):
-
-| model | latency | MACC | cycles/MAC | flash | RAM |
-|---|--:|--:|--:|--:|--:|
-| cls_best int8 (**int8 I/O**) | **2.462 ms** @ 250 MHz | 155,230 | 3.97 | 106,446 B | 5,444 B |
-
-⚠ **Not comparable to the 1.885 ms H7B3 figure** — different core (Cortex-M33 vs
-M7), different clock (250 vs 280 MHz) *and* a different build. We have **no
-H7B3 latency for the int8-I/O artifact**, so no statement should be made about
-whether the interface change affects speed. The flash/RAM figures above *are*
-comparable, because they come from the platform-level optimize step rather than
-the board run. For a like-for-like latency the int8-I/O model would need one
-H7B3I-DK run. The M33's 3.97 cycles/MAC sits between the M7 (2.70) and M4 (3.84)
-int8 figures, which is at least consistent.
 
 ### MEASURED — NUCLEO-F401RE (Cortex-M4 @ 84 MHz, 512 KB flash, 96 KB RAM)
 
@@ -436,13 +420,23 @@ device. The float32 interface was costing RAM and buying nothing.
 
 **✔ MEASURED (2026-07-27) — direction confirmed, my magnitude was wrong.**
 
+Same board (STM32H7B3I-DK), same settings, same weights — **only the tensor
+interface differs**, so this is a clean single-variable comparison:
+
 | | float32 I/O | int8 I/O | change |
 |---|--:|--:|--:|
 | RAM total | 8,096 B | **5,444 B** | −2,652 B (**1.49×**) |
 | — activations | 6.05 KiB (6,195 B) | **3.46 KiB (3,543 B)** | −2,652 B |
+| latency | 1.885 ms | **1.752 ms** | −0.133 ms (**7.1% faster**) |
 | flash | 106,738 B | 106,446 B | −292 B (weights identical, 83.28 KiB) |
 | MACC | 158,336 | **155,230** | −3,106 (the cast ops) |
+| cycles/MAC | 3.33 | 3.16 | — |
+| test accuracy | 86.86% | 86.86% | unchanged |
 | model type badge | `STAI_FORMAT_FLOAT` | **`STAI_FORMAT_S8`** | — |
+
+**The interface change is not latency-neutral — it is 7.1% faster**, because the
+per-inference float32→int8 cast on 1,550 elements is real work that the board no
+longer does. So the float32 interface was costing both memory *and* time.
 
 `conversion_0` **and** `conversion_14` are gone: the per-layer charts now begin
 at `pool_1` and end at `gemm_26`, where the float32-I/O build began with
@@ -464,6 +458,18 @@ longer input-bound, further input shrinking buys nothing.
 vs float32's 9,456 B (**1.74×**, up from a marginal 1.17×). The input-floor
 account is confirmed on hardware — the floor was real, it moved when the
 interface changed, and it stopped mattering once it fell below the internal peak.
+
+**Revised int8 operating points on the H7B3I-DK** (all same board/settings):
+
+| build | accuracy | latency | flash | RAM |
+|---|--:|--:|--:|--:|
+| int8 PTQ, float32 I/O | 86.86% | 1.885 ms | 104 KiB | 8,096 B |
+| int8 PTQ, **int8 I/O** | 86.86% | **1.752 ms** | 104 KiB | **5,444 B** |
+| int8 QAT, float32 I/O | **89.82%** | **1.558 ms** | 128 KiB | 8,404 B |
+
+The obvious next artifact is **QAT + int8 I/O**, which should combine the
+accuracy of the QAT row with the memory and cast saving of the int8-I/O row; it
+has not been built.
 
 **Bonus: what the `STAI_FORMAT_*` badge actually means.** This run resolves an
 earlier open puzzle. We once cited `STAI_FORMAT_FLOAT` as evidence that the
