@@ -118,13 +118,15 @@ articles the team shared). Run every draft section against it.
       constraint the internal peak set the floor. Recorded in deployment.md.
       Side finding: `STAI_FORMAT_*` tracks the **I/O dtype**, not weight
       precision — resolves the earlier badge puzzle.
-- [ ] **Build QAT + int8 I/O.** The two improvements are independent and have
-      not been combined: QAT gives 89.82% (vs 86.86%) and int8 I/O gives
-      5,444 B RAM + 1.752 ms (vs 8,096 B / 1.885 ms). A QAT model exported with
-      `inference_input_type=tf.int8` should give ~89.8% at ~5.4 KB RAM and the
-      fastest latency yet. `unas/export_int8_io.py` currently converts from an
-      `.h5`; it would need to take the QAT (fake-quant) model instead. Cheap and
-      likely the best classifier operating point in the paper.
+- [ ] **QAT + int8 I/O — BUILT, needs one upload.**
+      `results/qat/cls_best_qat_int8_io.tflite` (101,064 B, int8 in/out,
+      scale 1.149315 / zp 32, **zero float32 tensors**). Accuracy **89.90%**,
+      identical to the same-run float32-I/O build, so the interface is
+      accuracy-neutral for QAT too. Expect RAM well under the QAT row's 8,404 B
+      and latency under 1.558 ms; flash ≈ 128 KiB (the 2D library cost is
+      unrelated to the interface). Should become the best measured classifier
+      operating point. Note `qat_finetune.py` is now seeded and saves the
+      fake-quant model, so further variants need no retraining.
 - [x] **QAT int8 measured on-device** (2026-07-24, H7B3I-DK): 89.82% @
       **1.558 ms** / 128 KiB flash / 8.4 KB RAM. Recovers +2.96 over PTQ int8 and
       is the *fastest* operating point (< float32 3.628 ms and PTQ int8 1.885 ms).

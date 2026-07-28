@@ -467,9 +467,30 @@ interface changed, and it stopped mattering once it fell below the internal peak
 | int8 PTQ, **int8 I/O** | 86.86% | **1.752 ms** | 104 KiB | **5,444 B** |
 | int8 QAT, float32 I/O | **89.82%** | **1.558 ms** | 128 KiB | 8,404 B |
 
-The obvious next artifact is **QAT + int8 I/O**, which should combine the
-accuracy of the QAT row with the memory and cast saving of the int8-I/O row; it
-has not been built.
+**✔ QAT + int8 I/O built (2026-07-28) — `results/qat/cls_best_qat_int8_io.tflite`**
+(101,064 B, int8 in/out, input `scale=1.149315, zero_point=32`). Its tensor
+inventory is **22 int8 + 9 int32 and zero float32** — fully integer end to end,
+where the float32-I/O builds still carried two float32 tensors.
+
+Accuracy **89.90%**, and the float32-I/O build produced from the *same* trained
+model in the *same* run also scores 89.90%, so **the interface is accuracy-neutral
+for QAT as well** (as it was for PTQ).
+
+*Reproducibility note.* `qat_finetune.py` is now seeded (`SEED=42`) and saves the
+trained fake-quant model (`cls_best_qat_model.h5`), so future interface variants
+need no retraining. The seeded re-run scores **89.90%** where the original
+unseeded run scored **89.82%** — a 0.08-point spread that is simply fine-tuning
+stochasticity, and a useful reproducibility datapoint in its own right. The
+committed `cls_best_qat_int8.tflite` is deliberately kept as the *original*
+build, because the measured 1.558 ms / 8,404 B row above belongs to those exact
+bytes; the int8-I/O artifact comes from the seeded run and is quoted at 89.90%.
+
+**⏳ Pending one upload.** Expected: accuracy 89.90%, RAM well below the QAT
+row's 8,404 B (the same 6.2 KB → 1.55 KB input-buffer change), latency below
+1.558 ms (the per-inference cast is gone), flash ≈ unchanged at ~128 KiB since
+the 2D re-expression's library cost is unrelated to the interface. If it lands,
+it becomes the best classifier operating point measured: QAT accuracy at
+int8-I/O memory and speed.
 
 **Bonus: what the `STAI_FORMAT_*` badge actually means.** This run resolves an
 earlier open puzzle. We once cited `STAI_FORMAT_FLOAT` as evidence that the
