@@ -56,7 +56,7 @@ with measured (not proxied) on-device numbers.
 ## Design decisions for our search (draft)
 
 1. Search space: 1D adaptation of µNAS blocks (Conv1d full/depthwise/1×1,
-   kernel {3,5,7,9}, width ≤128, stride 2, optional pooling), ops restricted
+   kernel {3,5,7}, width ≤128, stride 2, optional pooling), ops restricted
    to what ST Edge AI maps well.
 2. Objectives: val metric + peak RAM + int8 flash + MACs, µNAS-style random
    scalarisation; budgets set per target board (H7B3 high-end, F401 low-end —

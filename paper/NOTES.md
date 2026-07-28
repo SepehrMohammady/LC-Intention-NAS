@@ -98,6 +98,9 @@ articles the team shared). Run every draft section against it.
       needed only to caption the "internal reference" table row.
 - [ ] Baseline Table III exact H7B3 values (rasterized image — needs
       institutional access to the PDF).
+- [ ] **Author list: co-authors, their order, and the supervisor** — the only
+      paper placeholders with no answer anywhere in the repo (`\todo` at
+      main.tex lines 25-26). Needs the supervisor; blocks submission.
 - [ ] SYNERGIES project acknowledgment text + grant number (baseline paper
       acknowledges Hi-Drive 101006664 — ours differs).
 - [x] Target MCU confirmed by user: **STM32H7B3I-DK** (same H7B3 family as the

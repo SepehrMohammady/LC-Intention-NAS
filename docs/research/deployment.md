@@ -209,7 +209,7 @@ headline model itself** — 92.08%, the one that beats the reference CNN — run
 the $10 Cortex-M4, on a board where that reference cannot run at all.
 
 `cls_best_qat_int8` also measured on the F401 (2026-07-24): **7.381 ms @ 84 MHz**.
-Flash/RAM unchanged from its H7B3 run (128 KiB flash = **25.6%** of 512 KB;
+Flash/RAM unchanged from its H7B3 run (128 KiB flash = **25.0%** of 512 KB;
 8,404 B RAM = 8.8% of 96 KB) — so the *full* classifier, quantized, runs on the
 Cortex-M4 at **89.82%** accuracy. Cross-board it is 7.381 / 1.558 = 4.7× slower
 than the M7 (≈ 3.3× clock × ~1.4× M4-vs-M7 IPC — consistent with the cls_tiny
@@ -227,7 +227,7 @@ than the board's flash — but see the headroom caveat under the table:
 | lcr_best **int8** | 150,504 B | 28.7% | yes (MAE 0.449 @ **28.10 ms**) |
 | lcl_best | 423,494 B | 80.8% | yes (**MAE 0.317 @ 162.5 ms**) |
 | cls_best | 343,254 B | 65.5% | yes (**92.08% @ 18.35 ms**) |
-| cls_best int8 QAT | 131,008 B | 25.6% | yes (89.82% @ 7.381 ms) |
+| cls_best int8 QAT | 131,008 B | 25.0% | yes (89.82% @ 7.381 ms) |
 | cls_tiny | 37,954 B | **7.2%** | yes (91.30% @ 4.376 ms) |
 
 **Flash headroom, not model size, is the real F401 limit — and the threshold is
