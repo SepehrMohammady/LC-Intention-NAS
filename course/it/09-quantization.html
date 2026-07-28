@@ -255,6 +255,25 @@
     <span class="en">int8</span> serve solo quando è l&rsquo;unico modo per stare nella board.</p>
   </div>
 
+  <div class="card">
+    <p class="card-title">Un altro guadagno gratis: dire alla board che anche l&rsquo;input è int8 🎁</p>
+    <p>Per impostazione predefinita il convertitore lascia le <b>porte</b> del modello in
+    <span class="en">float32</span> anche quando tutto l&rsquo;interno è
+    <span class="en">int8</span>. La board deve allora tenere un buffer di 6,2 KB in
+    <span class="en">float32</span> per l&rsquo;input e convertirlo <i>a ogni singola
+    inferenza</i>. Mettere anche input e output in <span class="en">int8</span> non costa nulla
+    in accuratezza — è <b>esattamente</b> lo stesso 89,90% — ma la board smette di fare quel
+    lavoro.</p>
+    <p>Misurato sulla <span class="en">H7B3I-DK</span>, quell&rsquo;unica impostazione ci ha dato
+    il <b>miglior modello finora</b>: <b>89,90% in 1,435 ms</b> con 6,2 KB di
+    <span class="en">RAM</span> — contro 1,558 ms e 8,4 KB di prima. Rispetto al modello
+    <span class="en">float32</span> è <b>2,5× più veloce</b>, <b>2,6× più piccolo</b> in flash e
+    usa <b>1,5× meno RAM</b>, al prezzo di 2,2 punti di accuratezza.</p>
+    <p>La lezione da ricordare: a volte il guadagno non viene da una rete più intelligente, ma
+    dall&rsquo;accorgersi che un&rsquo;<b>impostazione predefinita</b> stava silenziosamente
+    costando memoria e tempo.</p>
+  </div>
+
   <h2>Nel nostro progetto 🧰</h2>
   <figure class="viz">
     <svg viewBox="0 0 720 170" role="img" aria-label="La nostra pipeline: il modello vincitore del NAS in float32 passa per la PTQ — arrotondamento dopo il training, con calibration su finestre reali — e alla fine produciamo due file TFLite pronti per la board: float32 e int8">

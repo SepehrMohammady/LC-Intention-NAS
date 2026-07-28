@@ -243,6 +243,24 @@
     <span class="en">int8</span> is a fallback for when it is the only way to fit the board.</p>
   </div>
 
+  <div class="card">
+    <p class="card-title">One more free win: tell the board the input is int8 too 🎁</p>
+    <p>By default the converter leaves the model's <b>doors</b> in
+    <span class="en">float32</span> even when everything inside is
+    <span class="en">int8</span>. The board then has to keep a 6.2 KB
+    <span class="en">float32</span> buffer for the input and convert it on <i>every single
+    inference</i>. Setting the input and output to <span class="en">int8</span> as well costs
+    nothing in accuracy — it is <b>exactly</b> the same 89.90% — but the board stops doing
+    that work.</p>
+    <p>Measured on the <span class="en">H7B3I-DK</span>, that one setting gave us our
+    <b>best model yet</b>: <b>89.90% in 1.435 ms</b> using 6.2 KB of
+    <span class="en">RAM</span> — versus 1.558 ms and 8.4 KB before. Compared with the
+    <span class="en">float32</span> model it is <b>2.5× faster</b>, <b>2.6× smaller</b> in
+    flash and uses <b>1.5× less RAM</b>, for 2.2 points of accuracy.</p>
+    <p>The lesson is worth remembering: sometimes the win is not a cleverer network but
+    noticing that a <b>default setting</b> was quietly costing you memory and time.</p>
+  </div>
+
   <h2>In our project 🧰</h2>
   <figure class="viz">
     <svg viewBox="0 0 720 170" role="img" aria-label="Our production line: the NAS winner model in float32 format enters the PTQ stage, is rounded after training using a few hundred real calibration windows, and at the end two board-ready TFLite files are produced: float32 and int8">

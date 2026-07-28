@@ -176,6 +176,7 @@ Core **4.0.1-20581**, platform STM32 MCU (tool 12.0.1), optimization
 | cls_best_**int8** (PTQ, 1D, 84 k) | 86.86% | **1.885** | 158,336 | 106,738 (104 KiB; weights 83.28 KiB + ~21 KiB lib) | 8,096 (6.05 KiB act + ~2 KiB lib) |
 | cls_best_**int8, int8 I/O** (ours, 84 k) | 86.86% | **1.752** | 155,230 | 106,446 (104 KiB; weights 83.28 KiB + ~21 KiB lib) | **5,444** (3.46 KiB act + ~2 KiB lib) |
 | cls_best_**int8 QAT** (2D re-expr, 84 k) | **89.82%** | **1.558** | 161,570 | 131,008 (128 KiB; weights 83.28 KiB + ~43 KiB lib) | 8,404 (6.05 KiB act + ~2 KiB lib) |
+| cls_best_**int8 QAT, int8 I/O** (84 k) | **89.90%** | **1.435** | 158,710 | 131,562 (128 KiB; weights 83.28 KiB + ~43 KiB lib) | 6,204 (3.39 KiB act + ~3 KiB lib) |
 | cls_best_**int16x8** (ours, 84 k) | — | 3.605 | 158,094 | 343,258 (335 KiB; weights 326.15 KiB + ~9 KiB lib) | 9,456 (8.42 KiB act + 832 B lib) |
 
 The last row is **not a real int16x8 deployment** — ST dequantized it to float32
@@ -485,12 +486,42 @@ committed `cls_best_qat_int8.tflite` is deliberately kept as the *original*
 build, because the measured 1.558 ms / 8,404 B row above belongs to those exact
 bytes; the int8-I/O artifact comes from the seeded run and is quoted at 89.90%.
 
-**⏳ Pending one upload.** Expected: accuracy 89.90%, RAM well below the QAT
-row's 8,404 B (the same 6.2 KB → 1.55 KB input-buffer change), latency below
-1.558 ms (the per-inference cast is gone), flash ≈ unchanged at ~128 KiB since
-the 2D re-expression's library cost is unrelated to the interface. If it lands,
-it becomes the best classifier operating point measured: QAT accuracy at
-int8-I/O memory and speed.
+**✔ MEASURED (2026-07-28, H7B3I-DK) — every prediction held, and it is the
+fastest configuration we have.** 1.435 ms, MACC 158,710, flash 131,562 B
+(128 KiB; weights 83.28 KiB + ~43 KiB lib), RAM 6,204 B (3.39 KiB act + ~3 KiB
+lib), badge `STAI_FORMAT_S8`.
+
+Against the float32-I/O QAT build: **latency 1.558 → 1.435 ms (7.9% faster)**,
+**RAM 8,404 → 6,204 B (1.35×)**, flash unchanged (+554 B). At **2.53 cycles/MAC**
+it is the most efficient kernel path measured (previous best 2.70).
+
+The input and output casts are gone, as with PTQ. One internal `conversion_8`
+remains — visible in the per-layer chart and as a `Quantize` node in the graph —
+which is an *internal* requantisation between the pooling and the FC head, not
+an I/O cast; the float32-I/O QAT build had that same op plus `conversion_0` and
+`conversion_14` at the boundaries.
+
+## Final classifier operating points (STM32H7B3I-DK, Core 4.0.1, balanced)
+
+| build | accuracy | latency | flash | RAM |
+|---|--:|--:|--:|--:|
+| float32 | **92.08%** | 3.628 ms | 343,254 B | 9,456 B |
+| int8 PTQ, float32 I/O | 86.86% | 1.885 ms | 106,738 B | 8,096 B |
+| int8 PTQ, **int8 I/O** | 86.86% | 1.752 ms | **106,446 B** | **5,444 B** |
+| int8 QAT, float32 I/O | 89.82% | 1.558 ms | 131,008 B | 8,404 B |
+| int8 QAT, **int8 I/O** | 89.90% | **1.435 ms** | 131,562 B | 6,204 B |
+
+Three of these are Pareto-optimal and none dominates the others:
+- **float32** — the accuracy point (92.08%), and the like-for-like comparison
+  with the published baseline, which also deployed FP32.
+- **int8 QAT + int8 I/O** — the speed point: 89.90% at **2.53× the speed,
+  2.61× less flash and 1.52× less RAM** than float32, for 2.18 accuracy points.
+- **int8 PTQ + int8 I/O** — the size point: smallest flash (104 KiB) and RAM
+  (5,444 B), at 86.86%.
+
+The QAT rows carry ~22 KiB more library than the PTQ rows because of the width-1
+2D re-expression, which is a cost of the tooling and not of quantisation; a
+native-1D QAT would remove it (`paper/NOTES.md`).
 
 **Bonus: what the `STAI_FORMAT_*` badge actually means.** This run resolves an
 earlier open puzzle. We once cited `STAI_FORMAT_FLOAT` as evidence that the

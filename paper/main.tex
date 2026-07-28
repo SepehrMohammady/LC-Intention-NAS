@@ -323,8 +323,13 @@ LCR MAE $0.287 \rightarrow 0.449$), so we report float32 as the headline
 configuration---which also matches the baseline's own FP32 deployment.
 Quantization-aware fine-tuning recovers most of that int8 loss: the classifier
 returns to $89.8\%$ (from $86.9\%$ post-training), closing 57\% of the gap to
-float32, and on the board it runs in 1.558~ms---the fastest of the three
-operating points---in 128~KB, still $2.6\times$ below the float32 build. The
+float32. Combined with the int8 interface described above, it gives the fastest
+configuration we measured---$89.9\%$ at 1.435~ms in 128~KB of flash and 6.2~KB
+of RAM, which is $2.5\times$ the speed, $2.6\times$ less flash and $1.5\times$
+less RAM of the float32 build for 2.2 accuracy points. Deployment therefore
+offers three defensible operating points rather than one: float32 for accuracy
+and like-for-like comparison with the FP32 baseline, QAT int8 for speed, and
+post-training int8 for the smallest footprint (104~KB, 5.4~KB RAM). The
 tooling quantizes only 2D operators, so the 1D graph is deployed as width-1 2D
 convolutions; the computation is identical and the accuracy is read through the
 int8 interpreter. The same procedure does \emph{not} transfer to the regression
