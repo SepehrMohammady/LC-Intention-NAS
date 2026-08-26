@@ -1,6 +1,6 @@
 # Discovered architectures (what the NAS actually found)
 
-Decoded from the ST Edge AI model graphs in `results/deploy/*.svg`. TFLite
+Decoded from the ST Edge AI model graphs in `datasets/dmir/results/deploy/*.svg`. TFLite
 expresses Conv1D as Conv2D with a dummy dimension, so the `ExpandDims`/`Reshape`
 pairs are plumbing, not layers; below they are collapsed into 1D terms.
 

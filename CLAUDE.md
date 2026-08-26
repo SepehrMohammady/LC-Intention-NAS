@@ -15,7 +15,7 @@ Sepehr Mohammady <SMohammady@outlook.com>, repo-local config).
 - **Test after every change**: `\.venv\Scripts\python scripts/check_pipeline.py`
   must pass (3-task smoke test on real data) before considering work done.
 - **Log everything**: every training run creates a record in
-  `logs/experiments.jsonl` via `src.log_utils.ExperimentLogger`; notable
+  `datasets/dmir/logs/experiments.jsonl` via `src.log_utils.ExperimentLogger`; notable
   decisions get a dated entry in `LOGBOOK.md` via `append_logbook`.
 - **Keep the paper current**: when results or methods change, update
   `paper/main.tex` and `paper/NOTES.md` in the same session.
@@ -50,11 +50,15 @@ Sepehr Mohammady <SMohammady@outlook.com>, repo-local config).
 ## Paper writing
 
 - Venue: IEEE SPL (candidate), IEEEtran journal class, draft in `paper/main.tex`.
-- Every number must trace to `logs/experiments.jsonl` or a citation.
+- Every number must trace to `datasets/dmir/logs/experiments.jsonl` or a citation.
 - Check prose against `paper/STYLE.md` (AI-tell word blocklist) before commit.
 
-## Data (see docs/DATA.md)
+## Data (see datasets/dmir/docs/DATA.md)
 
-- `data/` (gitignored) from `Materials/*.zip`; pickles, 50×31 windows.
+- **Layout**: dataset-specific data/docs/logs/results live under
+  `datasets/<name>/`; shared code stays in `src/` and `unas/`. A new dataset
+  gets a new `datasets/<name>/` folder, never a copy of `src/`.
+
+- `datasets/dmir/data/` (gitignored) from `Materials/*.zip`; pickles, 50×31 windows.
 - Known quirks: test-only spikes on feature pairs (12,13)/(14,15) — handled by
   `clip_to_train_range`; feature 7 constant zero in classification train.

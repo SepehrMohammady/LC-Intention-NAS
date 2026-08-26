@@ -87,7 +87,7 @@ Accepted: float32 (Keras/.tflite/.onnx), full-integer **int8** TFLite
 (per-channel ss/sa, representative dataset), ONNX QDQ int8, and mixed
 int8-with-float-fallback.
 
-## Artifacts (results/deploy/, ST-compatible)
+## Artifacts (datasets/dmir/results/deploy/, ST-compatible)
 
 Sizes are the actual `.tflite` bytes; accuracy is our own test-set evaluation.
 
@@ -315,7 +315,7 @@ wide-dynamic-range inputs — which is why weight adaptation cannot recover it.
   it is what makes `lcr_best` run at all), but it costs roughly half the LCR
   accuracy and should be reported as a deployability fallback, not a result.
 
-Artifacts: `results/qat/{lcr,lcl}_best_qat_int8.tflite` and their
+Artifacts: `datasets/dmir/results/qat/{lcr,lcl}_best_qat_int8.tflite` and their
 `*_qat_result.json`. Not benchmarked on-device — the accuracy makes them
 uninteresting as operating points, and `lcr_best_int8` (PTQ) already supplies
 the F401 latency figure.
@@ -398,7 +398,7 @@ moved, because quantizing the *weights* does not quantize the *interface*.
 `inference_output_type=tf.int8` cuts the floor from 6,200 B to 1,550 B.
 
 **✔ Artifact prepared and verified (2026-07-27):**
-`unas/export_int8_io.py` → `results/deploy/cls_best_int8_io.tflite` (112,568 B),
+`unas/export_int8_io.py` → `datasets/dmir/results/deploy/cls_best_int8_io.tflite` (112,568 B),
 int8 in / int8 out, input `scale=1.10578, zero_point=38`.
 
 The re-export is **accuracy-neutral, proven**: evaluated through a quantizing
@@ -468,7 +468,7 @@ interface changed, and it stopped mattering once it fell below the internal peak
 | int8 PTQ, **int8 I/O** | 86.86% | **1.752 ms** | 104 KiB | **5,444 B** |
 | int8 QAT, float32 I/O | **89.82%** | **1.558 ms** | 128 KiB | 8,404 B |
 
-**✔ QAT + int8 I/O built (2026-07-28) — `results/qat/cls_best_qat_int8_io.tflite`**
+**✔ QAT + int8 I/O built (2026-07-28) — `datasets/dmir/results/qat/cls_best_qat_int8_io.tflite`**
 (101,064 B, int8 in/out, input `scale=1.149315, zero_point=32`). Its tensor
 inventory is **22 int8 + 9 int32 and zero float32** — fully integer end to end,
 where the float32-I/O builds still carried two float32 tensors.

@@ -1,7 +1,7 @@
 # Research logbook — DMIR × µNAS
 
 Dated journal of decisions, findings, and results. Machine-readable run
-records live in `logs/experiments.jsonl`; this file records the *why*.
+records live in `datasets/dmir/logs/experiments.jsonl`; this file records the *why*.
 
 ## 2026-07-07 — Project kickoff: environment, data audit, first baseline
 
@@ -21,7 +21,7 @@ regression targets 0.0–4.0 s, step 0.1). Two findings:
    train/val stay within ≈[−431, 140]. Likely a division-by-near-zero
    preprocessing artefact. Mitigation: clip val/test to per-feature train
    range (`Config.clip_to_train_range`); training data untouched.
-   Question sent upstream — see docs/DATA.md.
+   Question sent upstream — see datasets/dmir/docs/DATA.md.
 2. Feature 7 constant zero in classification train split.
 
 **Pipeline.** Built `src/` (config, data, baseline DSCNN, train/eval, EDA,
@@ -134,7 +134,7 @@ kept deliberately. The raw `DirectionIndicator` is ternary {0 off, 1 left,
 
 Verified the full channel map (`scripts/analysis/name_channels.py`: ego
 channels 0-7 matched to raw H5 signals at r ≈ 0.98) and wrote it up in
-docs/research/feature-map.md + machine-readable src/features.py. The two task
+datasets/dmir/docs/feature-map.md + machine-readable src/features.py. The two task
 layouts differ: regression keeps indicators inline (ch 3-4); classification
 relocates them to the end (ch 28-29), shifting egoLaneWidth to 7 and the
 curvatureDx spike pair to 12-13.
@@ -254,7 +254,7 @@ safe-evaluate try/except cannot catch. **Every task saved its Pareto models
 incrementally**, so the fronts survive (28/32/25/27 models).
 
 Harvested and INDEPENDENTLY VERIFIED all four fronts (unas/harvest_fronts.py,
-our own test-set eval; CSVs in results/nas-fronts/). Verification again proved
+our own test-set eval; CSVs in datasets/dmir/results/nas-fronts/). Verification again proved
 necessary: the fork's optimistic val_error (a candidate showed val MAE 0.113)
 does not hold on test (0.29). Real, verified results:
 - **LCR** best test MAE 0.290 / RMSE 0.447 @ 216 KB (int8) — beats published
@@ -282,8 +282,8 @@ len(history), which load_state restores, so --rounds TARGET continues toward
 TARGET). Validated on LCR (Loaded 60 → +30 → Search done, no OOM), then
 completed all four to 150 rounds (2 chunks for the classification runs).
 
-Final verified fronts (docs/research/nas-results.md; results doc renamed from
--prelim; CSVs in results/nas-fronts/): LCR MAE 0.287/RMSE 0.447 @ 115 KB
+Final verified fronts (datasets/dmir/docs/nas-results.md; results doc renamed from
+-prelim; CSVs in datasets/dmir/results/nas-fronts/): LCR MAE 0.287/RMSE 0.447 @ 115 KB
 (0.290 @ 64 KB) — beats SOTA; LCL 0.325/0.501 @ 83 KB; **classification 92.1%
 @ 82 KB (91.3% @ 7.8 KB) — matches internal ref 92%**; no-indicator 91.1% @
 20 KB (90.2% @ 11 KB). All better than the partial run. Paper table + NOTES +
@@ -301,14 +301,14 @@ DMIR inputs (wide per-channel dynamic range): LCR MAE 0.287->0.449, cls
 92.1%->86.9%, cls-noind 91.1%->76.1%. **int16x8** (int8 weights, int16
 activations) preserves or slightly improves accuracy (cls 92.15%, LCR MAE
 0.286, cls-noind 91.08%) — so no QAT, avoiding the Keras-3/tfmot incompat.
-Deployment .tflite in results/tflite/; quantize_eval.py / quantize_compare.py.
+Deployment .tflite in datasets/dmir/results/tflite/; quantize_eval.py / quantize_compare.py.
 
 Footprints (compute_footprint.py; flash = tflite size, MACs + peak RAM from the
 arch): classification 92.15% @ 118 KB flash / 4.5 KB RAM / 152 k MACs (91.2% @
 19 KB / 4.4 KB / 30 k); LCR MAE 0.286 @ 161 KB / 11.3 KB / 852 k; cls-noind
 91.1% @ 45 KB / 4.2 KB / 36 k. **Every model fits even the STM32F401 (96 KB
 RAM), where the baseline Transformer did not fit** — SOTA-beating accuracy at a
-fraction of the size. docs/research/deployment.md; paper deployment section +
+fraction of the size. datasets/dmir/docs/deployment.md; paper deployment section +
 course lessons 09/10 updated.
 
 Blocked on user: measured on-device latency needs a myST account (ST Edge AI
@@ -322,7 +322,7 @@ Colleague sent the reference models (Materials/Models/, legacy HDF5).
 Evaluated (unas/eval_reference.py): cnn_multi 441k params = 91.5% test acc (the
 "92%"); transformer_lcr 333k / transformer_lcl 49k (RMSE 0.42/0.44 as reported;
 couldn't re-run — custom TransformerEncoder not in the public repo). Head-to-
-head (docs/research/reference-comparison.md): **classification is a clean win**
+head (datasets/dmir/docs/reference-comparison.md): **classification is a clean win**
 (ours 92.1% @ 84k vs 441k @ 91.5%; 8k matches at 55x smaller); regression NOT a
 win vs the internal transformers on RMSE.
 
@@ -363,7 +363,7 @@ Three deliverables in one session (all workflow-verified):
    Zoph/Real citations; board-choice rationale recorded (same platform as the
    published baseline = like-for-like; unit available in ELIOS lab).
 2) Notebook dmir_pipeline.ipynb now covers the whole research arc: new §8-§11
-   (verified Pareto fronts from results/nas-fronts, quantization artifact
+   (verified Pareto fronts from datasets/dmir/results/nas-fronts, quantization artifact
    sizes read from disk, measured ST Edge AI deployment, scoreboard) via new
    src/results_viz.py; executed headlessly end-to-end, 0 errors.
 3) Course is trilingual: full English and Italian editions (course/en/,
@@ -374,7 +374,7 @@ Three deliverables in one session (all workflow-verified):
 
 ## 2026-07-24 16:36 — QAT recovers the int8 drop: cls_best 86.9% -> 89.8% (same footprint)
 
-User asked to try QAT after the ~5-point int8 PTQ drop (92.08->86.86). Did it, honestly. tfmot 8-bit only registers 2D layers, so searched 1D cls_best re-expressed with width-1 kernels (Conv1D->Conv2D(k,1), Pool1D->Pool2D(p,1), depthwise strides (s,1)->(s,s)=no-op at width 1). Re-expression proven exact: float-2D 0.9208 (=1D orig), PTQ-2D 0.8686 (=measured 1D int8), so PTQ-vs-QAT is single-variable. QAT fine-tune (Adam 2e-4, 22/40 epochs, val early-stop restore-best) -> int8 89.82%, +2.96 pts (57% of gap) at same footprint (101,616 B tflite, float32 I/O). Ran in WSL dmir_nas (TF 2.21/tf_keras/tfmot 0.8.1); needed Keras-3->tf_keras port (rebuild from adjacency + per-layer weight transfer). Code unas/qat_finetune.py; artifact results/qat/cls_best_qat_int8.tflite. NOT yet on-device (expected ~int8 PTQ 1.885 ms / 104 KB). deployment.md, paper, course L09 fa/en/it, experiments.jsonl all updated.
+User asked to try QAT after the ~5-point int8 PTQ drop (92.08->86.86). Did it, honestly. tfmot 8-bit only registers 2D layers, so searched 1D cls_best re-expressed with width-1 kernels (Conv1D->Conv2D(k,1), Pool1D->Pool2D(p,1), depthwise strides (s,1)->(s,s)=no-op at width 1). Re-expression proven exact: float-2D 0.9208 (=1D orig), PTQ-2D 0.8686 (=measured 1D int8), so PTQ-vs-QAT is single-variable. QAT fine-tune (Adam 2e-4, 22/40 epochs, val early-stop restore-best) -> int8 89.82%, +2.96 pts (57% of gap) at same footprint (101,616 B tflite, float32 I/O). Ran in WSL dmir_nas (TF 2.21/tf_keras/tfmot 0.8.1); needed Keras-3->tf_keras port (rebuild from adjacency + per-layer weight transfer). Code unas/qat_finetune.py; artifact datasets/dmir/results/qat/cls_best_qat_int8.tflite. NOT yet on-device (expected ~int8 PTQ 1.885 ms / 104 KB). deployment.md, paper, course L09 fa/en/it, experiments.jsonl all updated.
 
 ## 2026-07-24 16:55 — QAT int8 measured on-device: 89.82% @ 1.558 ms (fastest point)
 
@@ -406,7 +406,7 @@ Generalized unas/qat_finetune.py to any task (+ new unas/export_graph.py for the
 
 ## 2026-07-27 16:24 — int8 I/O artifact ready: cls_best_int8_io.tflite (predicts RAM 8,096 -> ~3,446 B)
 
-Built unas/export_int8_io.py and produced results/deploy/cls_best_int8_io.tflite (112,568 B, int8 in / int8 out, input scale 1.10578 zero_point 38). Verified accuracy-neutral: 0.868624 through a quantizing interpreter, identical to the float32-I/O build to six decimals and matching the measured 0.8686. The float32-I/O control rebuilt BYTE-FOR-BYTE identical to the committed cls_best_int8.tflite (112,912 B), confirming the converter is deterministic and the script reproduces prepare_deploy.py exactly. Found and documented a latent trap: eval_tflite in prepare_deploy.py/quantize_eval.py only CASTS (.astype), a no-op for float32 interfaces (so all existing numbers are unaffected) but it would silently destroy an int8 input - export_int8_io.py carries its own quantize-in/dequantize-out evaluator. Insight worth keeping: the float32 interface never protected accuracy, because the float32-I/O build already quantizes the input internally with the same scale (the visible conversion_0 op); the int8 interface merely moves that cast off the device. It was costing RAM and buying nothing. PENDING: one ST upload to confirm RAM 8,096 -> ~3,446 B (-4,650 B float32 input buffer) and that conversion_0 disappears; flash/latency should be unchanged. deployment.md + NOTES updated.
+Built unas/export_int8_io.py and produced datasets/dmir/results/deploy/cls_best_int8_io.tflite (112,568 B, int8 in / int8 out, input scale 1.10578 zero_point 38). Verified accuracy-neutral: 0.868624 through a quantizing interpreter, identical to the float32-I/O build to six decimals and matching the measured 0.8686. The float32-I/O control rebuilt BYTE-FOR-BYTE identical to the committed cls_best_int8.tflite (112,912 B), confirming the converter is deterministic and the script reproduces prepare_deploy.py exactly. Found and documented a latent trap: eval_tflite in prepare_deploy.py/quantize_eval.py only CASTS (.astype), a no-op for float32 interfaces (so all existing numbers are unaffected) but it would silently destroy an int8 input - export_int8_io.py carries its own quantize-in/dequantize-out evaluator. Insight worth keeping: the float32 interface never protected accuracy, because the float32-I/O build already quantizes the input internally with the same scale (the visible conversion_0 op); the int8 interface merely moves that cast off the device. It was costing RAM and buying nothing. PENDING: one ST upload to confirm RAM 8,096 -> ~3,446 B (-4,650 B float32 input buffer) and that conversion_0 disappears; flash/latency should be unchanged. deployment.md + NOTES updated.
 
 ## 2026-07-27 16:35 — int8 I/O measured: RAM 8,096 -> 5,444 B; badge puzzle solved; new board (H573I-DK)
 
@@ -418,7 +418,7 @@ The earlier H573I-DK screenshot was a mix-up (user flagged it); the real cls_bes
 
 ## 2026-07-28 11:58 — Built QAT + int8 I/O: 89.90%, fully integer, ready to upload
 
-Combined the two independent wins. unas/qat_finetune.py now (a) is seeded (SEED=42), (b) saves the trained fake-quant model so future interface variants need no retraining, and (c) emits BOTH the float32-I/O and int8-I/O int8 builds from the SAME trained model, so the pair differs only by interface. Result: results/qat/cls_best_qat_int8_io.tflite, 101,064 B, int8 in/out (scale 1.149315, zp 32), tensor inventory 22 int8 + 9 int32 and ZERO float32 - fully integer end to end, where the float32-I/O builds still carried two float32 tensors. Accuracy 89.90%, and the same-run float32-I/O build also scores 89.90%, so the interface is accuracy-neutral for QAT exactly as it was for PTQ. Anchors exact again (float 0.9208, PTQ 0.8686). REPRODUCIBILITY: the seeded re-run scores 89.90% where the original unseeded run scored 89.82% - a 0.08 pt fine-tuning stochastic spread, now eliminated by seeding. Deliberately restored the committed cls_best_qat_int8.tflite to its ORIGINAL bytes (the re-run had overwritten it) because the measured 1.558 ms / 8,404 B row belongs to those exact bytes; provenance preserved. Pending one upload: expect ~89.90% accuracy, RAM well under 8,404 B, latency under 1.558 ms, flash ~128 KiB. If it lands it is the best classifier operating point measured. deployment.md, NOTES, experiments.jsonl.
+Combined the two independent wins. unas/qat_finetune.py now (a) is seeded (SEED=42), (b) saves the trained fake-quant model so future interface variants need no retraining, and (c) emits BOTH the float32-I/O and int8-I/O int8 builds from the SAME trained model, so the pair differs only by interface. Result: datasets/dmir/results/qat/cls_best_qat_int8_io.tflite, 101,064 B, int8 in/out (scale 1.149315, zp 32), tensor inventory 22 int8 + 9 int32 and ZERO float32 - fully integer end to end, where the float32-I/O builds still carried two float32 tensors. Accuracy 89.90%, and the same-run float32-I/O build also scores 89.90%, so the interface is accuracy-neutral for QAT exactly as it was for PTQ. Anchors exact again (float 0.9208, PTQ 0.8686). REPRODUCIBILITY: the seeded re-run scores 89.90% where the original unseeded run scored 89.82% - a 0.08 pt fine-tuning stochastic spread, now eliminated by seeding. Deliberately restored the committed cls_best_qat_int8.tflite to its ORIGINAL bytes (the re-run had overwritten it) because the measured 1.558 ms / 8,404 B row belongs to those exact bytes; provenance preserved. Pending one upload: expect ~89.90% accuracy, RAM well under 8,404 B, latency under 1.558 ms, flash ~128 KiB. If it lands it is the best classifier operating point measured. deployment.md, NOTES, experiments.jsonl.
 
 ## 2026-07-28 12:32 — QAT + int8 I/O measured: 89.90% @ 1.435 ms - best configuration in the project
 

@@ -8,7 +8,7 @@ Date 2026-07-09. Source: four aging-evolution searches (RTX 5070, WSL2, ELIOS
 (`unas/harvest_fronts.py`), not the fork's console output (its `val_error` is an
 optimistic `min(val_mae)`). Footprint = int8 weight bytes (= parameter count);
 peak RAM, MACs, and measured latency come from ST Edge AI at deployment.
-Front CSVs: `results/nas-fronts/*.csv`.
+Front CSVs: `datasets/dmir/results/nas-fronts/*.csv`.
 
 Reference points: published SOTA (Forneris et al., SPL 2026, Transformer
 ~54k params, FP32): single TTLC MAE 0.298 / RMSE 0.510. Internal unpublished

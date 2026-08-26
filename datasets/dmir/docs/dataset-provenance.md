@@ -68,7 +68,7 @@ excluded.
 validation users {5,8,10,12,16,19,27}; test users {2,7,13,18,25,31,36};
 train = remaining 36 users.
 
-## Empirically resolved (2026-07-07, scripts/analysis/ — see docs/DATA.md)
+## Empirically resolved (2026-07-07, scripts/analysis/ — see datasets/dmir/docs/DATA.md)
 
 - [x] **Driver-wise split confirmed** by window-matching per-user H5 sessions
       against the pickles (official val/test user sets reproduced exactly).
