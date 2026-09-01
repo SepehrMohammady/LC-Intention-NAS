@@ -427,3 +427,23 @@ Combining the two independent wins landed exactly as predicted, and it is now th
 ## 2026-07-28 13:04 — Paper audit: fixed an inverted claim, 2 contradictions and ~20 numeric/scope errors
 
 Ran a 6-agent audit of paper/main.tex against the source-of-truth docs. It caught things I had missed. BLOCKERS: (1) the regression claim was INVERTED - the paper said we beat the published SOTA at "2-3x fewer parameters", but our regressors are 117k/106k against the published Transformer ~54k, i.e. ~2x LARGER; rewritten as an accuracy+deployability claim at comparable parameter count, with the task-mismatch caveat (their single combined-direction TTLC on 30 channels vs our per-direction models on 31). (2) the contributions claimed we beat the published baseline "on all three tasks" - the published baseline has only ONE task, and the three-task comparison is against the internal reference, which we LOSE on both regression RMSEs. (3)+(4) abstract placeholders filled with real measured numbers, and its promise of int8-headline corrected to float32-headline to match the tables. CONTRADICTIONS: LCL RMSE printed as 0.50 in the footnote and 0.47 in the body two paragraphs apart (0.466 is right); reference CNN accuracy 91.5 in one table and 91.7 in the other (91.7 clipped is protocol-consistent). NUMERIC FIXES: F401 QAT flash 25.6%->25.0% (also wrong in deployment.md), board SRAM 1.4MB->1184KB, reference FC share 95%->93%, head reduction 6x->5.9x, LCL MAE 0.33->0.32 (double-rounded AND from the superseded pre-RMSE-rerun model), DSCNN 10k->10.5k, flash 1729->1728 KiB (tflite size vs ST-measured flash), 47x->46.6x, LCL RAM 26.5->27.6 KB (activations quoted where the others were totals), LCR RAM 20.8->20.3, param gap 9x->10.5x, headroom 100->98 KB. SCOPE FIXES: the caption claimed both reference models were re-evaluated (only the CNN was; the Transformers could not be re-run); "our search optimizes MAE" is no longer blanket-true since the LCL model comes from the RMSE-objective re-run; the per-layer-time claim was float32-only and documented for one classifier (int8 inverts it); the LCL liveness arithmetic did not reach its own stated peak (missing the 12.0 KB live branch output); "allocator fragmentation" asserted a mechanism the source declines to assign; "2D-only" mis-attributed a tfmot QAT restriction to ST. TODOs: 6 resolved and deleted (abstract results, memory ratio, STM32 part, fileTime/channel-31, RAM+MACC+latency columns, RMSE framing), search-space ranges filled from the fork schema (which also proved unas-method.md wrong: kernels are {3,5,7} not {3,5,7,9}), Setup section written, ST Edge AI documentation citation added and the previously-uncited forneris2024dmir now cited. STYLE: the one "not only X but also Y" removed; em-dashes cut 16->8 prose instances to meet the <=2/page budget; blocklist clean. 8 TODOs remain, all genuinely open (co-authors/supervisor/grant - now tracked in NOTES - plus the unwritten Introduction, Related Work and Conclusion). PDF rebuilds clean at 4 pages with no undefined references.
+
+## 2026-09-01 16:55 — highD: protocol reimplemented, baseline beats published Table III
+
+Access granted + downloaded (879 MB, gitignored, non-redistributable).
+Reimplemented the EarlyLCPred scenario protocol (Mozaffari et al., T-IV 2022):
+35-frame scenarios @5 Hz ending at lane crossing, 18 state_ours features,
+balanced LK undersampling, split by recording 1-50/51-55/56-60. Validation
+against the paper: train 7,487 EXACT, val 932 EXACT, test 693 vs 698 (0.7%).
+
+Baseline DSCNN (8,371 params) under THEIR exact metric formulas
+(eval_their_protocol.py transcribes utils.py):
+acc 0.911 / F1 0.930 / AUC 0.959 / tau_c 4.79 s / TTLC RMSE 0.276 s
+vs their proposed BEV-attention model 0.83 / 0.85 / 0.88 / 3.96 / 0.629.
+Every Table III entry exceeded. Caveats in datasets/highd/docs/baseline-results.md
+(reimplementation, not their harness; cuDNN variance ~0.3 pt; 5-s boundary
+ambiguity). TTLC label uses their (26-s)/5 convention.
+
+Launched overnight aging-evolution searches highd_cls + highd_ttlc (150 rounds
+each, pop 50 sample 15, bounds 32 KB peak-mem / 32 KB size / 500k MACs) via
+unas/run_chunked_highd.sh; smoke 3/3 candidates passed first.
