@@ -447,3 +447,14 @@ ambiguity). TTLC label uses their (26-s)/5 convention.
 Launched overnight aging-evolution searches highd_cls + highd_ttlc (150 rounds
 each, pop 50 sample 15, bounds 32 KB peak-mem / 32 KB size / 500k MACs) via
 unas/run_chunked_highd.sh; smoke 3/3 candidates passed first.
+
+## 2026-09-02 10:47 — highD searches complete: cls 13 models, ttlc salvaged to 25
+
+Both 150-round searches finished overnight. cls front 7.9k-38k params, best
+90.53% @ 7,904 (baseline 91.1% @ 8.4k still leads — 0.07 bound tilts fitness
+to size). ttlc first run saved 0 models (all val MAE > 0.16 bound; saver drops
+out-of-bound models) — salvage resume with bound 0.20 + save-all captured 25;
+best test MAE 0.1624/RMSE 0.2614 @ 80k, 0.1656/0.2608 @ 27.7k vs baseline
+0.169/0.276 @ 8.4k. All dominate published RMSE 0.629. Gotchas recorded:
+saver bound-gating, fork test_error==val_error, chunk-log overwrite (history
+recovered from state pickle). One Ray OOM absorbed by chunked runner.
