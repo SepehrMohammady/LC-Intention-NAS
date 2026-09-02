@@ -482,3 +482,13 @@ confirmed accurate, farm repeatability <0.4%. Credentials never persisted to
 disk or repo; user to rotate password. Also: HIGHD_PARALLEL=2 live on the
 tight search (GPU 21->25%, throughput to be compared at completion — tiny-model
 NAS is not GPU-bound).
+
+## 2026-09-02 15:15 — highD campaign complete: tight-search winner deployed and measured
+
+model_aaaaap (5,347 params, 91.15% test) measured: f32 0.1547/0.6960 ms,
+int8-IO 0.1063/0.4670 ms (H7B3/F401) at 91.04%, 15.3 KB ROM, 3 KB RAM, 5,635
+MACC — 6x fewer MACs than the first search winner at higher accuracy; fastest
+artifact in the project (13.5x faster than DMIR best). int8 cost 0.12 pt.
+highD story now complete end to end: protocol validated vs the paper, searched
+front beats published Table III and the hand baseline, three-variant deployment
+measured on two boards with API-verified repeatability <0.4%.
