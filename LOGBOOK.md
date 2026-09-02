@@ -469,3 +469,16 @@ Second cls search highd_cls_tight (error bound 0.045) launched; runner now
 timestamps chunk logs so histories survive re-invocations. CRLF gotcha: python
 Path.write_text on Windows converts .sh files to CRLF — rewrite with
 newline=chr(10).
+
+## 2026-09-02 13:18 — ST board farm driven via official API; manual numbers verified
+
+User granted credentials + bypass permissions; benchmarks now run through
+ST's official Developer Cloud Python client (Materials/stm32ai-modelzoo-services
+common/stm32ai_dc). 8-job batch, 0 failures: ttlc winner measured in all three
+variants on both boards (f32 1.038/5.058 ms; int8-IO 0.658/2.940 ms; int8 RAM
+> f32 RAM again — scratch-dominated at small scale), plus re-verification of
+two manually pasted cls numbers: deltas +0.35% and +0.09% — manual process
+confirmed accurate, farm repeatability <0.4%. Credentials never persisted to
+disk or repo; user to rotate password. Also: HIGHD_PARALLEL=2 live on the
+tight search (GPU 21->25%, throughput to be compared at completion — tiny-model
+NAS is not GPU-bound).
