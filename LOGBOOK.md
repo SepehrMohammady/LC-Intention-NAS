@@ -458,3 +458,14 @@ best test MAE 0.1624/RMSE 0.2614 @ 80k, 0.1656/0.2608 @ 27.7k vs baseline
 0.169/0.276 @ 8.4k. All dominate published RMSE 0.629. Gotchas recorded:
 saver bound-gating, fork test_error==val_error, chunk-log overwrite (history
 recovered from state pickle). One Ray OOM absorbed by chunked runner.
+
+## 2026-09-02 11:04 — highD deploy artifacts built; tight-bound cls search running
+
+Six TFLite artifacts in datasets/highd/results/deploy (f32 / int8 / int8-IO
+for cls model_aaaaam 7.9k and ttlc model_aaaaaw 27.7k), all evaluated on real
+test windows. PTQ drop: cls -1.4 pt (much milder than DMIR 5.2 — min-max
+inputs), ttlc +13% relative MAE (task asymmetry again). QAT deferred.
+Second cls search highd_cls_tight (error bound 0.045) launched; runner now
+timestamps chunk logs so histories survive re-invocations. CRLF gotcha: python
+Path.write_text on Windows converts .sh files to CRLF — rewrite with
+newline=chr(10).
