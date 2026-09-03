@@ -492,3 +492,32 @@ artifact in the project (13.5x faster than DMIR best). int8 cost 0.12 pt.
 highD story now complete end to end: protocol validated vs the paper, searched
 front beats published Table III and the hand baseline, three-variant deployment
 measured on two boards with API-verified repeatability <0.4%.
+
+## 2026-09-03 12:28 — AI-tell audit across the whole project; course lesson 12; public-repo cleanup
+
+AUDIT. 23-agent sweep of every prose surface (docs, docstrings, notebook
+markdown, 39 course pages, manuscript) against paper/STYLE.md. Verifiers
+rejected 55 of 85 candidates as legitimate technical usage; 30 confirmed and
+fixed. Substantive ones, not just style: the paper claimed "automotive-grade"
+hardware when neither board is an automotive part; a paragraph restated
+Section III-C verbatim; unas/quantize_eval.py promised a uint8-I/O artifact it
+never writes; highD docs claimed "nobody in this literature reports" the
+deployment axis, narrowed to their Table III. Register fix in deployment.md
+(a first-person-singular post-mortem inside a we-document, closing on an
+aphorism addressed to "you"). Em-dashes 96 -> 82 and 22 -> 14; a mechanical
+first pass created three comma splices, repaired by hand. STYLE.md gained
+section E with the 13 tells this project actually exhibits.
+
+COURSE. Lesson 12 written in all three languages: the second dataset, why
+DMIR and highD are different tasks (ego driver vs surrounding vehicles), the
+protocol-reproduction discipline (7,487/932 exact, 693 vs 698 declared), the
+results, and the three findings only a second dataset could produce
+(data-dependent quantization damage, the conditional int8-I/O RAM rule, the
+search being overhead-bound not GPU-bound). Indexes and lesson-11 navigation
+updated in fa/en/it. Quiz distractors length-balanced so the correct option is
+never the longest. 42 pages validated: 0 tag errors, 0 broken links, 39 quizzes
+parse.
+
+REPO. MIT LICENSE added with a README section separating code terms from
+dataset terms; CITATION.cff; CLAUDE.md and the dead root index.html moved out
+of version control; run_baseline.py and prepare_deploy_highd.py documented.
