@@ -1,4 +1,4 @@
-# µNAS and constrained-NAS landscape
+# µNAS and constrained-NAS work
 
 Researched 2026-07-07. Primary source: Liberis, Dudziak, Lane, "µNAS:
 Constrained Neural Architecture Search for Microcontrollers," EuroMLSys 2021,
