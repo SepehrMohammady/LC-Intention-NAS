@@ -532,3 +532,32 @@ accent blue vs neutral baseline). For the highD table the tight-search winner
 was scored with the transcribed T-IV metrics: acc 0.912, precision 0.966, recall
 0.896, F1 0.930, AUC 0.962, tau_c 4.53 s (baseline 4.79 s). Deck left local; the
 metric JSON and doc note are committed.
+
+## 2026-09-08 17:17 — Reference Transformers measured on the boards: the deployment cost is now data
+
+Partners are pushing Transformers; Luca flagged the latency objection. The
+project had never deployed one, so unas/transformer_deploy.py rebuilds both
+internal reference Transformers from the configuration stored inside their .keras
+files (three custom layer classes exist in no public repo, so load_model fails)
+and loads the original weights.
+
+Scope, stated in every record: architecture is exact (params match to the unit,
+333,505 / 49,089) but the rebuilt RMSE does not reproduce the reported
+0.42/0.44, so accuracy is never claimed. Latency/flash/RAM depend on the
+operator graph, not weight values, so those are reported.
+
+Measured (ST Edge AI 4.0.1, balanced, fp32):
+  Transformer LCR 333k: 368.82 ms H7B3; does not fit F401 (1,368,946 B flash vs
+    524,288; 143,300 B RAM vs 98,304). 95.2 M MACs.
+  ours lcr_best 117k:  14.06 ms  -> 26.2x faster, 111x fewer MACs
+  Transformer LCL  49k:  45.64 ms H7B3, 248.37 ms F401. 33.9 M MACs.
+  ours lcl_best 106k:  28.77 ms  -> 1.59x faster with 2.2x MORE parameters
+
+Headline finding: the LCL Transformer has 0.46x our parameters and 20x our MACs.
+Parameter count badly understates Transformer cost because attention recomputes
+across the sequence. Both convert with TFLite builtin ops only, so the honest
+claim is cost, not infeasibility. At 100 km/h the LCR Transformer spends 10.2 m
+of road per inference against 0.39 m for ours.
+
+Briefing in qub/docs/transformer-on-mcu.md; backup slide added to the T4.5 deck
+(v2, since the original was open).
