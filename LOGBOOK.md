@@ -521,3 +521,14 @@ parse.
 REPO. MIT LICENSE added with a README section separating code terms from
 dataset terms; CITATION.cff; CLAUDE.md and the dead root index.html moved out
 of version control; run_baseline.py and prepare_deploy_highd.py documented.
+
+## 2026-09-08 16:56 — T4.5 SYNERGIES update deck; searched highD classifier scored with their metrics
+
+Built the T4.5 meeting deck on the SYNERGIES template (Materials/T4.5, local):
+opening, 4 content slides (chain + two datasets, DMIR measured results, highD
+protocol + results, compression findings / October questions / next), closing;
+speaker notes on every slide; charts in the template palette (validated pair:
+accent blue vs neutral baseline). For the highD table the tight-search winner
+was scored with the transcribed T-IV metrics: acc 0.912, precision 0.966, recall
+0.896, F1 0.930, AUC 0.962, tau_c 4.53 s (baseline 4.79 s). Deck left local; the
+metric JSON and doc note are committed.
