@@ -626,3 +626,40 @@ is an illustration of the measured latency and is labelled so on the picture,
 in the caption and in the notes; the plain version is delivered alongside.
 Outputs local: Materials/T4.5/race/{race.gif, race_whatif.gif, race_still*.png,
 race.html} and Materials/T4.5/T4.5_extra-slide_DMIR-race.pptx (two slides).
+
+## 2026-09-09 22:47 — DMIR race: the what-if rebuilt around the recorded car in the target lane
+
+Feedback on the first what-if: the hazard was an invented box in the ego's own
+lane, but DMIR is about warning the driver, and the situation the dataset
+actually contains is a lane change into a car the driver may not have seen.
+
+Rebuilt on that. A four-lens review (claims, visuals, counterfactual maths,
+skeptical audience) of the first version found the old crash was an artefact:
+the counterfactual driver was anchored on the frame where the recorded lateral
+displacement first exceeds 0.4 m (-1.2 s), and any anchor at -1.5 s or earlier
+produced no crash at all. The margin was also measured centre-to-centre while
+the crash test used bumper overlap.
+
+The recorded scene now drives the whole slide: the driver closes on a slower
+car (the brake is never pressed; he lifts off, 33 -> 25 m/s), signals at
+-3.5 s, and a car in the target lane is 22 m behind closing at 15 m/s at the
+searched model's flag. He waited for it and steered at -1.2 s, after it passed.
+The recording contains no conflict, and the slide says so.
+
+The counterfactual is now one driver, the same in all five rows, with one
+parameter taken from the recording: he commits at the indicator and crosses at
+the recording's own top lateral rate (1.26 m/s), reaching the recorded car at
+-2.2 s. Each row stops him if its warning arrives more than TAU before that.
+Margins: searched 84k 1.30 s, QAT int8 1.10 s, 8k 1.10 s, reference CNN 1.07 s,
+reference-size Transformer 0.73 s. At TAU 0.75 s and 1.00 s the Transformer row
+is the only one too late; at 1.25 s only the searched float model still stops;
+at 1.5 s none do. That sensitivity is printed on the picture and the HTML has a
+slider for it.
+
+Other corrections from the review, all applied: the QAT row's two board figures
+are different builds (int8-I/O on the H7B3, float-I/O on the F401) and are now
+marked; the indicator time was 3.5 s not 3.6; the hazard figures belong to the
+-3.5 s flag; the scenario is one of two events at the median and was picked
+between them by the presence of the target-lane car; the header speed (90 km/h
+at the crossing) differs from the speed the answer bars use (101 km/h at the
+flag). Predictions were re-run and match the previous file (argmax 100%).
