@@ -592,3 +592,37 @@ latency (no highD Transformer exists).
 Outputs stay local (Materials/T4.5/replay, data/replay under the gitignored
 highD data folder); the slide is a separate one-slide file on the SYNERGIES
 template because the user has edited the main deck by hand.
+
+## 2026-09-09 13:06 — DMIR: five-model race replay for the T4.5 extra slide
+
+Request: one more visual, DMIR this time, with one car per model of the
+deck's table on the same scenario, all starting together, and a crash for the
+slow model to show what latency costs.
+
+The pickles are shuffled windows, so datasets/dmir/scenario_race.py rebuilds a
+continuous scene from the raw H5 sessions of the two official test drivers.
+The provider's preprocessing was recovered rather than guessed: windows located
+in the test pickle by correlation, one affine map per channel fitted and then
+checked to reproduce those windows (6,063 windows, max deviation 1.4e-7; the
+map agrees between drivers to 2e-10). Findings recorded in feature-map.md:
+indicator channels unscaled, car1 = nearest object among slots 1-10, car2 =
+object slot 11 (the scenario's left car), absent car = zeros.
+
+164 lane-change events cut (t = -8 .. +2 s); the four table models run on all
+16,564 windows in WSL (REF_cnn_multi, cls_best, cls_best QAT int8 I/O,
+cls_tiny). First robust flag before the crossing, medians over the 101 usable
+events: reference CNN -3.7 s, searched 84k -3.5 s, QAT int8 -2.7 s, 8k -3.3 s.
+The QAT model flags noticeably later than its float parent; worth a look.
+Chosen scene = closest to the searched model's median: driver 2, left lane
+change at 90 km/h, braking behind a slower car while a faster car passes on
+the left; flags -3.3/-3.5/-3.3/-3.3 s.
+
+datasets/dmir/render_race.py draws five rows (four table models + a
+reference-size Transformer using the measured 368.82 ms of the DMIR regression
+reference, assumed to flag with the reference CNN), answer bars in road metres
+(94 cm, 10 cm, 4 cm, 2 cm, 10.3 m), roof light when the answer is ready, and an
+optional what-if hazard one car length ahead of the question point. The crash
+is an illustration of the measured latency and is labelled so on the picture,
+in the caption and in the notes; the plain version is delivered alongside.
+Outputs local: Materials/T4.5/race/{race.gif, race_whatif.gif, race_still*.png,
+race.html} and Materials/T4.5/T4.5_extra-slide_DMIR-race.pptx (two slides).
