@@ -561,3 +561,34 @@ of road per inference against 0.39 m for ours.
 
 Briefing in qub/docs/transformer-on-mcu.md; backup slide added to the T4.5 deck
 (v2, since the original was open).
+
+## 2026-09-09 12:28 — highD: scenario replay for the T4.5 extra slide
+
+Request: one extra slide that shows the same real lane change under the
+different methods, so the comparison is visible rather than tabular.
+
+datasets/highd/scenario_replay.py picks the scenario and runs the models:
+candidates are test-split lane changes with at least 2 s of track after the
+crossing and a neighbour in the target lane; the chosen one is the candidate
+whose searched-model robust horizon is closest to the model's test-set average
+(4.53 s), i.e. a typical case, not a flattering one. Chosen: recording 56,
+vehicle 221, left lane change at 119 km/h, crossing frame 2760. Searched 5.3k
+classifier: first correct call at 5.0 s, robust from 4.6 s. Hand CNN 8.4k:
+robust from 4.8 s. Of the 60 candidates, 22 are called from the first window
+(5.2 s). Predictions come from the trained models over the scenario's 26
+evaluation windows; nothing is synthesised.
+
+datasets/highd/render_replay.py draws it from the raw 25 Hz positions and the
+recording's lane markings: animated GIF (113 frames, 12.5 fps, for slideshow
+mode), a still at the 4.6 s flag, and a self-contained interactive HTML page
+(slider, play, toggles). Traces and the flag are revealed as the replay
+advances. A band under the road shows road covered during ONE inference at the
+scenario speed: 4 mm for the int8 searched model (0.1063 ms on H7B3I-DK),
+12.2 m for the DMIR reference Transformer (368.82 ms, same board). Two items
+are averages and are labelled as such on the picture: the T-IV model's robust
+horizon (3.96 s, test-set average, model not public) and the Transformer
+latency (no highD Transformer exists).
+
+Outputs stay local (Materials/T4.5/replay, data/replay under the gitignored
+highD data folder); the slide is a separate one-slide file on the SYNERGIES
+template because the user has edited the main deck by hand.
