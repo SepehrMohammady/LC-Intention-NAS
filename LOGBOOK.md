@@ -694,3 +694,7 @@ with seed means and the DSCNN rows; paper draft switched to seed means and the
 corrected search-space description (PDF rebuilt); NOTES audit with options for the
 supervisor. Side note recorded in highD docs: the highD replay's Transformer latency
 is the DMIR-shaped model; on 10 × 18 it needs 5× fewer FLOPs, so it must be measured.
+
+## 2026-09-16 17:48 — Target venue: IEEE Transactions on Intelligent Vehicles
+
+Decided by Sepehr. The paper grows from the 4-page SPL-style DMIR draft into a full journal paper; highD goes in, exiD if access and time allow. T-IV is also where the highD protocol we reproduce was published (Mozaffari et al., 2022). Still open: which story leads (search-led after fixing and re-running the search, or deployment-led with searched and hand-built models compared on the boards). exiD access: the levelXdata non-commercial application is being prepared.
