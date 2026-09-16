@@ -698,3 +698,7 @@ is the DMIR-shaped model; on 10 × 18 it needs 5× fewer FLOPs, so it must be me
 ## 2026-09-16 17:48 — Target venue: IEEE Transactions on Intelligent Vehicles
 
 Decided by Sepehr. The paper grows from the 4-page SPL-style DMIR draft into a full journal paper; highD goes in, exiD if access and time allow. T-IV is also where the highD protocol we reproduce was published (Mozaffari et al., 2022). Still open: which story leads (search-led after fixing and re-running the search, or deployment-led with searched and hand-built models compared on the boards). exiD access: the levelXdata non-commercial application is being prepared.
+
+## 2026-09-16 18:23 — Manuscript rewritten for IEEE T-IV
+
+The paper draft (local, paper/main.tex) now targets IEEE Transactions on Intelligent Vehicles: 9 pages covering DMIR and highD, with exiD as planned work. Framing follows the seed study: measured cost on the STM32H7B3I-DK and NUCLEO-F401RE, a seed-controlled comparison of searched, hand-designed and reference models, the reimplemented highD protocol, and the toolchain findings. Data figures are generated from the result files (paper/figures/make_figures.py) and a check script recomputes the table values from the same files; it caught one wrong standard deviation (searched LCL under the DSCNN recipe is 0.483 +/- 0.019 s, not 0.020), now corrected in nas-results.md, the notes and course lesson 13. scripts/build_paper.ps1 no longer stops pdflatex early: piping the compiler into Select-Object -First ended the process once 20 warning lines had matched.
