@@ -663,3 +663,34 @@ marked; the indicator time was 3.5 s not 3.6; the hazard figures belong to the
 between them by the presence of the target-lane car; the header speed (90 km/h
 at the crossing) differs from the speed the answer bars use (101 km/h at the
 flag). Predictions were re-run and match the previous file (argmax 100%).
+
+## 2026-09-16 15:56 — Seed study: the search matches, hand-built CNNs match or win
+
+Audit of the DMIR and highD results before the Q1 paper, triggered by the question
+of whether each headline number is a property of the architecture or of one run.
+
+Seed study, about 200 retrainings, seeds 0-4 throughout:
+- DMIR final models (`unas/seed_variance.py`, search recipe and `RECIPE=dscnn`) and
+  the hand-built DSCNN (`scripts/run_baseline.py <task> <seed>`, new seed argument).
+  Intention: searched 84 k 91.45 ± 0.59%, 8 k 91.19 ± 0.32%, reference CNN 91.33 ±
+  0.50%, DSCNN 10.5 k 91.50 ± 0.47%; no pair separates (p ≥ 0.27). Regression RMSE:
+  DSCNN 0.454 / 0.469 s against searched 0.483 / 0.496 s (search recipe) and
+  0.493 / 0.483 s (DSCNN recipe); MAE ties. Turn-signal ablation holds (89.99%).
+- highD: final models under both recipes; hand-built CNN 92.11 ± 0.71%; all 17 saved
+  classifiers re-ranked (`unas/rerank_front.py`): best mean 91.28% at 80 k, rank
+  correlation between reported run and mean −0.19, the best single run ranks 16/17.
+
+Causes found: the µNAS 1D head (pool → Flatten → hidden Dense, no dropout) cannot
+express the hand-built global-pooling head; single-run candidate scoring keeps lucky
+runs; the fork's ModelSaver restarts its file counter per chunk and per Ray worker,
+so saved .h5 files overwrite each other and no longer match `metadatas.json`
+(numbers measured on the files stand, "Pareto front" does not).
+
+Deliverables: `datasets/*/results/deploy/measurements.json` registries (every board
+number, API runs referenced into `benchmarks_api.jsonl`); `dashboard/` results
+explorer (one self-contained page per build, `--share` copy without status page and
+highD trajectory media); seed tables in both dataset docs; README headline table
+with seed means and the DSCNN rows; paper draft switched to seed means and the
+corrected search-space description (PDF rebuilt); NOTES audit with options for the
+supervisor. Side note recorded in highD docs: the highD replay's Transformer latency
+is the DMIR-shaped model; on 10 × 18 it needs 5× fewer FLOPs, so it must be measured.
